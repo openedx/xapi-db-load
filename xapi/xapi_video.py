@@ -1,0 +1,103 @@
+from uuid import uuid4
+import json
+
+from xapi.xapi_common import random_date, XAPIBase
+
+
+class BaseVideo(XAPIBase):
+    def get_data(self):
+        event_id = str(uuid4())
+        actor_id = self.parent_load_generator.get_actor()
+        course = self.parent_load_generator.get_course()
+        video_id = course.get_video_id()
+        emission_time = random_date()
+
+        e = self.get_randomized_event(event_id, actor_id, course, video_id, emission_time)
+
+        return {
+            "event_id": event_id,
+            "verb": self.verb,
+            "actor_id": actor_id,
+            "org": course.org,
+            "course_run_id": course.course_url,
+            "video_id": video_id,
+            "emission_time": emission_time,
+            "event": e
+        }
+
+    def get_randomized_event(self, event_id, account, course, video_id, create_time):
+        event = {
+            "id": event_id,
+            "actor": {
+                "objectType": "Agent",
+                "account": {"homePage": "http://localhost:18000", "name": account}
+            },
+            "context": {
+                "contextActivities": {
+                    "parent": [
+                        {
+                            "id": course.course_url,
+                            "objectType": "Activity",
+                            "definition": {
+                              "name": {
+                                "en-US": "Demonstration Course"
+                              },
+                              "type": "http://adlnet.gov/expapi/activities/course"
+                            }
+                        }
+                    ]
+                },
+                "extensions": {
+                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0",
+                    "https://w3id.org/xapi/video/extensions/length": 195.0
+                }
+            },
+            "object": {
+                "definition": {
+                    "type": "https://w3id.org/xapi/video/activity-type/video"
+                },
+                "id": video_id,
+                "objectType": "Activity"
+            },
+            "result": {
+                "extensions": {
+                    "https://w3id.org/xapi/video/extensions/time": 0.033
+                }
+            },
+            "timestamp": create_time.isoformat(),
+            "verb": {
+                "display": {
+                    "en": self.verb_display
+                },
+                "id": self.verb
+            },
+            "version": "1.0.3"
+        }
+
+        return json.dumps(event)
+
+
+class LoadedVideo(BaseVideo):
+    verb = "http://adlnet.gov/expapi/verbs/initialized"
+    verb_display = "initialized"
+
+
+class PlayedVideo(BaseVideo):
+    verb = "https://w3id.org/xapi/video/verbs/played"
+    verb_display = "play"
+
+
+# TODO: These three technically need different structures, though we're not using them now. Update!
+class StoppedVideo(BaseVideo):
+    verb = "http://adlnet.gov/expapi/verbs/terminated"
+    verb_display = "terminated"
+
+
+class PausedVideo(BaseVideo):
+    verb = "https://w3id.org/xapi/video/verbs/paused"
+    verb_display = "paused"
+
+
+class PositionChangedVideo(BaseVideo):
+    verb = "https://w3id.org/xapi/video/verbs/seeked"
+    verb_display = "seeked"
