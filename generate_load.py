@@ -95,6 +95,7 @@ class RandomCourse:
 class EventGenerator:
     known_actor_uuids = []
     known_courses = []
+    known_orgs = ['openedX', 'burritoX', 'tacoX', 'chipX', 'salsaX', 'guacX']
 
     def __init__(self, batch_size=BATCH_SIZE):
         self.batch_size = batch_size
@@ -108,9 +109,8 @@ class EventGenerator:
     def get_actor(self):
         return _get_random_thing(self.known_actor_uuids)
 
-    @staticmethod
-    def _generate_random_course():
-        org = choice(['openedX', 'burritoX', 'tacoX', 'chipX', 'salsaX', 'guacX'])
+    def _generate_random_course(self):
+        org = choice(self.known_orgs)
         course_uuid = str(uuid.uuid4())
         course_id = f"{org}+DemoX+{course_uuid}"
         course_url = f"http://localhost:18000/course/course-v1:{course_id}"

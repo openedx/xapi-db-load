@@ -35,6 +35,7 @@ def load_db(num_batches, batch_size, drop_tables_first, host, port, username, pa
         lake.batch_insert(events)
 
         if x % 100 == 0:
+            lake.do_queries(event_generator)
             lake.print_db_time()
             lake.print_row_counts()
 

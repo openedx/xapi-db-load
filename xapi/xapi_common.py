@@ -1,15 +1,14 @@
 from random import randrange
 import datetime
 
-END_DATETIME = datetime.datetime.utcnow()
-START_DATETIME = END_DATETIME - datetime.timedelta(days=365*5)
-
 
 def random_date():
-    delta = END_DATETIME - START_DATETIME
+    end_datetime = datetime.datetime.utcnow()
+    start_datetime = end_datetime - datetime.timedelta(days=365 * 5)
+    delta = end_datetime - start_datetime
     int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
     random_second = randrange(int_delta)
-    return START_DATETIME + datetime.timedelta(seconds=random_second)
+    return start_datetime + datetime.timedelta(seconds=random_second)
 
 
 class XAPIBase:
