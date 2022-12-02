@@ -1,7 +1,7 @@
 from uuid import uuid4
 import json
 
-from xapi.xapi_common import random_date, XAPIBase
+from xapi.xapi_common import XAPIBase
 
 
 class BaseVideo(XAPIBase):
@@ -10,9 +10,11 @@ class BaseVideo(XAPIBase):
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
         video_id = course.get_video_id()
-        emission_time = random_date()
+        emission_time = course.get_random_emission_time()
 
-        e = self.get_randomized_event(event_id, actor_id, course, video_id, emission_time)
+        e = self.get_randomized_event(
+            event_id, actor_id, course, video_id, emission_time
+        )
 
         return {
             "event_id": event_id,
@@ -22,7 +24,7 @@ class BaseVideo(XAPIBase):
             "course_run_id": course.course_url,
             "video_id": video_id,
             "emission_time": emission_time,
-            "event": e
+            "event": e,
         }
 
     def get_randomized_event(self, event_id, account, course, video_id, create_time):
@@ -30,7 +32,7 @@ class BaseVideo(XAPIBase):
             "id": event_id,
             "actor": {
                 "objectType": "Agent",
-                "account": {"homePage": "http://localhost:18000", "name": account}
+                "account": {"homePage": "http://localhost:18000", "name": account},
             },
             "context": {
                 "contextActivities": {
@@ -39,39 +41,30 @@ class BaseVideo(XAPIBase):
                             "id": course.course_url,
                             "objectType": "Activity",
                             "definition": {
-                              "name": {
-                                "en-US": "Demonstration Course"
-                              },
-                              "type": "http://adlnet.gov/expapi/activities/course"
-                            }
+                                "name": {"en-US": "Demonstration Course"},
+                                "type": "http://adlnet.gov/expapi/activities/course",
+                            },
                         }
                     ]
                 },
                 "extensions": {
                     "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0",
-                    "https://w3id.org/xapi/video/extensions/length": 195.0
-                }
+                    "https://w3id.org/xapi/video/extensions/length": 195.0,
+                },
             },
             "object": {
                 "definition": {
                     "type": "https://w3id.org/xapi/video/activity-type/video"
                 },
                 "id": video_id,
-                "objectType": "Activity"
+                "objectType": "Activity",
             },
             "result": {
-                "extensions": {
-                    "https://w3id.org/xapi/video/extensions/time": 0.033
-                }
+                "extensions": {"https://w3id.org/xapi/video/extensions/time": 0.033}
             },
             "timestamp": create_time.isoformat(),
-            "verb": {
-                "display": {
-                    "en": self.verb_display
-                },
-                "id": self.verb
-            },
-            "version": "1.0.3"
+            "verb": {"display": {"en": self.verb_display}, "id": self.verb},
+            "version": "1.0.3",
         }
 
         return json.dumps(event)

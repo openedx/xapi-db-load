@@ -1,22 +1,61 @@
 import click
 
-import clickhouse_insert_xapi as db
+import clickhouse_insert_xapi as clickhouse
+import mongo_insert_xapi as mongo
 from generate_load import EventGenerator
 
 # PASSWORD = "DdAzDVD5xrjwPLBgvVO4xPny"
 
 
 @click.command()
-@click.option("--num_batches", default=1, help="Number of batches to run, num_batches * batch_size is the total rows")
-@click.option("--batch_size", default=10000, help="Number of rows to insert per batch, num_batches * batch_size is the total rows")
-@click.option("--drop_tables_first", default=False, help="If True, the target tables will be dropped if they already exist")
+@click.option(
+    "--backend",
+    required=True,
+    type=click.Choice(["clickhouse", "mongo"], case_sensitive=True),
+    help="Which database backend to run against 'clickhouse' or 'mongo'",
+)
+@click.option(
+    "--num_batches",
+    default=1,
+    help="Number of batches to run, num_batches * batch_size is the total rows",
+)
+@click.option(
+    "--batch_size",
+    default=10000,
+    help="Number of rows to insert per batch, num_batches * batch_size is the total rows",
+)
+@click.option(
+    "--drop_tables_first",
+    default=False,
+    help="If True, the target tables will be dropped if they already exist",
+)
 @click.option("--host", default="localhost", help="Database host name")
 @click.option("--port", default="18123", help="Database port")
 @click.option("--username", default="ch_lrs", help="Database username")
-@click.option("--password", prompt="Database password", hide_input=True, help="Password for the database so it's not stored on disk")
+@click.option(
+    "--password",
+    prompt="Database password",
+    hide_input=True,
+    help="Password for the database so it's not stored on disk",
+)
 @click.option("--database", default="xapi", help="Database name")
-def load_db(num_batches, batch_size, drop_tables_first, host, port, username, password, database):
-    lake = db.XAPILake(host, port, username, password, database=database)
+def load_db(
+    backend,
+    num_batches,
+    batch_size,
+    drop_tables_first,
+    host,
+    port,
+    username,
+    password,
+    database,
+):
+    if backend == "clickhouse":
+        lake = clickhouse.XAPILakeClickhouse(
+            host, port, username, password, database=database
+        )
+    elif backend == "mongo":
+        lake = mongo.XAPILakeMongo(host, port, username, password, database=database)
 
     if drop_tables_first:
         lake.drop_tables()
@@ -39,10 +78,12 @@ def load_db(num_batches, batch_size, drop_tables_first, host, port, username, pa
             lake.print_db_time()
             lake.print_row_counts()
 
+        # event_generator.dump_courses()
+
     print(f"Done! Added {num_batches * batch_size} rows!")
     lake.print_db_time()
     lake.print_row_counts()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_db()

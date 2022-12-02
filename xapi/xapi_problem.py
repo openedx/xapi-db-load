@@ -1,7 +1,7 @@
 from uuid import uuid4
 import json
 
-from xapi.xapi_common import random_date, XAPIBase
+from xapi.xapi_common import XAPIBase
 
 
 # TODO: There are various other problem samples we should probably include eventually:
@@ -14,9 +14,11 @@ class BaseProblemCheck(XAPIBase):
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
         problem_id = course.get_problem_id()
-        emission_time = random_date()
+        emission_time = course.get_random_emission_time()
 
-        e = self.get_randomized_event(event_id, actor_id, course.course_url, problem_id, emission_time)
+        e = self.get_randomized_event(
+            event_id, actor_id, course.course_url, problem_id, emission_time
+        )
 
         return {
             "event_id": event_id,
@@ -26,44 +28,39 @@ class BaseProblemCheck(XAPIBase):
             "problem_id": problem_id,
             "course_run_id": course.course_url,
             "emission_time": emission_time,
-            "event": e
+            "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course_locator, problem_id, create_time):
+    def get_randomized_event(
+        self, event_id, account, course_locator, problem_id, create_time
+    ):
         browser_object = {
             "object": {
                 "definition": {
                     "type": "http://adlnet.gov/expapi/activities/cmi.interaction"
                 },
                 "id": problem_id,
-                "objectType": "Activity"
+                "objectType": "Activity",
             }
         }
 
         server_object = {
             "object": {
                 "definition": {
-                    "extensions": {
-                        "http://id.tincanapi.com/extension/attempt-id": 10
-                    },
+                    "extensions": {"http://id.tincanapi.com/extension/attempt-id": 10},
                     "description": {
                         "en-US": "Add the question text, or prompt, here. This text is required."
                     },
                     "interactionType": "other",
-                    "type": "http://adlnet.gov/expapi/activities/cmi.interaction"
+                    "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
                 },
                 "id": problem_id,
-                "objectType": "Activity"
+                "objectType": "Activity",
             },
             "result": {
                 "response": "A correct answer",
-                "score": {
-                    "max": 1,
-                    "min": 0,
-                    "raw": 0,
-                    "scaled": 0
-                },
-                "success": False
+                "score": {"max": 1, "min": 0, "raw": 0, "scaled": 0},
+                "success": False,
             },
         }
 
@@ -71,7 +68,7 @@ class BaseProblemCheck(XAPIBase):
             "id": event_id,
             "actor": {
                 "objectType": "Agent",
-                "account": {"homePage": "http://localhost:18000", "name": account}
+                "account": {"homePage": "http://localhost:18000", "name": account},
             },
             "context": {
                 "contextActivities": {
@@ -80,26 +77,19 @@ class BaseProblemCheck(XAPIBase):
                             "id": course_locator,
                             "objectType": "Activity",
                             "definition": {
-                              "name": {
-                                "en-US": "Demonstration Course"
-                              },
-                              "type": "http://adlnet.gov/expapi/activities/course"
-                            }
+                                "name": {"en-US": "Demonstration Course"},
+                                "type": "http://adlnet.gov/expapi/activities/course",
+                            },
                         }
                     ]
                 },
                 "extensions": {
                     "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"
-                }
+                },
             },
             "timestamp": create_time.isoformat(),
-            "verb": {
-                "display": {
-                    "en": self.verb_display
-                },
-                "id": self.verb
-            },
-            "version": "1.0.3"
+            "verb": {"display": {"en": self.verb_display}, "id": self.verb},
+            "version": "1.0.3",
         }
 
         if self.problem_type == "browser":

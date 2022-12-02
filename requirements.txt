@@ -1,2 +1,4 @@
+black
 click
 clickhouse-connect
+pymongo[srv]
