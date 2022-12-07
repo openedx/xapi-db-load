@@ -1,18 +1,15 @@
 import click
 
-import clickhouse_insert_xapi as clickhouse
-import mongo_insert_xapi as mongo
+from backends import clickhouse_lake as clickhouse, mongo_lake as mongo, citus_lake as citus
 from generate_load import EventGenerator
-
-# PASSWORD = "DdAzDVD5xrjwPLBgvVO4xPny"
 
 
 @click.command()
 @click.option(
     "--backend",
     required=True,
-    type=click.Choice(["clickhouse", "mongo"], case_sensitive=True),
-    help="Which database backend to run against 'clickhouse' or 'mongo'",
+    type=click.Choice(["clickhouse", "mongo", "citus"], case_sensitive=True),
+    help="Which database backend to run against",
 )
 @click.option(
     "--num_batches",
@@ -56,6 +53,10 @@ def load_db(
         )
     elif backend == "mongo":
         lake = mongo.XAPILakeMongo(host, port, username, password, database=database)
+    elif backend == "citus":
+        lake = citus.XAPILakeCitus(host, port, username, password, database=database)
+    else:
+        raise NotImplementedError(f"Unkown backend {backend}.")
 
     if drop_tables_first:
         lake.drop_tables()

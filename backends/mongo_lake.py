@@ -1,7 +1,7 @@
 from datetime import datetime
 import random
 
-from pymongo import MongoClient, IndexModel, ASCENDING, DESCENDING
+from pymongo import MongoClient, IndexModel
 
 
 class XAPILakeMongo:
@@ -13,8 +13,9 @@ class XAPILakeMongo:
 
         self.event_collection_name = "xapi_events_all"
 
-        # Provide the mongodb atlas url to connect python to mongodb using pymongo
+        # Provide the mongodb url to connect python to mongodb using pymongo
         # connection_string = f"mongodb://{username}:{password}@{host}/{database}"
+        # For Tutor we're not using username / password
         connection_string = f"mongodb://{host}/{database}"
         print(connection_string)
 
