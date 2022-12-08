@@ -84,15 +84,19 @@ class XAPILakeMongo:
 
         self.get_collection().insert_many(events)
 
-    def _run_query_and_print(self, query_name, query_func, query_param):
+    def _run_query_and_print(self, query_name, query_func, query_param=None):
         print(query_name)
         start_time = datetime.utcnow()
-        result = query_func(query_param)
+        if query_param:
+            result = query_func(query_param)
+        else:
+            result = query_func()
         end_time = datetime.utcnow()
         print(result)
         print("Completed in: " + str((end_time - start_time).total_seconds()))
         print("=================================")
 
+    # Queries during load
     def _q_enrollments_for_course(self, course_url):
         return self.get_collection().count_documents(
             {
@@ -191,4 +195,87 @@ class XAPILakeMongo:
         #        where verb = 'http://id.tincanapi.com/verb/unregistered'
         #        and emission_time between date_sub(MINUTE, 5, now('UTC')) and now('UTC')) as b
         #    """,
+        # )
+
+    # Distribution queries
+    def _q_count_courses(self):
+        pass
+
+    def _q_count_learners(self):
+        pass
+
+    def _q_count_verb_dist(self):
+        pass
+
+    def _q_count_org_dist(self):
+        pass
+
+    def do_distributions(self):
+        self._run_query_and_print(
+            f"Count of courses",
+            self._q_count_courses,
+        )
+
+        self._run_query_and_print(
+            f"Count of learners",
+            self._q_count_learners,
+        )
+
+        self._run_query_and_print(
+            f"Count of verbs",
+            self._q_count_verb_dist,
+        )
+
+        self._run_query_and_print(
+            f"Count of orgs",
+            self._q_count_org_dist
+        )
+
+        # self._run_query_and_print(
+        #     f"Avg, min, max students per course",
+        #     f"""
+        #         select avg(a.num_students) as avg_students, min(a.num_students) as min_students, max(a.num_students) max_students
+        #         from (
+        #             select count(distinct actor_id) as num_students
+        #             from {self.event_table_name}
+        #             group by course_run_id
+        #         ) a
+        #     """,
+        # )
+        #
+        # self._run_query_and_print(
+        #     f"Avg, min, max problems per course",
+        #     f"""
+        #         select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems, max(a.num_problems) max_problems
+        #         from (
+        #             select count(distinct problem_id) as num_problems
+        #             from {self.event_table_name}
+        #             group by course_run_id
+        #         ) a
+        #     """,
+        # )
+        #
+        # self._run_query_and_print(
+        #     f"Avg, min, max videos per course",
+        #     f"""
+        #         select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos, max(a.num_videos) max_videos
+        #         from (
+        #             select count(distinct problem_id) as num_videos
+        #             from {self.event_table_name}
+        #             group by video_id
+        #         ) a
+        #     """,
+        # )
+        #
+        # self._run_query_and_print(
+        #     f"Random event by id",
+        #     f"""
+        #         select *
+        #         from {self.event_table_name}
+        #         where event_id = (
+        #             select event_id
+        #             from {self.event_table_name}
+        #             limit 1
+        #         ) a
+        #     """,
         # )

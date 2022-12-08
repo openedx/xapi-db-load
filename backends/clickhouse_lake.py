@@ -251,3 +251,86 @@ class XAPILakeClickhouse:
                 and emission_time between date_sub(MINUTE, 5, now('UTC')) and now('UTC')) as b
             """,
         )
+
+        self._run_query_and_print(
+           f"Count of courses",
+           f"""
+               select count(distinct course_run_id)
+               from {self.event_table_name}
+           """,
+        )
+
+        self._run_query_and_print(
+           f"Count of learners",
+           f"""
+               select count(distinct actor_id)
+               from {self.event_table_name}
+           """,
+        )
+
+        self._run_query_and_print(
+           f"Count of verbs",
+           f"""
+               select count(*), verb
+               from {self.event_table_name}
+               group by verb
+           """,
+        )
+
+        self._run_query_and_print(
+           f"Count of orgs",
+           f"""
+               select count(*), org
+               from {self.event_table_name}
+               group by org
+           """,
+        )
+
+        self._run_query_and_print(
+            f"Avg, min, max students per course",
+            f"""
+                select avg(a.num_students) as avg_students, min(a.num_students) as min_students, max(a.num_students) max_students
+                from (
+                    select count(distinct actor_id) as num_students
+                    from {self.event_table_name}
+                    group by course_run_id
+                ) a
+            """,
+        )
+
+        self._run_query_and_print(
+            f"Avg, min, max problems per course",
+            f"""
+                select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems, max(a.num_problems) max_problems
+                from (
+                    select count(distinct problem_id) as num_problems
+                    from {self.event_table_name}
+                    group by course_run_id    
+                ) a
+            """,
+        )
+
+        self._run_query_and_print(
+            f"Avg, min, max videos per course",
+            f"""
+                select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos, max(a.num_videos) max_videos
+                from (
+                    select count(distinct problem_id) as num_videos
+                    from {self.event_table_name}
+                    group by video_id    
+                ) a
+            """,
+        )
+
+        self._run_query_and_print(
+            f"Random event by id",
+            f"""
+                select *
+                from {self.event_table_name} 
+                where event_id = (
+                    select event_id
+                    from {self.event_table_name}
+                    limit 1    
+                ) a
+            """,
+        )

@@ -1,3 +1,5 @@
+import datetime
+
 import click
 
 from backends import clickhouse_lake as clickhouse, mongo_lake as mongo, citus_lake as citus
@@ -26,6 +28,11 @@ from generate_load import EventGenerator
     default=False,
     help="If True, the target tables will be dropped if they already exist",
 )
+@click.option(
+    "--distributions_only",
+    default=False,
+    help="Just run distribution queries and exit",
+)
 @click.option("--host", default="localhost", help="Database host name")
 @click.option("--port", default="18123", help="Database port")
 @click.option("--username", default="ch_lrs", help="Database username")
@@ -41,12 +48,14 @@ def load_db(
     num_batches,
     batch_size,
     drop_tables_first,
+    distributions_only,
     host,
     port,
     username,
     password,
     database,
 ):
+    start = datetime.datetime.utcnow()
     if backend == "clickhouse":
         lake = clickhouse.XAPILakeClickhouse(
             host, port, username, password, database=database
@@ -57,6 +66,11 @@ def load_db(
         lake = citus.XAPILakeCitus(host, port, username, password, database=database)
     else:
         raise NotImplementedError(f"Unkown backend {backend}.")
+
+    if distributions_only:
+        lake.do_distributions()
+        print("Done!")
+        return
 
     if drop_tables_first:
         lake.drop_tables()
@@ -81,9 +95,17 @@ def load_db(
 
         # event_generator.dump_courses()
 
-    print(f"Done! Added {num_batches * batch_size} rows!")
+    print(f"Done! Added {num_batches * batch_size:,} rows!")
+
+    end = datetime.datetime.utcnow()
+    print("Batch insert time: " + str(end - start))
+
     lake.print_db_time()
     lake.print_row_counts()
+    lake.do_distributions()
+
+    end = datetime.datetime.utcnow()
+    print("Total run time: " + str(end - start))
 
 
 if __name__ == "__main__":
