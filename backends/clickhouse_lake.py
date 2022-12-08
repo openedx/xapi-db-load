@@ -46,8 +46,7 @@ class XAPILakeClickhouse:
         print("Tables dropped")
 
     def create_tables(self):
-        self.client.command(
-            f"""
+        sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
             event_id UUID NOT NULL,
             verb String NOT NULL,
@@ -64,11 +63,11 @@ class XAPILakeClickhouse:
             ENGINE MergeTree ORDER BY (org, course_run_id, verb, actor_id, emission_time)
             PRIMARY KEY (org, course_run_id, verb, actor_id, emission_time)
         """
-        )
+        print(sql)
+        self.client.command(sql)
 
         # Docs on buffer engine: https://clickhouse.com/docs/en/engines/table-engines/special/buffer/
-        self.client.command(
-            f"""
+        sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_buffer_table_name} AS {self.event_table_name} 
             ENGINE = Buffer(
                 currentDatabase(), 
@@ -82,7 +81,8 @@ class XAPILakeClickhouse:
                 100000000 -- maximum number of bytes before flushing (per buffer)
             )
         """
-        )
+        print(sql)
+        self.client.command(sql)
 
         print("Tables created")
 
@@ -252,6 +252,7 @@ class XAPILakeClickhouse:
             """,
         )
 
+    def do_distributions(self):
         self._run_query_and_print(
            f"Count of courses",
            f"""
@@ -331,6 +332,6 @@ class XAPILakeClickhouse:
                     select event_id
                     from {self.event_table_name}
                     limit 1    
-                ) a
+                )
             """,
         )

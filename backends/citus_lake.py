@@ -44,23 +44,7 @@ class XAPILakeCitus:
         print("Tables dropped")
 
     def create_tables(self):
-        """
-        CREATE TABLE github_events
-(
-    event_id bigint,
-    event_type text,
-    event_public boolean,
-    repo_id bigint,
-    payload jsonb,
-    repo jsonb,
-    actor jsonb,
-    org jsonb,
-    created_at timestamp
-);
-        :return:
-        """
-        self.cursor.execute(
-            f"""
+        sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
             event_id uuid NOT NULL,
             verb text NOT NULL,
@@ -76,43 +60,46 @@ class XAPILakeCitus:
             ) 
             PARTITION BY RANGE (emission_time);
         """
-        )
 
+        print(sql)
+        self.cursor.execute(sql)
         self.commit()
 
-        # Citus wants the distribution key in the primary key or will otherwise ignore it
-        self.cursor.execute(
-            f"""
+        # Citus wants the distribution key and partition key in the primary key or will otherwise ignore them
+        sql = f"""
             ALTER TABLE {self.event_table_name}
               ADD CONSTRAINT {self.event_table_name}_pkey
               PRIMARY KEY (course_run_id, event_id, emission_time);
             """
-        )
-
+        print(sql)
+        self.cursor.execute(sql)
         self.commit()
 
-        self.cursor.execute(
-            f"""
+        sql = f"""
                 SELECT create_time_partitions(
                   table_name         := '{self.event_table_name}',
                   partition_interval := '1 month',
                   start_from         := now() - interval '6 years',
                   end_at             := now() + interval '1 months'
                 );
-            """
-        )
+        """
+        print(sql)
+        self.cursor.execute(sql)
+        self.commit()
 
-        self.cursor.execute(
-            f"""
+        sql = f"""
             CREATE INDEX course_verb ON xapi_events_all (course_run_id, verb);
             CREATE INDEX org ON xapi_events_all (org);
             CREATE INDEX actor ON xapi_events_all (actor_id);
             """
-        )
+        print(sql)
+        self.cursor.execute(sql)
+        self.commit()
 
         # This tells Citus to distribute the table based on course run, keeping all of those events together
-        self.cursor.execute(f"SELECT create_distributed_table('{self.event_table_name}', 'course_run_id')")
-
+        sql = f"SELECT create_distributed_table('{self.event_table_name}', 'course_run_id')"
+        print(sql)
+        self.cursor.execute(sql)
         self.commit()
 
         print("Table created")
