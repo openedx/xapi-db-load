@@ -1,7 +1,7 @@
 from datetime import datetime
 import random
 
-from pymongo import MongoClient, IndexModel
+from pymongo import MongoClient, IndexModel, ASCENDING
 
 
 class XAPILakeMongo:
@@ -48,37 +48,17 @@ class XAPILakeMongo:
 
     def create_tables(self):
         self.get_collection(create=True)
-        # index1 = IndexModel(
-        #    [
-        #        ("org", ASCENDING),
-        #        ("course_run_id", ASCENDING),
-        #        ("verb", ASCENDING),
-        #        ("actor_id", ASCENDING),
-        #        ("emission_time", ASCENDING)
-        #    ], name="full_field_index")
+
         indexes = [
-            IndexModel("course_run_id"),
+            IndexModel([("course_run_id", ASCENDING), ("verb", ASCENDING)], name="course_verb"),
             IndexModel("org"),
-            IndexModel("verb"),
             IndexModel("actor_id"),
             IndexModel("emission_time"),
         ]
+
         self.get_collection().create_indexes(indexes)
 
     def batch_insert(self, events):
-        """
-        event_id UUID NOT NULL,
-        verb String NOT NULL,
-        actor_id UUID NOT NULL,
-        org UUID NOT NULL,
-        course_run_id String NULL,
-        problem_id String NULL,
-        video_id String NULL,
-        nav_starting_point String NULL,
-        nav_ending_point String NULL,
-        emission_time timestamp NOT NULL,
-        event String NOT NULL
-        """
         for v in events:
             v["_id"] = v["event_id"]
 
@@ -199,10 +179,17 @@ class XAPILakeMongo:
 
     # Distribution queries
     def _q_count_courses(self):
-        pass
+        return self.get_collection().count_documents(
+            {
+                "course_run_id": {"$exists": True},
+                "verb": "http://adlnet.gov/expapi/verbs/registered"
+            },
+            {"course_run_id": 1},
+            distinct=True
+        )
 
     def _q_count_learners(self):
-        pass
+        return self.get_collection().distinct("actor_id").count_documents({})
 
     def _q_count_verb_dist(self):
         pass
