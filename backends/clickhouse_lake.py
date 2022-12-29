@@ -12,7 +12,8 @@ class XAPILakeClickhouse:
         self.database = database
 
         self.event_table_name = "xapi_events_all"
-        self.event_buffer_table_name = "xapi_events_buffered_all"
+        self.event_buffer_table_name = "xapi_events_all"
+        # self.event_buffer_table_name = "xapi_events_buffered_all"
 
         self.client = clickhouse_connect.get_client(
             host=self.host,
@@ -22,6 +23,7 @@ class XAPILakeClickhouse:
             database=self.database,
             date_time_input_format="best_effort",  # Allows RFC dates
             old_parts_lifetime=10,  # Seconds, reduces disk usage
+            allow_experimental_object_type=1,
         )
 
     def print_db_time(self):
@@ -46,22 +48,23 @@ class XAPILakeClickhouse:
         print("Tables dropped")
 
     def create_tables(self):
+        return
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
             event_id UUID NOT NULL,
-            verb String NOT NULL,
+            verb_id String NOT NULL,
             actor_id UUID NOT NULL,
             org String NOT NULL,
-            course_run_id String NOT NULL,
-            problem_id String NULL,
-            video_id String NULL,
-            nav_starting_point String NULL,
-            nav_ending_point String NULL,
+            -- course_id String NOT NULL,
+            -- problem_id String NULL,
+            -- video_id String NULL,
+            -- nav_starting_point String NULL,
+            -- nav_ending_point String NULL,
             emission_time timestamp NOT NULL,
-            event String NOT NULL
+            event JSON NOT NULL
             )
-            ENGINE MergeTree ORDER BY (org, course_run_id, verb, actor_id, emission_time)
-            PRIMARY KEY (org, course_run_id, verb, actor_id, emission_time)
+            ENGINE MergeTree ORDER BY (org, course_id, verb_id, actor_id, emission_time)
+            PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time)
         """
         print(sql)
         self.client.command(sql)
@@ -89,10 +92,10 @@ class XAPILakeClickhouse:
     def batch_insert(self, events):
         """
         event_id UUID NOT NULL,
-        verb String NOT NULL,
+        verb_id String NOT NULL,
         actor_id UUID NOT NULL,
         org UUID NOT NULL,
-        course_run_id String NULL,
+        course_id String NULL,
         problem_id String NULL,
         video_id String NULL,
         nav_starting_point String NULL,
@@ -133,10 +136,10 @@ class XAPILakeClickhouse:
             f"""
             INSERT INTO {self.event_buffer_table_name} (
                 event_id, 
-                verb, 
+                verb_id, 
                 actor_id, 
                 org,
-                course_run_id, 
+                course_id, 
                 problem_id, 
                 video_id, 
                 nav_starting_point, 
@@ -174,8 +177,8 @@ class XAPILakeClickhouse:
             f"""
                 select count(*)
                 from {self.event_table_name}
-                where course_run_id = '{course_url}' 
-                and verb = 'http://adlnet.gov/expapi/verbs/registered'
+                where course_id = '{course_url}' 
+                and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
 
@@ -185,7 +188,7 @@ class XAPILakeClickhouse:
                 select count(*)
                 from {self.event_table_name}
                 where org = '{org}' 
-                and verb = 'http://adlnet.gov/expapi/verbs/registered'
+                and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
 
@@ -195,7 +198,7 @@ class XAPILakeClickhouse:
                 select count(*)
                 from {self.event_table_name}
                 where actor_id = '{actor}' 
-                and verb = 'http://adlnet.gov/expapi/verbs/registered'
+                and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
 
@@ -206,13 +209,13 @@ class XAPILakeClickhouse:
                 from (
                 select count(*) cnt
                 from {self.event_table_name}
-                where course_run_id = '{course_url}'
-                and verb = 'http://adlnet.gov/expapi/verbs/registered'
+                where course_id = '{course_url}'
+                and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
                 and emission_time between date_sub(DAY, 30, now('UTC')) and now('UTC')) as a,
                 (select count(*) cnt
                 from {self.event_table_name}
-                where course_run_id = '{course_url}'
-                and verb = 'http://id.tincanapi.com/verb/unregistered'
+                where course_id = '{course_url}'
+                and verb_id = 'http://id.tincanapi.com/verb/unregistered'
                 and emission_time between date_sub(DAY, 30, now('UTC')) and now('UTC')) as b
             """,
         )
@@ -225,13 +228,13 @@ class XAPILakeClickhouse:
                 from (
                 select count(*) cnt
                 from {self.event_table_name}
-                where course_run_id = '{course_url}'
-                and verb = 'http://adlnet.gov/expapi/verbs/registered'
+                where course_id = '{course_url}'
+                and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
                 ) as a,
                 (select count(*) cnt
                 from {self.event_table_name}
-                where course_run_id = '{course.course_id}'
-                and verb = 'http://id.tincanapi.com/verb/unregistered'
+                where course_id = '{course.course_id}'
+                and verb_id = 'http://id.tincanapi.com/verb/unregistered'
                 ) as b
             """,
         )
@@ -243,11 +246,11 @@ class XAPILakeClickhouse:
                 from (
                 select count(*) cnt
                 from {self.event_table_name}
-                where verb = 'http://adlnet.gov/expapi/verbs/registered'
+                where verb_id = 'http://adlnet.gov/expapi/verbs/registered'
                 and emission_time between date_sub(MINUTE, 5, now('UTC')) and now('UTC')) as a,
                 (select count(*) cnt
                 from {self.event_table_name}
-                where verb = 'http://id.tincanapi.com/verb/unregistered'
+                where verb_id = 'http://id.tincanapi.com/verb/unregistered'
                 and emission_time between date_sub(MINUTE, 5, now('UTC')) and now('UTC')) as b
             """,
         )
@@ -256,7 +259,7 @@ class XAPILakeClickhouse:
         self._run_query_and_print(
            f"Count of courses",
            f"""
-               select count(distinct course_run_id)
+               select count(distinct course_id)
                from {self.event_table_name}
            """,
         )
@@ -272,9 +275,9 @@ class XAPILakeClickhouse:
         self._run_query_and_print(
            f"Count of verbs",
            f"""
-               select count(*), verb
+               select count(*), verb_id
                from {self.event_table_name}
-               group by verb
+               group by verb_id
            """,
         )
 
@@ -294,33 +297,37 @@ class XAPILakeClickhouse:
                 from (
                     select count(distinct actor_id) as num_students
                     from {self.event_table_name}
-                    group by course_run_id
+                    group by course_id
                 ) a
             """,
         )
 
         self._run_query_and_print(
-            f"Avg, min, max problems per course",
-            f"""
-                select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems, max(a.num_problems) max_problems
+           f"Avg, min, max problems per course",
+           f"""
+               select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems,
+                    max(a.num_problems) max_problems
                 from (
-                    select count(distinct problem_id) as num_problems
+                    select count(distinct event.object.id) as num_problems
                     from {self.event_table_name}
-                    group by course_run_id    
+                    where event.object.definition.type = 'http://adlnet.gov/expapi/activities/cmi.interaction'
+                    group by course_id
                 ) a
-            """,
+           """,
         )
 
         self._run_query_and_print(
-            f"Avg, min, max videos per course",
-            f"""
-                select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos, max(a.num_videos) max_videos
-                from (
-                    select count(distinct problem_id) as num_videos
-                    from {self.event_table_name}
-                    group by video_id    
-                ) a
-            """,
+           f"Avg, min, max videos per course",
+           f"""
+               select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos,
+               max(a.num_videos) max_videos
+               from (
+                   select count(distinct event.object.id) as num_videos
+                   from {self.event_table_name}
+                   where event.object.definition.type = 'https://w3id.org/xapi/video/activity-type/video'
+                   group by event.object.id
+               ) a
+           """,
         )
 
         self._run_query_and_print(

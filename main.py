@@ -2,7 +2,8 @@ import datetime
 
 import click
 
-from backends import clickhouse_lake as clickhouse, mongo_lake as mongo, citus_lake as citus
+from backends import clickhouse_lake as clickhouse, mongo_lake as mongo, citus_lake as citus, \
+    ralph_lrs as ralph
 from generate_load import EventGenerator
 
 
@@ -10,8 +11,8 @@ from generate_load import EventGenerator
 @click.option(
     "--backend",
     required=True,
-    type=click.Choice(["clickhouse", "mongo", "citus"], case_sensitive=True),
-    help="Which database backend to run against",
+    type=click.Choice(["clickhouse", "mongo", "citus", "ralph"], case_sensitive=True),
+    help="Which backend to run against",
 )
 @click.option(
     "--num_batches",
@@ -64,6 +65,8 @@ def load_db(
         lake = mongo.XAPILakeMongo(host, port, username, password, database=database)
     elif backend == "citus":
         lake = citus.XAPILakeCitus(host, port, username, password, database=database)
+    elif backend == "ralph":
+        lake = ralph.XAPILRSRalph(host, port, username, password, database=database)
     else:
         raise NotImplementedError(f"Unkown backend {backend}.")
 
