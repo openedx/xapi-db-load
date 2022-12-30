@@ -12,8 +12,7 @@ class XAPILakeClickhouse:
         self.database = database
 
         self.event_table_name = "xapi_events_all"
-        self.event_buffer_table_name = "xapi_events_all"
-        # self.event_buffer_table_name = "xapi_events_buffered_all"
+        self.event_buffer_table_name = "xapi_events_buffered_all"
 
         self.client = clickhouse_connect.get_client(
             host=self.host,
@@ -71,7 +70,21 @@ class XAPILakeClickhouse:
 
         # Docs on buffer engine: https://clickhouse.com/docs/en/engines/table-engines/special/buffer/
         sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.event_buffer_table_name} AS {self.event_table_name} 
+            CREATE TABLE IF NOT EXISTS {self.event_buffer_table_name} (
+                event_id UUID NOT NULL,
+                verb_id String NOT NULL,
+                actor_id UUID NOT NULL,
+                org String NOT NULL,
+                -- course_id String NOT NULL,
+                -- problem_id String NULL,
+                -- video_id String NULL,
+                -- nav_starting_point String NULL,
+                -- nav_ending_point String NULL,
+                emission_time timestamp NOT NULL,
+                event String NOT NULL
+            ) 
+            
+             
             ENGINE = Buffer(
                 currentDatabase(), 
                 {self.event_table_name}, 

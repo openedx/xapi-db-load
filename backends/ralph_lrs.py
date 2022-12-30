@@ -24,9 +24,7 @@ class XAPILRSRalph(XAPILakeClickhouse):
 
         # FIXME: Add support for separate db connection info
         self.event_table_name = "xapi_events_all"
-        self.event_buffer_table_name = self.event_table_name
-        # FIXME: Currently not using buffer tables because they don't support json
-        # "xapi_events_buffered_all"
+        self.event_buffer_table_name = "xapi_events_buffered_all"
 
         self.client = clickhouse_connect.get_client(
             host="localhost",
