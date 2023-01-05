@@ -11,7 +11,8 @@ from generate_load import EventGenerator
 @click.option(
     "--backend",
     required=True,
-    type=click.Choice(["clickhouse", "mongo", "citus", "ralph"], case_sensitive=True),
+    type=click.Choice(["clickhouse", "mongo", "citus", "ralph", "ralph_mongo"],
+                      case_sensitive=True),
     help="Which backend to run against",
 )
 @click.option(
@@ -67,6 +68,8 @@ def load_db(
         lake = citus.XAPILakeCitus(host, port, username, password, database=database)
     elif backend == "ralph":
         lake = ralph.XAPILRSRalph(host, port, username, password, database=database)
+    elif backend == "ralph_mongo":
+        lake = ralph.XAPILRSRalphMongo(host, port, username, password, database=database)
     else:
         raise NotImplementedError(f"Unkown backend {backend}.")
 
