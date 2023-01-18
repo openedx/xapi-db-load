@@ -5,26 +5,30 @@ from pymongo import MongoClient, IndexModel, ASCENDING
 
 
 class XAPILakeMongo:
-    def __init__(self, host, port, username, password=None, database=None):
-        self.host = host
-        self.port = port
-        self.username = username
-        self.database = database
-
-        self.mongo_db = "statements"
-        self.event_collection_name = "foo"
+    def __init__(self, db_host, db_port, db_username=None, db_password=None,
+                 db_name="statements"):
+        self.host = db_host
+        self.port = db_port
+        self.username = db_username
+        self.password = db_password
+        self.database = db_name
+        self.event_collection_name = "foo"  # This is what Ralph currently calls it
 
         # Provide the mongodb url to connect python to mongodb using pymongo
         # connection_string = f"mongodb://{username}:{password}@{host}/{database}"
-        # For Tutor we're not using username / password
-        connection_string = f"mongodb://{host}/{self.mongo_db}"
-        print(connection_string)
+        if db_username:
+            connection_string = f"mongodb://{db_username}:" \
+                                f"{db_password}@{db_host}/{db_name}"
+        else:
+            # For Tutor we're not using username / password
+            connection_string = f"mongodb://{db_host}/{db_name}"
 
-        # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
+        # Create a connection using MongoClient. You can import MongoClient or use
+        # pymongo.MongoClient
         self.client = MongoClient(connection_string)
 
     def get_database(self):
-        return self.client[self.mongo_db]
+        return self.client[self.database]
 
     def get_collection(self, create=False):
         if create:

@@ -5,24 +5,24 @@ import clickhouse_connect
 
 
 class XAPILakeClickhouse:
-    def __init__(self, host, port, username, password=None, database=None):
-        self.host = host
-        self.port = port
-        self.username = username
-        self.database = database
+    def __init__(self, db_host="localhost", db_port=18123, db_username="default",
+                 db_password=None, db_name=None):
+        self.host = db_host
+        self.port = db_port
+        self.username = db_username
+        self.database = db_name
 
         self.event_table_name = "xapi_events_all"
-        self.event_buffer_table_name = "xapi_events_buffered_all"
 
         self.client = clickhouse_connect.get_client(
             host=self.host,
             username=self.username,
-            password=password,
+            password=db_password,
             port=self.port,
             database=self.database,
             date_time_input_format="best_effort",  # Allows RFC dates
             old_parts_lifetime=10,  # Seconds, reduces disk usage
-            allow_experimental_object_type=1,
+            allow_experimental_object_type=1,  # Allows JSON type
         )
 
     def print_db_time(self):
@@ -30,10 +30,6 @@ class XAPILakeClickhouse:
         print(res.result_set)
 
     def print_row_counts(self):
-        res = self.client.query(f"SELECT count(*) FROM {self.event_buffer_table_name}")
-        print("Buffer table row count:")
-        print(res.result_set)
-
         print("Hard table row count:")
         res = self.client.query(f"SELECT count(*) FROM {self.event_table_name}")
         print(res.result_set)
@@ -42,7 +38,6 @@ class XAPILakeClickhouse:
         self.client.command(f"CREATE DATABASE IF NOT EXISTS {self.database}")
 
     def drop_tables(self):
-        self.client.command(f"DROP TABLE IF EXISTS {self.event_buffer_table_name}")
         self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name}")
         print("Tables dropped")
 
@@ -68,39 +63,7 @@ class XAPILakeClickhouse:
         print(sql)
         self.client.command(sql)
 
-        # Docs on buffer engine: https://clickhouse.com/docs/en/engines/table-engines/special/buffer/
-        sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.event_buffer_table_name} (
-                event_id UUID NOT NULL,
-                verb_id String NOT NULL,
-                actor_id UUID NOT NULL,
-                org String NOT NULL,
-                -- course_id String NOT NULL,
-                -- problem_id String NULL,
-                -- video_id String NULL,
-                -- nav_starting_point String NULL,
-                -- nav_ending_point String NULL,
-                emission_time timestamp NOT NULL,
-                event String NOT NULL
-            ) 
-            
-             
-            ENGINE = Buffer(
-                currentDatabase(), 
-                {self.event_table_name}, 
-                16, -- number of buffers to use, this is the recommended value
-                10, -- minimum seconds between flushes (per buffer)
-                100,  -- maximum seconds between flushes (per buffer)
-                10000, -- minimum number of rows to flush (per buffer)
-                1000000, -- maximum number of rows before flushing (per buffer)
-                10000000, -- minimum number of bytes before flushing (per buffer)
-                100000000 -- maximum number of bytes before flushing (per buffer)
-            )
-        """
-        print(sql)
-        self.client.command(sql)
-
-        print("Tables created")
+        print("Table created")
 
     def batch_insert(self, events):
         """
@@ -114,7 +77,7 @@ class XAPILakeClickhouse:
         nav_starting_point String NULL,
         nav_ending_point String NULL,
         emission_time timestamp NOT NULL,
-        event String NOT NULL
+        event JSON NOT NULL
         """
         out_data = []
         for v in events:
@@ -147,7 +110,7 @@ class XAPILakeClickhouse:
 
         self.client.command(
             f"""
-            INSERT INTO {self.event_buffer_table_name} (
+            INSERT INTO {self.event_table_name} (
                 event_id, 
                 verb_id, 
                 actor_id, 

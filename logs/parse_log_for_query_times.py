@@ -2,12 +2,14 @@
 queries = {
     "Count of enrollment events for course": [],
     "Count of total enrollment events for org": [],
-    "Count of enrollments for this actor": [],
+    # "for this learner" for Clickhouse, "for this actor" for some others...
+    "Count of enrollments for this learner": [],
     "Count of enrollments for this course - count of unenrollments, last 30 days": [],
     "Count of enrollments for this course - count of unenrollments, all time": [],
     "Count of enrollments for all courses - count of unenrollments, last 5 minutes": []
 }
 
+# Just used for testing output
 log = """2022-12-09 16:59:47.500233
 8890 of 10000
 2022-12-09 17:01:11.173771
@@ -37,7 +39,9 @@ Collection count:
 def go():
     # fname = "citus_100M_columnar_cluster_no_partition.txt"
     # fname = "clickhouse_100M.txt"
-    fname = "mongo_100M_4indexes.txt"
+    # fname = "mongo_100M_4indexes.txt"
+    # fname = "ralph_mongo_100M.txt"
+    fname = "ralph_100M_json_obj_no_buffer.txt"
     with open(fname, "r") as logf:
         log = logf.readlines()
         x = -1
@@ -58,8 +62,8 @@ def go():
             for base_line in queries[start]:
                 # 'Completed in: 0.006565\n'
 
-                # Offset lines is 3 for clickhouse, 2 for citus and mongo. Blegh.
-                time_str = log[base_line + 2].strip()
+                offset = 3
+                time_str = log[base_line + offset].strip()
                 time = time_str[13:]
 
                 output[start].append(time)

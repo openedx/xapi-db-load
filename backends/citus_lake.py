@@ -5,18 +5,19 @@ import psycopg2
 
 
 class XAPILakeCitus:
-    def __init__(self, host, port, username, password=None, database=None):
-        self.host = host
-        self.port = port
-        self.username = username
-        self.database = database
+    def __init__(self, db_host, db_port, db_username, db_password=None,
+                 db_name=None):
+        self.host = db_host
+        self.port = db_port
+        self.username = db_username
+        self.database = db_name
 
         self.event_table_name = "xapi_events_all"
 
         self.client = psycopg2.connect(
             host=self.host,
             user=self.username,
-            password=password,
+            password=db_password,
             port=self.port,
             database=self.database,
         )
@@ -297,7 +298,7 @@ class XAPILakeCitus:
                group by verb
            """,
         )
-        
+
         self._run_query_and_print(
            f"Count of orgs",
            f"""
@@ -306,7 +307,7 @@ class XAPILakeCitus:
                group by org
            """,
         )
-        
+
         self._run_query_and_print(
             f"Avg, min, max students per course",
             f"""
@@ -342,7 +343,7 @@ class XAPILakeCitus:
                 ) a
             """,
         )
-        
+
         self._run_query_and_print(
             f"Random event by id",
             f"""
