@@ -1,25 +1,30 @@
 from datetime import datetime
 import random
 
-from pymongo import MongoClient, IndexModel
+from pymongo import MongoClient, IndexModel, ASCENDING
 
 
 class XAPILakeMongo:
-    def __init__(self, host, port, username, password=None, database=None):
-        self.host = host
-        self.port = port
-        self.username = username
-        self.database = database
-
-        self.event_collection_name = "xapi_events_all"
+    def __init__(self, db_host, db_port, db_username=None, db_password=None,
+                 db_name="statements"):
+        self.host = db_host
+        self.port = db_port
+        self.username = db_username
+        self.password = db_password
+        self.database = db_name
+        self.event_collection_name = "foo"  # This is what Ralph currently calls it
 
         # Provide the mongodb url to connect python to mongodb using pymongo
         # connection_string = f"mongodb://{username}:{password}@{host}/{database}"
-        # For Tutor we're not using username / password
-        connection_string = f"mongodb://{host}/{database}"
-        print(connection_string)
+        if db_username:
+            connection_string = f"mongodb://{db_username}:" \
+                                f"{db_password}@{db_host}/{db_name}"
+        else:
+            # For Tutor we're not using username / password
+            connection_string = f"mongodb://{db_host}/{db_name}"
 
-        # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
+        # Create a connection using MongoClient. You can import MongoClient or use
+        # pymongo.MongoClient
         self.client = MongoClient(connection_string)
 
     def get_database(self):
@@ -47,69 +52,62 @@ class XAPILakeMongo:
         print("Collection dropped")
 
     def create_tables(self):
+        return
         self.get_collection(create=True)
-        # index1 = IndexModel(
-        #    [
-        #        ("org", ASCENDING),
-        #        ("course_run_id", ASCENDING),
-        #        ("verb", ASCENDING),
-        #        ("actor_id", ASCENDING),
-        #        ("emission_time", ASCENDING)
-        #    ], name="full_field_index")
+
         indexes = [
-            IndexModel("course_run_id"),
+            IndexModel([("course_run_id", ASCENDING), ("verb", ASCENDING)], name="course_verb"),
             IndexModel("org"),
-            IndexModel("verb"),
             IndexModel("actor_id"),
             IndexModel("emission_time"),
         ]
+
         self.get_collection().create_indexes(indexes)
 
     def batch_insert(self, events):
-        """
-        event_id UUID NOT NULL,
-        verb String NOT NULL,
-        actor_id UUID NOT NULL,
-        org UUID NOT NULL,
-        course_run_id String NULL,
-        problem_id String NULL,
-        video_id String NULL,
-        nav_starting_point String NULL,
-        nav_ending_point String NULL,
-        emission_time timestamp NOT NULL,
-        event String NOT NULL
-        """
         for v in events:
             v["_id"] = v["event_id"]
 
         self.get_collection().insert_many(events)
 
-    def _run_query_and_print(self, query_name, query_func, query_param):
+    def _run_query_and_print(self, query_name, query_func, query_param=None):
         print(query_name)
         start_time = datetime.utcnow()
-        result = query_func(query_param)
+        if query_param:
+            result = query_func(query_param)
+        else:
+            result = query_func()
         end_time = datetime.utcnow()
         print(result)
         print("Completed in: " + str((end_time - start_time).total_seconds()))
         print("=================================")
 
+    # Queries during load
     def _q_enrollments_for_course(self, course_url):
-        return self.get_collection().count_documents(
-            {
-                "verb": "http://adlnet.gov/expapi/verbs/registered",
-                "course_run_id": course_url,
-            }
-        )
+        return self.get_collection().count_documents({"$and":
+            [
+                {"_source.verb.id": "http://adlnet.gov/expapi/verbs/registered"},
+                {"$and": [
+                        {
+                            "_source.object.definition.type": "http://adlnet.gov/expapi/activities/course"
+                        },
+                        {
+                            "_source.object.id": course_url
+                        },
+                ]},
+            ]
+        })
 
     def _q_enrollments_for_org(self, org):
         return self.get_collection().count_documents(
-            {"verb": "http://adlnet.gov/expapi/verbs/registered", "org": org}
+            {"_source.verb.id": "http://adlnet.gov/expapi/verbs/registered", "_source.org.id": org}
         )
 
     def _q_enrollments_for_actor(self, actor):
-        return self.get_collection().count_documents(
-            {"verb": "http://adlnet.gov/expapi/verbs/registered", "actor": actor}
-        )
+        return self.get_collection().count_documents({
+            "_source.verb.id": "http://adlnet.gov/expapi/verbs/registered",
+            "_source.actor.account.name": actor
+        })
 
     def do_queries(self, event_generator):
         """
@@ -140,55 +138,54 @@ class XAPILakeMongo:
             actor,
         )
 
-        # self._run_query_and_print(
-        #    f"Count of enrollments for this course - count of unenrollments, last 30 days",
-        #    f"""
-        #        select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
-        #        from (
-        #        select count(*) cnt
-        #        from {self.event_collection_name}
-        #        where course_run_id = '{course_url}'
-        #        and verb = 'http://adlnet.gov/expapi/verbs/registered'
-        #        and emission_time between date_sub(DAY, 30, now('UTC')) and now('UTC')) as a,
-        #        (select count(*) cnt
-        #        from {self.event_collection_name}
-        #        where course_run_id = '{course_url}'
-        #        and verb = 'http://id.tincanapi.com/verb/unregistered'
-        #        and emission_time between date_sub(DAY, 30, now('UTC')) and now('UTC')) as b
-        #    """,
-        # )
+    # Distribution queries
+    def _q_count_courses(self):
+        with self.get_collection().aggregate([
+            {"$match": {
+                "_source.verb.id": "http://adlnet.gov/expapi/verbs/registered",
+            }},
+            {"$group": {"_id": "$_source.object.id"}},
+            {"$count": "CourseCount"}
+        ]) as cursor:
+            for x in cursor:
+                return x["CourseCount"]
 
-        # Number of enrollments for this course - number of unenrollments, all time
-        # self._run_query_and_print(
-        #    f"Count of enrollments for this course - count of unenrollments, all time",
-        #    f"""
-        #        select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
-        #        from (
-        #        select count(*) cnt
-        #        from {self.event_collection_name}
-        #        where course_run_id = '{course_url}'
-        #        and verb = 'http://adlnet.gov/expapi/verbs/registered'
-        #        ) as a,
-        #        (select count(*) cnt
-        #        from {self.event_collection_name}
-        #        where course_run_id = '{course.course_id}'
-        #        and verb = 'http://id.tincanapi.com/verb/unregistered'
-        #        ) as b
-        #    """,
-        # )
+    def _q_count_learners(self):
+        with self.get_collection().aggregate([
+            {"$group": {"_id": "$_source.actor.account.name"}},
+            {"$count": "ActorCount"}
+        ]) as cursor:
+            for x in cursor:
+                return x["ActorCount"]
 
-        # self._run_query_and_print(
-        #    f"Count of enrollments for all courses - count of unenrollments, last 5 minutes",
-        #    f"""
-        #        select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
-        #        from (
-        #        select count(*) cnt
-        #        from {self.event_collection_name}
-        #        where verb = 'http://adlnet.gov/expapi/verbs/registered'
-        #        and emission_time between date_sub(MINUTE, 5, now('UTC')) and now('UTC')) as a,
-        #        (select count(*) cnt
-        #        from {self.event_collection_name}
-        #        where verb = 'http://id.tincanapi.com/verb/unregistered'
-        #        and emission_time between date_sub(MINUTE, 5, now('UTC')) and now('UTC')) as b
-        #    """,
-        # )
+    def _q_count_verb_dist(self):
+        out = []
+        for x in self.get_collection().aggregate([
+            {"$group": {"_id": "$_source.verb.id", "count": {"$sum": 1}}},
+        ]):
+            out.append(x)
+        return out
+
+    def _q_count_org_dist(self):
+        pass
+
+    def do_distributions(self):
+        self._run_query_and_print(
+            f"Count of courses",
+            self._q_count_courses,
+        )
+
+        self._run_query_and_print(
+            f"Count of learners",
+            self._q_count_learners,
+        )
+
+        self._run_query_and_print(
+            f"Count of verbs",
+            self._q_count_verb_dist,
+        )
+
+        self._run_query_and_print(
+            f"Count of orgs",
+            self._q_count_org_dist
+        )

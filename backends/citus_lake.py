@@ -5,18 +5,19 @@ import psycopg2
 
 
 class XAPILakeCitus:
-    def __init__(self, host, port, username, password=None, database=None):
-        self.host = host
-        self.port = port
-        self.username = username
-        self.database = database
+    def __init__(self, db_host, db_port, db_username, db_password=None,
+                 db_name=None):
+        self.host = db_host
+        self.port = db_port
+        self.username = db_username
+        self.database = db_name
 
         self.event_table_name = "xapi_events_all"
 
         self.client = psycopg2.connect(
             host=self.host,
             user=self.username,
-            password=password,
+            password=db_password,
             port=self.port,
             database=self.database,
         )
@@ -28,9 +29,9 @@ class XAPILakeCitus:
         print(self.cursor.fetchone())
 
     def print_row_counts(self):
-        print("Hard table row count:")
+        print("Table row count:")
         res = self.cursor.execute(f"SELECT count(*) FROM {self.event_table_name}")
-        print(self.cursor.fetchone())
+        print(f"{self.cursor.fetchone()[0]:,}")
 
     def create_db(self):
         self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.database}")
@@ -44,23 +45,7 @@ class XAPILakeCitus:
         print("Tables dropped")
 
     def create_tables(self):
-        """
-        CREATE TABLE github_events
-(
-    event_id bigint,
-    event_type text,
-    event_public boolean,
-    repo_id bigint,
-    payload jsonb,
-    repo jsonb,
-    actor jsonb,
-    org jsonb,
-    created_at timestamp
-);
-        :return:
-        """
-        self.cursor.execute(
-            f"""
+        sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
             event_id uuid NOT NULL,
             verb text NOT NULL,
@@ -73,23 +58,49 @@ class XAPILakeCitus:
             nav_ending_point text NULL,
             emission_time timestamp NOT NULL,
             event jsonb NOT NULL
-            ) USING columnar
+            ) 
+            PARTITION BY RANGE (emission_time);
         """
-        )
 
+        print(sql)
+        self.cursor.execute(sql)
         self.commit()
 
-        self.cursor.execute(
-            f"""
+        # Citus wants the distribution key and partition key in the primary key or will otherwise ignore them
+        sql = f"""
+            ALTER TABLE {self.event_table_name}
+              ADD CONSTRAINT {self.event_table_name}_pkey
+              PRIMARY KEY (course_run_id, event_id, emission_time);
+            """
+        print(sql)
+        self.cursor.execute(sql)
+        self.commit()
+
+        sql = f"""
+                SELECT create_time_partitions(
+                  table_name         := '{self.event_table_name}',
+                  partition_interval := '1 month',
+                  start_from         := now() - interval '6 years',
+                  end_at             := now() + interval '1 months'
+                );
+        """
+        print(sql)
+        self.cursor.execute(sql)
+        self.commit()
+
+        sql = f"""
             CREATE INDEX course_verb ON xapi_events_all (course_run_id, verb);
             CREATE INDEX org ON xapi_events_all (org);
             CREATE INDEX actor ON xapi_events_all (actor_id);
             """
-        )
+        print(sql)
+        self.cursor.execute(sql)
+        self.commit()
 
         # This tells Citus to distribute the table based on course run, keeping all of those events together
-        self.cursor.execute(f"SELECT create_distributed_table('{self.event_table_name}', 'course_run_id')")
-
+        sql = f"SELECT create_distributed_table('{self.event_table_name}', 'course_run_id')"
+        print(sql)
+        self.cursor.execute(sql)
         self.commit()
 
         print("Table created")
@@ -259,5 +270,89 @@ class XAPILakeCitus:
                 from {self.event_table_name}
                 where verb = 'http://id.tincanapi.com/verb/unregistered'
                 and emission_time between now() - interval '5 minute' and now()) as b
+            """,
+        )
+
+    def do_distributions(self):
+        self._run_query_and_print(
+           f"Count of courses",
+           f"""
+               select count(distinct course_run_id)
+               from {self.event_table_name}
+           """,
+        )
+
+        self._run_query_and_print(
+           f"Count of learners",
+           f"""
+               select count(distinct actor_id)
+               from {self.event_table_name}
+           """,
+        )
+
+        self._run_query_and_print(
+           f"Count of verbs",
+           f"""
+               select count(*), verb
+               from {self.event_table_name}
+               group by verb
+           """,
+        )
+
+        self._run_query_and_print(
+           f"Count of orgs",
+           f"""
+               select count(*), org
+               from {self.event_table_name}
+               group by org
+           """,
+        )
+
+        self._run_query_and_print(
+            f"Avg, min, max students per course",
+            f"""
+                select avg(a.num_students) as avg_students, min(a.num_students) as min_students, max(a.num_students) max_students
+                from (
+                    select count(distinct actor_id) as num_students
+                    from {self.event_table_name}
+                    group by course_run_id
+                ) a
+            """,
+        )
+
+        self._run_query_and_print(
+            f"Avg, min, max problems per course",
+            f"""
+                select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems, max(a.num_problems) max_problems
+                from (
+                    select count(distinct problem_id) as num_problems
+                    from {self.event_table_name}
+                    group by course_run_id
+                ) a
+            """,
+        )
+
+        self._run_query_and_print(
+            f"Avg, min, max videos per course",
+            f"""
+                select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos, max(a.num_videos) max_videos
+                from (
+                    select count(distinct problem_id) as num_videos
+                    from {self.event_table_name}
+                    group by video_id
+                ) a
+            """,
+        )
+
+        self._run_query_and_print(
+            f"Random event by id",
+            f"""
+                select actor_id
+                from {self.event_table_name} 
+                where event_id = (
+                    select event_id
+                    from {self.event_table_name}
+                    limit 1    
+                )
             """,
         )
