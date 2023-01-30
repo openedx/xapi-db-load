@@ -2,23 +2,23 @@ import datetime
 import uuid
 from random import choice, choices, randrange
 
-from course_configs import (
+from .course_configs import (
     CourseConfigSmall,
     CourseConfigMedium,
     CourseConfigLarge,
     CourseConfigWhopper,
 )
-from xapi.xapi_hint_answer import ShowAnswer, ShowHint
-from xapi.xapi_grade import FirstTimePassed
-from xapi.xapi_navigation import (
+from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
+from .xapi.xapi_grade import FirstTimePassed
+from .xapi.xapi_navigation import (
     NextNavigation,
     PreviousNavigation,
     TabSelectedNavigation,
     LinkClicked,
 )
-from xapi.xapi_registration import Registered, Unregistered
-from xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
-from xapi.xapi_video import (
+from .xapi.xapi_registration import Registered, Unregistered
+from .xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
+from .xapi.xapi_video import (
     LoadedVideo,
     PlayedVideo,
     PausedVideo,

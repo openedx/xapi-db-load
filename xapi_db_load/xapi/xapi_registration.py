@@ -1,7 +1,7 @@
 from uuid import uuid4
 import json
 
-from xapi.xapi_common import XAPIBase
+from .xapi_common import XAPIBase
 
 
 class BaseRegistration(XAPIBase):

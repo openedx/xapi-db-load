@@ -2,11 +2,12 @@ import datetime
 
 import click
 
-from backends import (
+from .backends import (
     clickhouse_lake as clickhouse,
     mongo_lake as mongo, citus_lake as citus,
-    ralph_lrs as ralph)
-from generate_load import EventGenerator
+    ralph_lrs as ralph,
+)
+from .generate_load import EventGenerator
 
 
 @click.command()

@@ -3,9 +3,10 @@ import requests
 import datetime
 
 import clickhouse_connect
-from backends.clickhouse_lake import XAPILakeClickhouse
-from backends.mongo_lake import XAPILakeMongo
 from pymongo import MongoClient
+
+from .clickhouse_lake import XAPILakeClickhouse
+from .mongo_lake import XAPILakeMongo
 
 
 class DateTimeEncoder(json.JSONEncoder):
