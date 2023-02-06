@@ -20,9 +20,10 @@ class XAPILakeClickhouse:
             password=db_password,
             port=self.port,
             database=self.database,
-            date_time_input_format="best_effort",  # Allows RFC dates
-            old_parts_lifetime=10,  # Seconds, reduces disk usage
-            allow_experimental_object_type=1,  # Allows JSON type
+            settings={
+                'date_time_input_format': "best_effort",  # Allows RFC dates
+                'allow_experimental_object_type': 1,  # Allows JSON type
+            },
         )
 
     def print_db_time(self):
@@ -42,23 +43,23 @@ class XAPILakeClickhouse:
         print("Tables dropped")
 
     def create_tables(self):
-        return
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
             event_id UUID NOT NULL,
             verb_id String NOT NULL,
             actor_id UUID NOT NULL,
             org String NOT NULL,
-            -- course_id String NOT NULL,
-            -- problem_id String NULL,
-            -- video_id String NULL,
-            -- nav_starting_point String NULL,
-            -- nav_ending_point String NULL,
+            course_id String NOT NULL,
+            problem_id String NULL,
+            video_id String NULL,
+            nav_starting_point String NULL,
+            nav_ending_point String NULL,
             emission_time timestamp NOT NULL,
             event JSON NOT NULL
             )
-            ENGINE MergeTree ORDER BY (org, course_id, verb_id, actor_id, emission_time)
-            PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time)
+            ENGINE MergeTree ORDER BY (org, course_id, verb_id, actor_id, emission_time, event_id)
+            PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time, event_id)
+            SETTINGS old_parts_lifetime=10
         """
         print(sql)
         self.client.command(sql)
