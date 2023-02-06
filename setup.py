@@ -1,3 +1,6 @@
+"""
+Setup for xapi-db-load
+"""
 from setuptools import setup, find_packages
 
 setup(
