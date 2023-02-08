@@ -1,4 +1,10 @@
 from setuptools import setup, find_packages
+from pkg_resources import parse_requirements
+
+requirements = [
+    str(req)
+    for req in parse_requirements(open('requirements.txt'))
+]
 
 setup(
     name="xapi-db-load",
@@ -9,17 +15,11 @@ setup(
         [console_scripts]
         xapi-db-load=xapi_db_load.main:load_db
     """,
-    install_requires=[
-        "click",
-        "clickhouse-connect",
-        "psycopg2-binary",
-        "pymongo[srv]",
-        "requests",
-    ],
-    url="https://github.com/bmtcril/xapi-db-load",
+    install_requires=requirements,
+    url="https://github.com/openedx/xapi-db-load",
     project_urls={
-        "Code": "https://github.com/bmtcril/xapi-db-load",
-        "Issue tracker": "https://github.com/bmtcril/xapi-db-load/issues",
+        "Code": "https://github.com/openedx/xapi-db-load",
+        "Issue tracker": "https://github.com/openedx/xapi-db-load/issues",
     },
     license="AGPLv3",
     author="Brian Mesick",

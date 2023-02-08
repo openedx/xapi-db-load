@@ -10,7 +10,7 @@ Installation
 Requires a running Clickhouse database to connect to, you will be prompted for the
 password. Just clone the repo, install the requirements, and go. Defaults given are
 for a default install of the Tutor Clickhouse plugin:
-https://github.com/bmtcril/tutor-contrib-clickhouse
+https://github.com/openedx/tutor-contrib-clickhouse
 
 To get the password from a Tutor Clickhouse plugin, just run the following:
 
