@@ -1,3 +1,6 @@
+Architectural Decisions
+#######################
+
 This directory is a historical record on the architectural decisions we make with this repository as it evolves over time.
 
 It uses Architecture Decision Records, as described by Michael Nygard in `Documenting Architecture Decisions`_.

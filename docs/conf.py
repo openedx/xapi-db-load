@@ -14,9 +14,8 @@ serve to show the default.
 import os
 import re
 import sys
+from datetime import datetime
 from subprocess import check_call
-
-import edx_theme
 
 
 def get_version(*file_paths):
@@ -38,7 +37,7 @@ def get_version(*file_paths):
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(REPO_ROOT)
 
-VERSION = get_version('../xapi-db-load', '__init__.py')
+VERSION = get_version('../xapi_db_load', '__init__.py')
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -59,7 +58,6 @@ VERSION = get_version('../xapi-db-load', '__init__.py')
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'edx_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
@@ -90,8 +88,9 @@ top_level_doc = 'index'
 
 # General information about the project.
 project = 'xapi-db-load'
-copyright = edx_theme.COPYRIGHT  # pylint: disable=redefined-builtin
-author = edx_theme.AUTHOR
+current_year = datetime.utcnow().year
+copyright = f"{current_year}, The Center for Reimagining Learning"  # pylint: disable=redefined-builtin
+author = "Open edX"
 project_title = 'xapi-db-load'
 documentation_title = f"{project_title}"
 
@@ -179,16 +178,51 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = 'edx_theme'
+html_theme = 'sphinx_book_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#
-# html_theme_options = {}
+html_theme_options = {
+    "repository_url": "https://github.com/openedx/xapi-db-load",
+    "repository_branch": 'main',
+    "path_to_docs": "docs/",
+    "logo_only": True,
+    "home_page_in_toc": True,
+    "use_repository_button": True,
+    "use_issues_button": True,
+    "use_edit_page_button": True,
+    # Please don't change unless you know what you're doing.
+    "extra_footer": """
+        <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+            <img
+                alt="Creative Commons License"
+                style="border-width:0"
+                src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"/>
+        </a>
+        <br>
+        These works by
+            <a
+                xmlns:cc="https://creativecommons.org/ns#"
+                href="https://openedx.org"
+                property="cc:attributionName"
+                rel="cc:attributionURL"
+            >The Center for Reimagining Learning</a>
+        are licensed under a
+            <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+            >Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    """
+}
 
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [edx_theme.get_html_theme_path()]
+# Note the logo won't show up properly yet because there is an upstream
+# bug in the theme that needs to be fixed first.
+# If you'd like you can temporarily copy the logo file to your `_static`
+# directory.
+html_logo = "https://logos.openedx.org/open-edx-logo-color.png"
+html_favicon = "https://logos.openedx.org/open-edx-favicon.ico"
+
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
@@ -505,8 +539,7 @@ def on_init(app):  # pylint: disable=unused-argument
         # If we are, assemble the path manually
         bin_path = os.path.abspath(os.path.join(sys.prefix, 'bin'))
         apidoc_path = os.path.join(bin_path, apidoc_path)
-    check_call([apidoc_path, '-o', docs_path, os.path.join(root_path, 'xapi-db-load'),
-                os.path.join(root_path, 'xapi-db-load/migrations')])
+    check_call([apidoc_path, '-o', docs_path, os.path.join(root_path, 'xapi_db_load')])
 
 
 def setup(app):

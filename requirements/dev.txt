@@ -174,7 +174,7 @@ pkginfo==1.9.6
     # via
     #   -r requirements/quality.txt
     #   twine
-platformdirs==2.6.2
+platformdirs==3.0.0
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -326,7 +326,7 @@ urllib3==1.26.14
     #   clickhouse-connect
     #   requests
     #   twine
-virtualenv==20.18.0
+virtualenv==20.19.0
     # via
     #   -r requirements/ci.txt
     #   tox

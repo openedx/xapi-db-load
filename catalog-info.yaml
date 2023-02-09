@@ -2,7 +2,7 @@
 # https://open-edx-proposals.readthedocs.io/en/latest/processes/oep-0055-proc-project-maintainers.html
 
 apiVersion: backstage.io/v1alpha1
-kind: ""
+kind: "component"
 metadata:
   name: 'xapi-db-load'
   description: "Load test xAPI statements to a database or LRS"
@@ -15,18 +15,10 @@ metadata:
 spec:
 
   # (Required) This can be a group(`group:<group_name>` or a user(`user:<github_username>`)
-  owner: ""
+  owner: "group:xapi-db-load-maintainers"
 
   # (Required) Acceptable Type Values: service, website, library
-  type: ''
+  type: 'library'
 
   # (Required) Acceptable Lifecycle Values: experimental, production, deprecated
   lifecycle: 'experimental'
-
-  # (Optional) The value can be the name of any known component.
-  subcomponentOf: '<name_of_a_component>'
-
-  # (Optional) An array of different components or resources.
-  dependsOn:
-  - '<component_or_resource>'
-  - '<another_component_or_resource>'

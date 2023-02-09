@@ -12,6 +12,8 @@ attrs==22.2.0
     #   pytest
 babel==2.11.0
     # via sphinx
+beautifulsoup4==4.11.2
+    # via pydata-sphinx-theme
 bleach==6.0.0
     # via readme-renderer
 build==0.10.0
@@ -37,16 +39,11 @@ dnspython==2.3.0
     # via
     #   -r requirements/test.txt
     #   pymongo
-doc8==1.1.1
-    # via -r requirements/doc.in
-docutils==0.19
+docutils==0.17.1
     # via
-    #   doc8
+    #   pydata-sphinx-theme
     #   readme-renderer
-    #   restructuredtext-lint
     #   sphinx
-edx-sphinx-theme==3.1.0
-    # via -r requirements/doc.in
 exceptiongroup==1.1.0
     # via
     #   -r requirements/test.txt
@@ -94,10 +91,9 @@ packaging==23.0
     # via
     #   -r requirements/test.txt
     #   build
+    #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pbr==5.11.1
-    # via stevedore
 pkginfo==1.9.6
     # via twine
 pluggy==1.0.0
@@ -106,9 +102,10 @@ pluggy==1.0.0
     #   pytest
 psycopg2-binary==2.9.5
     # via -r requirements/test.txt
+pydata-sphinx-theme==0.8.1
+    # via sphinx-book-theme
 pygments==2.14.0
     # via
-    #   doc8
     #   readme-renderer
     #   rich
     #   sphinx
@@ -127,6 +124,8 @@ pytz==2022.7.1
     #   -r requirements/test.txt
     #   babel
     #   clickhouse-connect
+pyyaml==6.0
+    # via sphinx-book-theme
 readme-renderer==37.3
     # via twine
 requests==2.28.2
@@ -137,23 +136,24 @@ requests==2.28.2
     #   twine
 requests-toolbelt==0.10.1
     # via twine
-restructuredtext-lint==1.4.0
-    # via doc8
 rfc3986==2.0.0
     # via twine
 rich==13.3.1
     # via twine
 six==1.16.0
-    # via
-    #   bleach
-    #   edx-sphinx-theme
+    # via bleach
 snowballstemmer==2.2.0
     # via sphinx
-sphinx==5.3.0
+soupsieve==2.3.2.post1
+    # via beautifulsoup4
+sphinx==4.5.0
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/doc.in
-    #   edx-sphinx-theme
+    #   pydata-sphinx-theme
+    #   sphinx-book-theme
+sphinx-book-theme==0.3.3
+    # via -r requirements/doc.in
 sphinxcontrib-applehelp==1.0.4
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
@@ -166,14 +166,11 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
-stevedore==4.1.1
-    # via doc8
 tomli==2.0.1
     # via
     #   -r requirements/test.txt
     #   build
     #   coverage
-    #   doc8
     #   pyproject-hooks
     #   pytest
 twine==4.0.2

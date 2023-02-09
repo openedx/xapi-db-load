@@ -3,9 +3,11 @@ Setup for xapi-db-load
 """
 from setuptools import setup, find_packages
 
+from xapi_db_load import __version__
+
 setup(
     name="xapi-db-load",
-    version="0.1",
+    version=__version__,
     packages=find_packages(),
     include_package_data=True,
     entry_points="""
