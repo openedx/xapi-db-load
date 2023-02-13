@@ -1,5 +1,8 @@
+.coverage
 .idea/
 .python-version
 build/
 *.pyc
 *.egg-info/
+tests/__init__.py
+docs/_build/

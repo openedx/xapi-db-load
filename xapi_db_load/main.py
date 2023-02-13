@@ -49,14 +49,10 @@ from .generate_load import EventGenerator
     hide_input=True,
     help="Password for the database so it's not stored on disk",
 )
+# TODO: Make lrs_password prompt, but only in LRS backends
 @click.option("--lrs_url", default="http://localhost/", help="URL to the LRS, if used")
 @click.option("--lrs_username", help="LRS username")
-@click.option(
-    "--lrs_password",
-    prompt="LRS password",
-    hide_input=True,
-    help="Password for the LRS so it's not stored on disk",
-)
+@click.option("--lrs_password", help="Password for the LRS")
 def load_db(
     backend,
     num_batches,

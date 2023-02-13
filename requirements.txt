@@ -1,6 +1,0 @@
-black
-click
-clickhouse-connect
-psycopg2-binary
-pymongo[srv]
-requests
