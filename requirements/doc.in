@@ -1,0 +1,9 @@
+# Requirements for documentation validation
+-c constraints.txt
+
+-r test.txt               # Core and testing dependencies for this package
+
+sphinx-book-theme         # Docs theme
+twine                     # Validates README.rst for usage on PyPI
+build                     # Needed to build the wheel for twine check
+Sphinx                    # Documentation builder

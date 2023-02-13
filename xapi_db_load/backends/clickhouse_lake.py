@@ -45,19 +45,21 @@ class XAPILakeClickhouse:
     def create_tables(self):
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
-            event_id UUID NOT NULL,
-            verb_id String NOT NULL,
-            actor_id UUID NOT NULL,
-            org String NOT NULL,
-            course_id String NOT NULL,
-            problem_id String NULL,
-            video_id String NULL,
-            nav_starting_point String NULL,
-            nav_ending_point String NULL,
-            emission_time timestamp NOT NULL,
-            event JSON NOT NULL
+                event_id UUID NOT NULL,
+                verb_id String NOT NULL,
+                actor_id UUID NOT NULL,
+                org String NOT NULL,
+                course_id String NOT NULL,
+                emission_time timestamp NOT NULL,
+                event JSON NOT NULL
             )
-            ENGINE MergeTree ORDER BY (org, course_id, verb_id, actor_id, emission_time, event_id)
+            ENGINE MergeTree ORDER BY (
+                org, 
+                course_id, 
+                verb_id, 
+                actor_id, 
+                emission_time,
+                event_id)
             PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time, event_id)
             SETTINGS old_parts_lifetime=10
         """
@@ -73,10 +75,6 @@ class XAPILakeClickhouse:
         actor_id UUID NOT NULL,
         org UUID NOT NULL,
         course_id String NULL,
-        problem_id String NULL,
-        video_id String NULL,
-        nav_starting_point String NULL,
-        nav_ending_point String NULL,
         emission_time timestamp NOT NULL,
         event JSON NOT NULL
         """
@@ -84,21 +82,7 @@ class XAPILakeClickhouse:
         for v in events:
             try:
                 out = f"('{v['event_id']}', '{v['verb']}', '{v['actor_id']}', '{v['org']}', "
-
                 out += f"'{v['course_run_id']}', " if "course_run_id" in v else "NULL, "
-                out += f"'{v['problem_id']}', " if "problem_id" in v else "NULL, "
-                out += f"'{v['video_id']}', " if "video_id" in v else "NULL, "
-                out += (
-                    f"'{v['nav_starting_point']}', "
-                    if "nav_starting_point" in v
-                    else "NULL, "
-                )
-                out += (
-                    f"'{v['nav_ending_point']}', "
-                    if "nav_ending_point" in v
-                    else "NULL, "
-                )
-
                 out += f"'{v['emission_time']}', '{v['event']}')"
                 out_data.append(out)
             except:
@@ -117,10 +101,6 @@ class XAPILakeClickhouse:
                 actor_id, 
                 org,
                 course_id, 
-                problem_id, 
-                video_id, 
-                nav_starting_point, 
-                nav_ending_point, 
                 emission_time, 
                 event
             )
