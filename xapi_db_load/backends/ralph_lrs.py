@@ -27,7 +27,14 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
         self.lrs_url = lrs_url
         self.lrs_username = lrs_username
         self.lrs_password = lrs_password
-        self.event_table_name = "xapi_events_all"
+        self.event_raw_table_name = "xapi_events_all"
+        self.event_table_name = "xapi_events_all_parsed"
+        self.event_table_name_mv = "xapi_events_all_parsed_mv"
+
+        client_options = {
+            "date_time_input_format": "best_effort",  # Allows RFC dates
+            "allow_experimental_object_type": 1,  # Allows JSON data type
+        }
 
         self.client = clickhouse_connect.get_client(
             host=db_host,
@@ -35,8 +42,7 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
             password=db_password,
             port=db_port,
             database=db_name,
-            date_time_input_format="best_effort",  # Allows RFC dates
-            old_parts_lifetime=10,  # Seconds, reduces disk usage
+            settings=client_options,
         )
 
     def batch_insert(self, events):
