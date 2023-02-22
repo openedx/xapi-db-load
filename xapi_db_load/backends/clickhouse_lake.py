@@ -12,7 +12,14 @@ class XAPILakeClickhouse:
         self.username = db_username
         self.database = db_name
 
-        self.event_table_name = "xapi_events_all"
+        self.event_raw_table_name = "xapi_events_all"
+        self.event_table_name = "xapi_events_all_parsed"
+        self.event_table_name_mv = "xapi_events_all_parsed_mv"
+
+        client_options = {
+            "date_time_input_format": "best_effort",  # Allows RFC dates
+            "allow_experimental_object_type": 1,  # Allows JSON data type
+        }
 
         self.client = clickhouse_connect.get_client(
             host=self.host,
@@ -20,10 +27,7 @@ class XAPILakeClickhouse:
             password=db_password,
             port=self.port,
             database=self.database,
-            settings={
-                'date_time_input_format': "best_effort",  # Allows RFC dates
-                'allow_experimental_object_type': 1,  # Allows JSON type
-            },
+            settings=client_options
         )
 
     def print_db_time(self):
@@ -39,10 +43,27 @@ class XAPILakeClickhouse:
         self.client.command(f"CREATE DATABASE IF NOT EXISTS {self.database}")
 
     def drop_tables(self):
+        self.client.command(f"DROP TABLE IF EXISTS {self.event_raw_table_name}")
         self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name}")
+        self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name_mv}")
         print("Tables dropped")
 
     def create_tables(self):
+        sql = f"""
+            CREATE TABLE IF NOT EXISTS {self.event_raw_table_name} (
+                event_id UUID NOT NULL,
+                emission_time DateTime64(6) NOT NULL,
+                event JSON NOT NULL,
+                event_str String NOT NULL,
+            )
+            ENGINE MergeTree ORDER BY (
+                emission_time,
+                event_id)
+            PRIMARY KEY (emission_time, event_id)
+        """
+        print(sql)
+        self.client.command(sql)
+
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
                 event_id UUID NOT NULL,
@@ -50,23 +71,44 @@ class XAPILakeClickhouse:
                 actor_id UUID NOT NULL,
                 org String NOT NULL,
                 course_id String NOT NULL,
-                emission_time timestamp NOT NULL,
+                emission_time DateTime64(6) NOT NULL,
                 event JSON NOT NULL
             )
             ENGINE MergeTree ORDER BY (
-                org, 
-                course_id, 
-                verb_id, 
-                actor_id, 
+                org,
+                course_id,
+                verb_id,
+                actor_id,
                 emission_time,
                 event_id)
             PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time, event_id)
-            SETTINGS old_parts_lifetime=10
         """
         print(sql)
         self.client.command(sql)
 
-        print("Table created")
+        sql = f"""
+            CREATE MATERIALIZED VIEW IF NOT EXISTS {self.event_table_name_mv} TO {self.event_table_name}
+            AS SELECT
+            event_id as event_id,
+            JSON_VALUE(event_str, '$.verb.id') as verb_id,
+            JSON_VALUE(event_str, '$.actor.account.name') as actor_id,
+            -- If the contextActivities parent is a course, use that. Otherwise use the object id for the course id
+            if(
+                JSON_VALUE(
+                    event_str,
+                    '$.context.contextActivities.parent[0].definition.type')
+                        = 'http://adlnet.gov/expapi/activities/course',
+                    JSON_VALUE(event_str, '$.context.contextActivities.parent[0].id'),
+                    JSON_VALUE(event_str, '$.object.id')
+                ) as course_id,
+            emission_time as emission_time,
+            event as event
+            FROM {self.event_raw_table_name}
+        """
+        print(sql)
+        self.client.command(sql)
+
+        print("Tables created")
 
     def batch_insert(self, events):
         """
@@ -96,12 +138,12 @@ class XAPILakeClickhouse:
         self.client.command(
             f"""
             INSERT INTO {self.event_table_name} (
-                event_id, 
-                verb_id, 
-                actor_id, 
+                event_id,
+                verb_id,
+                actor_id,
                 org,
-                course_id, 
-                emission_time, 
+                course_id,
+                emission_time,
                 event
             )
             VALUES {vals}
@@ -134,7 +176,7 @@ class XAPILakeClickhouse:
             f"""
                 select count(*)
                 from {self.event_table_name}
-                where course_id = '{course_url}' 
+                where course_id = '{course_url}'
                 and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
@@ -144,7 +186,7 @@ class XAPILakeClickhouse:
             f"""
                 select count(*)
                 from {self.event_table_name}
-                where org = '{org}' 
+                where org = '{org}'
                 and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
@@ -154,7 +196,7 @@ class XAPILakeClickhouse:
             f"""
                 select count(*)
                 from {self.event_table_name}
-                where actor_id = '{actor}' 
+                where actor_id = '{actor}'
                 and verb_id = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
@@ -291,11 +333,11 @@ class XAPILakeClickhouse:
             f"Random event by id",
             f"""
                 select *
-                from {self.event_table_name} 
+                from {self.event_table_name}
                 where event_id = (
                     select event_id
                     from {self.event_table_name}
-                    limit 1    
+                    limit 1
                 )
             """,
         )
