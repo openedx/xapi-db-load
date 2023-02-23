@@ -1,5 +1,5 @@
 Scripts for generating and loading test xAPI events
-===================================================
+###################################################
 
 |pypi-badge| |ci-badge| |codecov-badge| |doc-badge| |pyversions-badge|
 |license-badge| |status-badge|

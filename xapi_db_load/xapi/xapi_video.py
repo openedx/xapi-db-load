@@ -1,11 +1,21 @@
-from uuid import uuid4
+"""
+xAPI video events.
+"""
 import json
+from uuid import uuid4
 
 from .xapi_common import XAPIBase
 
 
 class BaseVideo(XAPIBase):
+    """
+    Base class for video events.
+    """
+
     def get_data(self):
+        """
+        Gather necessary data and generates a random xAPI event with it.
+        """
         event_id = str(uuid4())
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
@@ -28,6 +38,9 @@ class BaseVideo(XAPIBase):
         }
 
     def get_randomized_event(self, event_id, account, course, video_id, create_time):
+        """
+        Create an event dict that should map to the appropriate xAPI JSON.
+        """
         event = {
             "id": event_id,
             "actor": {
@@ -48,7 +61,8 @@ class BaseVideo(XAPIBase):
                     ]
                 },
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0",
+                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/"
+                    "eventVersion.rst": "1.0",
                     "https://w3id.org/xapi/video/extensions/length": 195.0,
                 },
             },
@@ -71,26 +85,47 @@ class BaseVideo(XAPIBase):
 
 
 class LoadedVideo(BaseVideo):
+    """
+    Loaded video events.
+    """
+
     verb = "http://adlnet.gov/expapi/verbs/initialized"
     verb_display = "initialized"
 
 
 class PlayedVideo(BaseVideo):
+    """
+    Played video events.
+    """
+
     verb = "https://w3id.org/xapi/video/verbs/played"
     verb_display = "play"
 
 
-# TODO: These three technically need different structures, though we're not using them now. Update!
+# TODO: These three technically need different structures, though we're not
+#  using them now. Update!
 class StoppedVideo(BaseVideo):
+    """
+    Stopped video events.
+    """
+
     verb = "http://adlnet.gov/expapi/verbs/terminated"
     verb_display = "terminated"
 
 
 class PausedVideo(BaseVideo):
+    """
+    Paused video events.
+    """
+
     verb = "https://w3id.org/xapi/video/verbs/paused"
     verb_display = "paused"
 
 
 class PositionChangedVideo(BaseVideo):
+    """
+    Seeked video events.
+    """
+
     verb = "https://w3id.org/xapi/video/verbs/seeked"
     verb_display = "seeked"

@@ -1,11 +1,21 @@
-from uuid import uuid4
+"""
+xAPI registration events.
+"""
 import json
+from uuid import uuid4
 
 from .xapi_common import XAPIBase
 
 
 class BaseRegistration(XAPIBase):
+    """
+    Base class for registration events.
+    """
+
     def get_data(self):
+        """
+        Gather necessary data and generates a random xAPI event with it.
+        """
         event_id = str(uuid4())
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
@@ -26,6 +36,9 @@ class BaseRegistration(XAPIBase):
         }
 
     def get_randomized_event(self, event_id, account, course_locator, create_time):
+        """
+        Create an event dict that should map to the appropriate xAPI JSON.
+        """
         event = {
             "id": event_id,
             "actor": {
@@ -34,7 +47,8 @@ class BaseRegistration(XAPIBase):
             },
             "context": {
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"
+                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/"
+                    "eventVersion.rst": "1.0"
                 }
             },
             "object": {
@@ -57,10 +71,18 @@ class BaseRegistration(XAPIBase):
 
 
 class Registered(BaseRegistration):
+    """
+    Registered events.
+    """
+
     verb = "http://adlnet.gov/expapi/verbs/registered"
     verb_display = "registered"
 
 
 class Unregistered(BaseRegistration):
+    """
+    Unregistered events.
+    """
+
     verb = "http://id.tincanapi.com/verb/unregistered"
     verb_display = "unregistered"

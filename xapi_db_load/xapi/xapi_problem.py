@@ -1,5 +1,9 @@
-from uuid import uuid4
+"""
+xAPI problem check events.
+"""
+
 import json
+from uuid import uuid4
 
 from .xapi_common import XAPIBase
 
@@ -7,9 +11,16 @@ from .xapi_common import XAPIBase
 # TODO: There are various other problem samples we should probably include eventually:
 # https://github.com/openedx/event-routing-backends/tree/master/event_routing_backends/processors/xapi/tests/fixtures/expected
 class BaseProblemCheck(XAPIBase):
+    """
+    Base class for problem check events.
+    """
+
     problem_type = None  # "browser" or "server"
 
     def get_data(self):
+        """
+        Gather necessary data and generates a random xAPI event with it.
+        """
         event_id = str(uuid4())
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
@@ -34,6 +45,9 @@ class BaseProblemCheck(XAPIBase):
     def get_randomized_event(
         self, event_id, account, course_locator, problem_id, create_time
     ):
+        """
+        Create an event dict that should map to the appropriate xAPI JSON.
+        """
         browser_object = {
             "object": {
                 "definition": {
@@ -84,7 +98,8 @@ class BaseProblemCheck(XAPIBase):
                     ]
                 },
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"
+                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/"
+                    "eventVersion.rst": "1.0"
                 },
             },
             "timestamp": create_time.isoformat(),
@@ -101,12 +116,20 @@ class BaseProblemCheck(XAPIBase):
 
 
 class BrowserProblemCheck(BaseProblemCheck):
+    """
+    Browser problem attempted event.
+    """
+
     verb = "http://adlnet.gov/expapi/verbs/attempted"
     verb_display = "attempted"
     problem_type = "browser"
 
 
 class ServerProblemCheck(BaseProblemCheck):
+    """
+    Server problem attempted event.
+    """
+
     verb = "http://adlnet.gov/expapi/verbs/evaluated"
     verb_display = "evaluated"
     problem_type = "server"

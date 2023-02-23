@@ -1,12 +1,14 @@
+"""
+Implements the Click CLI for xapi-db-load.
+"""
 import datetime
 
 import click
 
-from .backends import (
-    clickhouse_lake as clickhouse,
-    mongo_lake as mongo, citus_lake as citus,
-    ralph_lrs as ralph,
-)
+from .backends import citus_lake as citus
+from .backends import clickhouse_lake as clickhouse
+from .backends import mongo_lake as mongo
+from .backends import ralph_lrs as ralph
 from .generate_load import EventGenerator
 
 
@@ -68,6 +70,9 @@ def load_db(
     lrs_username,
     lrs_password,
 ):
+    """
+    Load the given backend with xAPI events.
+    """
     start = datetime.datetime.utcnow()
 
     # Since we're accepting pw on input we need a way to "None" it.
@@ -144,4 +149,4 @@ def load_db(
 
 
 if __name__ == "__main__":
-    load_db()
+    load_db()  # pylint: disable=no-value-for-parameter

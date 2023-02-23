@@ -1,3 +1,11 @@
+"""
+Contains default min/max values for different sizes of course.
+
+Should help match more closely the observed variance in course sizes in
+production systems.
+"""
+
+
 class CourseConfigSmall:
     items = (10, 20)
     problems = (10, 20)

@@ -1,12 +1,22 @@
-from datetime import datetime
+"""
+Database backend for Citus PostgreSQL.
+"""
 import random
+from datetime import datetime
 
 import psycopg2
 
 
 class XAPILakeCitus:
+    """
+    Citus backend, controls the tables, insertion, and queries for our random events.
+    """
+
     def __init__(self, db_host, db_port, db_username, db_password=None,
                  db_name=None):
+        """
+        Initialize the backend.
+        """
         self.host = db_host
         self.port = db_port
         self.username = db_username
@@ -25,26 +35,44 @@ class XAPILakeCitus:
         self.cursor = self.client.cursor()
 
     def print_db_time(self):
-        res = self.cursor.execute("SELECT current_setting('TIMEZONE'), now()")
+        """
+        Print the time and timezone from the database.
+        """
+        self.cursor.execute("SELECT current_setting('TIMEZONE'), now()")
         print(self.cursor.fetchone())
 
     def print_row_counts(self):
+        """
+        Print the row count for the event table in the databse.
+        """
         print("Table row count:")
-        res = self.cursor.execute(f"SELECT count(*) FROM {self.event_table_name}")
+        self.cursor.execute(f"SELECT count(*) FROM {self.event_table_name}")
         print(f"{self.cursor.fetchone()[0]:,}")
 
     def create_db(self):
+        """
+        Create the database if it doesn't exist.
+        """
         self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.database}")
 
     def commit(self):
+        """
+        Commit the current transaction.
+        """
         self.client.commit()
 
     def drop_tables(self):
+        """
+        Drop event table if it exists.
+        """
         self.cursor.execute(f"DROP TABLE IF EXISTS {self.event_table_name}")
         self.commit()
         print("Tables dropped")
 
     def create_tables(self):
+        """
+        Create the event table, keys, and indexes.
+        """
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_table_name} (
             event_id uuid NOT NULL,
@@ -58,7 +86,7 @@ class XAPILakeCitus:
             nav_ending_point text NULL,
             emission_time timestamp NOT NULL,
             event jsonb NOT NULL
-            ) 
+            )
             PARTITION BY RANGE (emission_time);
         """
 
@@ -89,9 +117,9 @@ class XAPILakeCitus:
         self.commit()
 
         sql = f"""
-            CREATE INDEX course_verb ON xapi_events_all (course_run_id, verb);
-            CREATE INDEX org ON xapi_events_all (org);
-            CREATE INDEX actor ON xapi_events_all (actor_id);
+            CREATE INDEX course_verb ON {self.event_table_name} (course_run_id, verb);
+            CREATE INDEX org ON {self.event_table_name} (org);
+            CREATE INDEX actor ON {self.event_table_name} (actor_id);
             """
         print(sql)
         self.cursor.execute(sql)
@@ -107,17 +135,7 @@ class XAPILakeCitus:
 
     def batch_insert(self, events):
         """
-        event_id UUID NOT NULL,
-        verb String NOT NULL,
-        actor_id UUID NOT NULL,
-        org UUID NOT NULL,
-        course_run_id String NULL,
-        problem_id String NULL,
-        video_id String NULL,
-        nav_starting_point String NULL,
-        nav_ending_point String NULL,
-        emission_time timestamp NOT NULL,
-        event String NOT NULL
+        Insert a batch of events into the database.
         """
         out_data = []
         for v in events:
@@ -140,27 +158,24 @@ class XAPILakeCitus:
 
                 out += f"'{v['emission_time']}', '{v['event']}')"
                 out_data.append(out)
-            except:
+            except Exception:
                 print(v)
                 raise
         vals = ",".join(out_data)
 
-        # from pprint import pprint
-        # pprint(out_data)
-
         self.cursor.execute(
             f"""
             INSERT INTO {self.event_table_name} (
-                event_id, 
-                verb, 
-                actor_id, 
+                event_id,
+                verb,
+                actor_id,
                 org,
-                course_run_id, 
-                problem_id, 
-                video_id, 
-                nav_starting_point, 
-                nav_ending_point, 
-                emission_time, 
+                course_run_id,
+                problem_id,
+                video_id,
+                nav_starting_point,
+                nav_ending_point,
+                emission_time,
                 event
             )
             VALUES {vals}
@@ -170,8 +185,10 @@ class XAPILakeCitus:
         self.commit()
 
     def _run_query_and_print(self, query_name, query):
+        """
+        Execute the given query and print out timing information.
+        """
         print(query_name)
-        # print(query)
         start_time = datetime.utcnow()
         self.cursor.execute(query)
         end_time = datetime.utcnow()
@@ -181,8 +198,7 @@ class XAPILakeCitus:
 
     def do_queries(self, event_generator):
         """
-        Query data from the table and document how long the query runs (while the insert script is running)
-        :return:
+        Query data from the table and document how long the query runs (while the insert script is running).
         """
         # Get our randomly selected targets for this run
         course = random.choice(event_generator.known_courses)
@@ -191,37 +207,37 @@ class XAPILakeCitus:
         actor = random.choice(event_generator.known_actor_uuids)
 
         self._run_query_and_print(
-            f"Count of enrollment events for course {course_url}",
+            "Count of enrollment events for course {course_url}",
             f"""
                 select count(*)
                 from {self.event_table_name}
-                where course_run_id = '{course_url}' 
+                where course_run_id = '{course_url}'
                 and verb = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
 
         self._run_query_and_print(
-            f"Count of total enrollment events for org {org}",
+            "Count of total enrollment events for org {org}",
             f"""
                 select count(*)
                 from {self.event_table_name}
-                where org = '{org}' 
+                where org = '{org}'
                 and verb = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
 
         self._run_query_and_print(
-            f"Count of enrollments for this learner",
+            "Count of enrollments for this learner",
             f"""
                 select count(*)
                 from {self.event_table_name}
-                where actor_id = '{actor}' 
+                where actor_id = '{actor}'
                 and verb = 'http://adlnet.gov/expapi/verbs/registered'
             """,
         )
 
         self._run_query_and_print(
-            f"Count of enrollments for this course - count of unenrollments, last 30 days",
+            "Count of enrollments for this course - count of unenrollments, last 30 days",
             f"""
                 select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
                 from (
@@ -240,7 +256,7 @@ class XAPILakeCitus:
 
         # Number of enrollments for this course - number of unenrollments, all time
         self._run_query_and_print(
-            f"Count of enrollments for this course - count of unenrollments, all time",
+            "Count of enrollments for this course - count of unenrollments, all time",
             f"""
                 select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
                 from (
@@ -258,7 +274,7 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-            f"Count of enrollments for all courses - count of unenrollments, last 5 minutes",
+            "Count of enrollments for all courses - count of unenrollments, last 5 minutes",
             f"""
                 select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
                 from (
@@ -274,8 +290,11 @@ class XAPILakeCitus:
         )
 
     def do_distributions(self):
+        """
+        Run and output the distribution queries.
+        """
         self._run_query_and_print(
-           f"Count of courses",
+           "Count of courses",
            f"""
                select count(distinct course_run_id)
                from {self.event_table_name}
@@ -283,7 +302,7 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-           f"Count of learners",
+           "Count of learners",
            f"""
                select count(distinct actor_id)
                from {self.event_table_name}
@@ -291,7 +310,7 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-           f"Count of verbs",
+           "Count of verbs",
            f"""
                select count(*), verb
                from {self.event_table_name}
@@ -300,7 +319,7 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-           f"Count of orgs",
+           "Count of orgs",
            f"""
                select count(*), org
                from {self.event_table_name}
@@ -309,9 +328,12 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-            f"Avg, min, max students per course",
+            "Avg, min, max students per course",
             f"""
-                select avg(a.num_students) as avg_students, min(a.num_students) as min_students, max(a.num_students) max_students
+                select
+                    avg(a.num_students) as avg_students,
+                    min(a.num_students) as min_students,
+                    max(a.num_students) max_students
                 from (
                     select count(distinct actor_id) as num_students
                     from {self.event_table_name}
@@ -321,9 +343,12 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-            f"Avg, min, max problems per course",
+            "Avg, min, max problems per course",
             f"""
-                select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems, max(a.num_problems) max_problems
+                select
+                    avg(a.num_problems) as avg_problems,
+                    min(a.num_problems) as min_problems,
+                    max(a.num_problems) max_problems
                 from (
                     select count(distinct problem_id) as num_problems
                     from {self.event_table_name}
@@ -333,7 +358,7 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-            f"Avg, min, max videos per course",
+            "Avg, min, max videos per course",
             f"""
                 select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos, max(a.num_videos) max_videos
                 from (
@@ -345,14 +370,14 @@ class XAPILakeCitus:
         )
 
         self._run_query_and_print(
-            f"Random event by id",
+            "Random event by id",
             f"""
                 select actor_id
-                from {self.event_table_name} 
+                from {self.event_table_name}
                 where event_id = (
                     select event_id
                     from {self.event_table_name}
-                    limit 1    
+                    limit 1
                 )
             """,
         )

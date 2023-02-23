@@ -1,12 +1,23 @@
-from datetime import datetime
-import random
+"""
+Mongo backend implementation.
+"""
 
-from pymongo import MongoClient, IndexModel, ASCENDING
+import random
+from datetime import datetime
+
+from pymongo import ASCENDING, IndexModel, MongoClient
 
 
 class XAPILakeMongo:
+    """
+    Mongo backend, controls the collections, insertion, and queries for our random events.
+    """
+
     def __init__(self, db_host, db_port, db_username=None, db_password=None,
                  db_name="statements"):
+        """
+        Init the backend.
+        """
         self.host = db_host
         self.port = db_port
         self.username = db_username
@@ -28,33 +39,55 @@ class XAPILakeMongo:
         self.client = MongoClient(connection_string)
 
     def get_database(self):
+        """
+        Return the Mongo database.
+        """
         return self.client[self.database]
 
     def get_collection(self, create=False):
+        """
+        Return the Mongo event collection, optionally create it.
+        """
         if create:
             self.get_database().create_collection(self.event_collection_name)
         return self.get_database()[self.event_collection_name]
 
     def print_db_time(self):
+        """
+        Print the current time.
+        """
         # This is a pain to do in mongo, not worth digging into for this
         print(datetime.utcnow())
 
     def print_row_counts(self):
+        """
+        Print the count of documents in the event collection.
+        """
         print("Collection count:")
         res = self.get_collection().count_documents({})
         print(res)
 
     def create_db(self):
-        pass
+        """
+        Create the database.
+
+        No need to create a database in Mongo.
+        """
 
     def drop_tables(self):
+        """
+        Drop the collection.
+        """
         self.get_collection().drop()
         print("Collection dropped")
 
     def create_tables(self):
-        return
+        """
+        Create a collection and indexes for our test.
+        """
         self.get_collection(create=True)
 
+        # So far these are the best performing indexes, but I suspect there is room for improvement
         indexes = [
             IndexModel([("course_run_id", ASCENDING), ("verb", ASCENDING)], name="course_verb"),
             IndexModel("org"),
@@ -65,12 +98,18 @@ class XAPILakeMongo:
         self.get_collection().create_indexes(indexes)
 
     def batch_insert(self, events):
+        """
+        Insert a batch of Mongo documents.
+        """
         for v in events:
             v["_id"] = v["event_id"]
 
         self.get_collection().insert_many(events)
 
     def _run_query_and_print(self, query_name, query_func, query_param=None):
+        """
+        Run the given query function and prints timing data for the logs.
+        """
         print(query_name)
         start_time = datetime.utcnow()
         if query_param:
@@ -84,26 +123,38 @@ class XAPILakeMongo:
 
     # Queries during load
     def _q_enrollments_for_course(self, course_url):
-        return self.get_collection().count_documents({"$and":
-            [
-                {"_source.verb.id": "http://adlnet.gov/expapi/verbs/registered"},
-                {"$and": [
+        """
+        Return the count of documents for a course.
+        """
+        return self.get_collection().count_documents(
+            {
+                "$and":
+                [
+                    {"_source.verb.id": "http://adlnet.gov/expapi/verbs/registered"},
+                    {"$and": [
                         {
                             "_source.object.definition.type": "http://adlnet.gov/expapi/activities/course"
                         },
                         {
                             "_source.object.id": course_url
                         },
-                ]},
-            ]
-        })
+                    ]},
+                ]
+            }
+        )
 
     def _q_enrollments_for_org(self, org):
+        """
+        Return the count of documents for an org.
+        """
         return self.get_collection().count_documents(
             {"_source.verb.id": "http://adlnet.gov/expapi/verbs/registered", "_source.org.id": org}
         )
 
     def _q_enrollments_for_actor(self, actor):
+        """
+        Return the count of documents for an actor.
+        """
         return self.get_collection().count_documents({
             "_source.verb.id": "http://adlnet.gov/expapi/verbs/registered",
             "_source.actor.account.name": actor
@@ -111,8 +162,7 @@ class XAPILakeMongo:
 
     def do_queries(self, event_generator):
         """
-        Query data from the table and document how long the query runs (while the insert script is running)
-        :return:
+        Query data from the table and document how long the query runs (while the insert script is running).
         """
         # Get our randomly selected targets for this run
         course = random.choice(event_generator.known_courses)
@@ -140,6 +190,9 @@ class XAPILakeMongo:
 
     # Distribution queries
     def _q_count_courses(self):
+        """
+        Return a count of registrations for a course.
+        """
         with self.get_collection().aggregate([
             {"$match": {
                 "_source.verb.id": "http://adlnet.gov/expapi/verbs/registered",
@@ -151,6 +204,9 @@ class XAPILakeMongo:
                 return x["CourseCount"]
 
     def _q_count_learners(self):
+        """
+        Return the count of all distinct learners.
+        """
         with self.get_collection().aggregate([
             {"$group": {"_id": "$_source.actor.account.name"}},
             {"$count": "ActorCount"}
@@ -159,6 +215,9 @@ class XAPILakeMongo:
                 return x["ActorCount"]
 
     def _q_count_verb_dist(self):
+        """
+        Return the count of events aggregated by verb.
+        """
         out = []
         for x in self.get_collection().aggregate([
             {"$group": {"_id": "$_source.verb.id", "count": {"$sum": 1}}},
@@ -167,25 +226,32 @@ class XAPILakeMongo:
         return out
 
     def _q_count_org_dist(self):
-        pass
+        """
+        Return the count of events for all orgs.
+
+        This was not actually done before we decided against Mongo.
+        """
 
     def do_distributions(self):
+        """
+        Run and print the results of the various distribution queries.
+        """
         self._run_query_and_print(
-            f"Count of courses",
+            "Count of courses",
             self._q_count_courses,
         )
 
         self._run_query_and_print(
-            f"Count of learners",
+            "Count of learners",
             self._q_count_learners,
         )
 
         self._run_query_and_print(
-            f"Count of verbs",
+            "Count of verbs",
             self._q_count_verb_dist,
         )
 
         self._run_query_and_print(
-            f"Count of orgs",
+            "Count of orgs",
             self._q_count_org_dist
         )

@@ -1,8 +1,12 @@
-import json
-import requests
+"""
+Ralph backends for supported databases.
+"""
+
 import datetime
+import json
 
 import clickhouse_connect
+import requests
 from pymongo import MongoClient
 
 from .clickhouse_lake import XAPILakeClickhouse
@@ -10,15 +14,31 @@ from .mongo_lake import XAPILakeMongo
 
 
 class DateTimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, (datetime.date, datetime.datetime)):
-            return obj.isoformat()
+    """
+    JSON encoder that formats datetimes in a way that ClickHouse likes.
+    """
+
+    def default(self, o):
+        """
+        Force our datetime objects to the correct format.
+        """
+        if isinstance(o, (datetime.date, datetime.datetime)):
+            return o.isoformat()
+        return o
 
 
 class XAPILRSRalphClickhouse(XAPILakeClickhouse):
+    """
+    Backend for Ralph with Clickhouse.
+    """
+
+    # pylint: disable=super-init-not-called
     def __init__(self, db_host, lrs_url, lrs_username,
                  lrs_password, db_port=18123, db_username="default", db_password=None,
                  db_name="xapi"):
+        """
+        Init the backend.
+        """
         self.db_host = db_host
         self.db_port = db_port
         self.db_username = db_username
@@ -46,8 +66,13 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
         )
 
     def batch_insert(self, events):
+        """
+        Post batches of events to Ralph.
+        """
         # Ralph wants one json object per line, not an array of objects
         out_data = [json.loads(x["event"]) for x in events]
+
+        # pylint: disable=missing-timeout
         resp = requests.post(self.lrs_url, auth=(self.lrs_username, self.lrs_password),
                              json=out_data, headers={"Content-Type": "application/json"}
                              )
@@ -55,10 +80,17 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
 
 
 class XAPILRSRalphMongo(XAPILakeMongo):
-    # def __init__(self, host, port, username, password=None, database=None):
+    """
+    Backend for Ralph with Mongo.
+    """
+
+    # pylint: disable=super-init-not-called
     def __init__(self, db_host, lrs_url, lrs_username,
                  lrs_password, db_port=18123, db_username="default", db_password=None,
                  db_name="statements"):
+        """
+        Init the backend.
+        """
         self.db_host = db_host
         self.db_port = db_port
         self.db_username = db_username
@@ -81,8 +113,12 @@ class XAPILRSRalphMongo(XAPILakeMongo):
         self.client = MongoClient(connection_string)
 
     def batch_insert(self, events):
+        """
+        POST batches of events to Ralph.
+        """
         # Ralph wants one json object per line, not an array of objects
         out_data = [json.loads(x["event"]) for x in events]
+        # pylint: disable=missing-timeout
         resp = requests.post(self.lrs_url, auth=(self.lrs_username, self.lrs_password),
                              json=out_data, headers={"Content-Type": "application/json"}
                              )
