@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-astroid==2.15.0
+astroid==2.15.1
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -50,7 +50,7 @@ click-log==0.4.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-clickhouse-connect[numpy]==0.5.16
+clickhouse-connect[numpy]==0.5.18
     # via -r requirements/quality.txt
 code-annotations==1.3.0
     # via
@@ -64,7 +64,7 @@ coverage[toml]==7.2.2
     #   -r requirements/quality.txt
     #   codecov
     #   pytest-cov
-cryptography==39.0.2
+cryptography==40.0.1
     # via
     #   -r requirements/quality.txt
     #   secretstorage
@@ -92,7 +92,7 @@ exceptiongroup==1.1.1
     # via
     #   -r requirements/quality.txt
     #   pytest
-filelock==3.10.0
+filelock==3.10.7
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -187,7 +187,7 @@ pkginfo==1.9.6
     # via
     #   -r requirements/quality.txt
     #   twine
-platformdirs==3.1.1
+platformdirs==3.2.0
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -220,7 +220,7 @@ pygments==2.14.0
     #   diff-cover
     #   readme-renderer
     #   rich
-pylint==2.17.0
+pylint==2.17.1
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -256,7 +256,7 @@ python-slugify==8.0.1
     # via
     #   -r requirements/quality.txt
     #   code-annotations
-pytz==2022.7.1
+pytz==2023.3
     # via
     #   -r requirements/quality.txt
     #   clickhouse-connect
@@ -283,7 +283,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==13.3.2
+rich==13.3.3
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -321,7 +321,7 @@ tomli==2.0.1
     #   pyproject-hooks
     #   pytest
     #   tox
-tomlkit==0.11.6
+tomlkit==0.11.7
     # via
     #   -r requirements/quality.txt
     #   pylint
