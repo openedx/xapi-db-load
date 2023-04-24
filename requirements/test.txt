@@ -35,7 +35,7 @@ lz4==4.3.2
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
-numpy==1.24.2
+numpy==1.24.3
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect

@@ -20,7 +20,7 @@ idna==3.4
     # via requests
 lz4==4.3.2
     # via clickhouse-connect
-numpy==1.24.2
+numpy==1.24.3
     # via clickhouse-connect
 psycopg2-binary==2.9.6
     # via -r requirements/base.in
