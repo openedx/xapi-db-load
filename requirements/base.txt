@@ -12,7 +12,7 @@ charset-normalizer==3.1.0
     # via requests
 click==8.1.3
     # via -r requirements/base.in
-clickhouse-connect[numpy]==0.5.24
+clickhouse-connect[numpy]==0.6.2
     # via -r requirements/base.in
 dnspython==2.3.0
     # via pymongo
@@ -28,9 +28,9 @@ pymongo[srv]==4.3.3
     # via -r requirements/base.in
 pytz==2023.3
     # via clickhouse-connect
-requests==2.30.0
+requests==2.31.0
     # via -r requirements/base.in
-urllib3==2.0.2
+urllib3==2.0.3
     # via
     #   clickhouse-connect
     #   requests
