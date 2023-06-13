@@ -44,21 +44,21 @@ click-log==0.4.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-clickhouse-connect[numpy]==0.5.24
+clickhouse-connect[numpy]==0.6.2
     # via -r requirements/quality.txt
 code-annotations==1.3.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-coverage[toml]==7.2.5
+coverage[toml]==7.2.7
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==40.0.2
+cryptography==41.0.1
     # via
     #   -r requirements/quality.txt
     #   secretstorage
-diff-cover==7.5.0
+diff-cover==7.6.0
     # via -r requirements/dev.in
 dill==0.3.6
     # via
@@ -72,7 +72,7 @@ dnspython==2.3.0
     # via
     #   -r requirements/quality.txt
     #   pymongo
-docutils==0.20
+docutils==0.20.1
     # via
     #   -r requirements/quality.txt
     #   readme-renderer
@@ -82,7 +82,7 @@ exceptiongroup==1.1.1
     # via
     #   -r requirements/quality.txt
     #   pytest
-filelock==3.12.0
+filelock==3.12.1
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -138,7 +138,7 @@ markdown-it-py==2.2.0
     # via
     #   -r requirements/quality.txt
     #   rich
-markupsafe==2.1.2
+markupsafe==2.1.3
     # via
     #   -r requirements/quality.txt
     #   jinja2
@@ -176,7 +176,7 @@ pkginfo==1.9.6
     # via
     #   -r requirements/quality.txt
     #   twine
-platformdirs==3.5.1
+platformdirs==3.5.3
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -224,7 +224,7 @@ pylint-django==2.5.3
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-pylint-plugin-utils==0.7
+pylint-plugin-utils==0.8.2
     # via
     #   -r requirements/quality.txt
     #   pylint-celery
@@ -235,11 +235,11 @@ pyproject-hooks==1.0.0
     # via
     #   -r requirements/pip-tools.txt
     #   build
-pytest==7.3.1
+pytest==7.3.2
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-pytest-cov==4.0.0
+pytest-cov==4.1.0
     # via -r requirements/quality.txt
 python-slugify==8.0.1
     # via
@@ -257,7 +257,7 @@ readme-renderer==37.3
     # via
     #   -r requirements/quality.txt
     #   twine
-requests==2.30.0
+requests==2.31.0
     # via
     #   -r requirements/quality.txt
     #   requests-toolbelt
@@ -270,7 +270,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==13.3.5
+rich==13.4.1
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -289,7 +289,7 @@ snowballstemmer==2.2.0
     # via
     #   -r requirements/quality.txt
     #   pydocstyle
-stevedore==5.0.0
+stevedore==5.1.0
     # via
     #   -r requirements/quality.txt
     #   code-annotations
@@ -321,13 +321,13 @@ tox-battery==0.6.1
     # via -r requirements/dev.in
 twine==4.0.2
     # via -r requirements/quality.txt
-typing-extensions==4.5.0
+typing-extensions==4.6.3
     # via
     #   -r requirements/quality.txt
     #   astroid
     #   pylint
     #   rich
-urllib3==2.0.2
+urllib3==2.0.3
     # via
     #   -r requirements/quality.txt
     #   clickhouse-connect
