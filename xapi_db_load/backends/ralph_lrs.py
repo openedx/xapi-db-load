@@ -30,6 +30,7 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
         self.event_raw_table_name = "xapi_events_all"
         self.event_table_name = "xapi_events_all_parsed"
         self.event_table_name_mv = "xapi_events_all_parsed_mv"
+        self.get_org_function_name = "get_org_from_course_url"
 
         client_options = {
             "date_time_input_format": "best_effort",  # Allows RFC dates

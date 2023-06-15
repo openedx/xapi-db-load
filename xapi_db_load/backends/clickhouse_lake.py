@@ -5,34 +5,47 @@ import clickhouse_connect
 
 
 class XAPILakeClickhouse:
+    client = None
+
     def __init__(self, db_host="localhost", db_port=18123, db_username="default",
                  db_password=None, db_name=None):
         self.host = db_host
         self.port = db_port
         self.username = db_username
         self.database = db_name
+        self.db_password = db_password
 
         self.event_raw_table_name = "xapi_events_all"
         self.event_table_name = "xapi_events_all_parsed"
         self.event_table_name_mv = "xapi_events_all_parsed_mv"
+        self.get_org_function_name = "get_org_from_course_url"
+        self.set_client()
 
+    def set_client(self):
         client_options = {
             "date_time_input_format": "best_effort",  # Allows RFC dates
             "allow_experimental_object_type": 1,  # Allows JSON data type
         }
 
+        # For some reason get_client isn't automatically setting secure based on the port
+        # so we have to do it ourselves. This is obviously limiting, but should be 90% correct
+        # and keeps us from adding yet another command line option.
+        secure = str(self.port).endswith("443") or str(self.port).endswith("440")
+
         self.client = clickhouse_connect.get_client(
             host=self.host,
             username=self.username,
-            password=db_password,
+            password=self.db_password,
             port=self.port,
             database=self.database,
-            settings=client_options
+            settings=client_options,
+            secure=secure
         )
 
     def print_db_time(self):
         res = self.client.query("SELECT timezone(), now()")
-        print(res.result_set)
+        # Always flush our output on these so we can follow the logs.
+        print(res.result_set, flush=True)
 
     def print_row_counts(self):
         print("Hard table row count:")
@@ -45,6 +58,7 @@ class XAPILakeClickhouse:
     def drop_tables(self):
         self.client.command(f"DROP TABLE IF EXISTS {self.event_raw_table_name}")
         self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name}")
+        self.client.command(f"DROP FUNCTION IF EXISTS {self.get_org_function_name}")
         self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name_mv}")
         print("Tables dropped")
 
@@ -61,37 +75,44 @@ class XAPILakeClickhouse:
                 event_id)
             PRIMARY KEY (emission_time, event_id)
         """
+
         print(sql)
         self.client.command(sql)
 
         sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.event_table_name} (
-                event_id UUID NOT NULL,
-                verb_id String NOT NULL,
-                actor_id UUID NOT NULL,
-                org String NOT NULL,
-                course_id String NOT NULL,
-                emission_time DateTime64(6) NOT NULL,
-                event JSON NOT NULL
-            )
-            ENGINE MergeTree ORDER BY (
-                org,
-                course_id,
-                verb_id,
-                actor_id,
-                emission_time,
-                event_id)
-            PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time, event_id)
+        CREATE TABLE IF NOT EXISTS {self.event_table_name} (
+            event_id UUID NOT NULL,
+            verb_id String NOT NULL,
+            actor_id String NOT NULL,
+            object_id String NOT NULL,
+            org String NOT NULL,
+            course_id String NOT NULL,
+            emission_time DateTime64(6) NOT NULL,
+            event_str String NOT NULL
+        ) ENGINE MergeTree
+        ORDER BY (org, course_id, verb_id, actor_id, emission_time, event_id)
+        PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time, event_id);
         """
+
         print(sql)
         self.client.command(sql)
 
         sql = f"""
-            CREATE MATERIALIZED VIEW IF NOT EXISTS {self.event_table_name_mv} TO {self.event_table_name}
-            AS SELECT
+        CREATE OR REPLACE FUNCTION {self.get_org_function_name} AS (course_url) ->
+        nullIf(EXTRACT(course_url, 'course-v1:([a-zA-Z0-9]*)'), '')
+        ;"""
+
+        print(sql)
+        self.client.command(sql)
+
+        sql = f"""
+            CREATE MATERIALIZED VIEW IF NOT EXISTS {self.event_table_name_mv}
+            TO {self.event_table_name} AS
+            SELECT
             event_id as event_id,
             JSON_VALUE(event_str, '$.verb.id') as verb_id,
             JSON_VALUE(event_str, '$.actor.account.name') as actor_id,
+            JSON_VALUE(event_str, '$.object.id') as object_id,
             -- If the contextActivities parent is a course, use that. Otherwise use the object id for the course id
             if(
                 JSON_VALUE(
@@ -101,9 +122,10 @@ class XAPILakeClickhouse:
                     JSON_VALUE(event_str, '$.context.contextActivities.parent[0].id'),
                     JSON_VALUE(event_str, '$.object.id')
                 ) as course_id,
+            {self.get_org_function_name}(course_id) as org,
             emission_time as emission_time,
-            event as event
-            FROM {self.event_raw_table_name}
+            event_str as event_str
+            FROM {self.event_raw_table_name};
         """
         print(sql)
         self.client.command(sql)
@@ -123,9 +145,7 @@ class XAPILakeClickhouse:
         out_data = []
         for v in events:
             try:
-                out = f"('{v['event_id']}', '{v['verb']}', '{v['actor_id']}', '{v['org']}', "
-                out += f"'{v['course_run_id']}', " if "course_run_id" in v else "NULL, "
-                out += f"'{v['emission_time']}', '{v['event']}')"
+                out = f"('{v['event_id']}', '{v['emission_time']}', '{v['event']}', '{v['event']}')"
                 out_data.append(out)
             except:
                 print(v)
@@ -134,21 +154,23 @@ class XAPILakeClickhouse:
 
         # from pprint import pprint
         # pprint(out_data)
-
-        self.client.command(
-            f"""
-            INSERT INTO {self.event_table_name} (
-                event_id,
-                verb_id,
-                actor_id,
-                org,
-                course_id,
-                emission_time,
-                event
-            )
-            VALUES {vals}
-        """
-        )
+        sql = f"""
+                INSERT INTO {self.event_raw_table_name} (
+                    event_id,
+                    emission_time,
+                    event,
+                    event_str
+                )
+                VALUES {vals}
+            """
+        # Sometimes the connection randomly dies, this gives us a second shot in that case
+        try:
+            self.client.command(sql)
+        except clickhouse_connect.driver.exceptions.OperationalError:
+            print("ClickHouse OperationalError, trying to reconnect.")
+            self.set_client()
+            print("Retrying insert...")
+            self.client.command(sql)
 
     def _run_query_and_print(self, query_name, query):
         print(query_name)
@@ -307,9 +329,10 @@ class XAPILakeClickhouse:
                select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems,
                     max(a.num_problems) max_problems
                 from (
-                    select count(distinct event.object.id) as num_problems
+                    select count(distinct object_id) as num_problems
                     from {self.event_table_name}
-                    where event.object.definition.type = 'http://adlnet.gov/expapi/activities/cmi.interaction'
+                    where JSON_VALUE(event_str, '$.object.definition.type') =
+                    'http://adlnet.gov/expapi/activities/cmi.interaction'
                     group by course_id
                 ) a
            """,
@@ -321,10 +344,11 @@ class XAPILakeClickhouse:
                select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos,
                max(a.num_videos) max_videos
                from (
-                   select count(distinct event.object.id) as num_videos
+                   select count(distinct object_id) as num_videos
                    from {self.event_table_name}
-                   where event.object.definition.type = 'https://w3id.org/xapi/video/activity-type/video'
-                   group by event.object.id
+                   where JSON_VALUE(event_str, '$.object.definition.type') =
+                    'https://w3id.org/xapi/video/activity-type/video'
+                   group by object_id
                ) a
            """,
         )
