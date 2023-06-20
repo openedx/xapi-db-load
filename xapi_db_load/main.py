@@ -6,6 +6,7 @@ from .backends import (
     clickhouse_lake as clickhouse,
     mongo_lake as mongo, citus_lake as citus,
     ralph_lrs as ralph,
+    csv,
 )
 from .generate_load import EventGenerator
 
@@ -15,7 +16,7 @@ from .generate_load import EventGenerator
     "--backend",
     required=True,
     type=click.Choice(["clickhouse", "mongo", "citus", "ralph_clickhouse",
-                       "ralph_mongo"],
+                       "ralph_mongo", "csv_file"],
                       case_sensitive=True),
     help="Which backend to run against",
 )
@@ -43,16 +44,15 @@ from .generate_load import EventGenerator
 @click.option("--db_port", help="Database port")
 @click.option("--db_name", default="xapi", help="Database name")
 @click.option("--db_username", help="Database username")
-@click.option(
-    "--db_password",
-    prompt="Database password",
-    hide_input=True,
-    help="Password for the database so it's not stored on disk",
-)
-# TODO: Make lrs_password prompt, but only in LRS backends
+@click.option("--db_password", help="Password for the database so it's not stored on disk")
 @click.option("--lrs_url", default="http://localhost/", help="URL to the LRS, if used")
 @click.option("--lrs_username", help="LRS username")
 @click.option("--lrs_password", help="Password for the LRS")
+@click.option(
+    "--csv_output_file",
+    help="Filename where the output file should be written when using the csv backend. "
+         "a .gz extension will be added if it is not present since the csv backend gzips by default."
+)
 def load_db(
     backend,
     num_batches,
@@ -67,6 +67,7 @@ def load_db(
     lrs_url,
     lrs_username,
     lrs_password,
+    csv_output_file,
 ):
     start = datetime.datetime.utcnow()
 
@@ -99,6 +100,8 @@ def load_db(
             db_password=db_password, db_name=db_name, lrs_url=lrs_url,
             lrs_username=lrs_username, lrs_password=lrs_password
         )
+    elif backend == "csv_file":
+        lake = csv.XAPILakeCSV(output_file=csv_output_file)
     else:
         raise NotImplementedError(f"Unkown backend {backend}.")
 
@@ -114,7 +117,7 @@ def load_db(
     lake.print_db_time()
 
     for x in range(num_batches):
-        if x % 10 == 0:
+        if x % 100 == 0:
             print(f"{x} of {num_batches}")
             lake.print_db_time()
 
@@ -123,7 +126,7 @@ def load_db(
         events = event_generator.get_batch_events()
         lake.batch_insert(events)
 
-        if x % 100 == 0:
+        if x % 1000 == 0:
             lake.do_queries(event_generator)
             lake.print_db_time()
             lake.print_row_counts()

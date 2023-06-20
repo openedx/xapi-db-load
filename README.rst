@@ -11,7 +11,8 @@ Purpose
 Some test scripts to help make apples-to-apples comparisons of different
 database backends for xAPI events. Supports direct database connections to
 ClickHouse, MongoDB, Citus PostgreSQL, and batch loading data to the Ralph
-Learning Record Store with ClickHouse or MongoDB backends.
+Learning Record Store with ClickHouse or MongoDB backends. It also can create
+gzipped CSV files for bulk import to other databases.
 
 xAPI events generated match the specifications of the Open edX
 event-routing-backends package, but are not yet maintained to advance alongside
