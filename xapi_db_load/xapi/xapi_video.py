@@ -77,7 +77,7 @@ class LoadedVideo(BaseVideo):
 
 class PlayedVideo(BaseVideo):
     verb = "https://w3id.org/xapi/video/verbs/played"
-    verb_display = "play"
+    verb_display = "played"
 
 
 # TODO: These three technically need different structures, though we're not using them now. Update!
