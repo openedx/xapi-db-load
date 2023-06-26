@@ -21,8 +21,5 @@ jobs:
       - name: Install development dependencies
         run: make requirements
 
-      - name: Static code analysis
-        run: make quality
-
-      - name: Code formatting
-        run: make test
+      - name: Tests
+        run: tox
