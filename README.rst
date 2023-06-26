@@ -1,12 +1,12 @@
 Scripts for generating and loading test xAPI events
-===================================================
+***************************************************
 
 |pypi-badge| |ci-badge| |codecov-badge| |doc-badge| |pyversions-badge|
 |license-badge| |status-badge|
 
 
 Purpose
-*******
+=======
 
 Some test scripts to help make apples-to-apples comparisons of different
 database backends for xAPI events. Supports direct database connections to
@@ -19,10 +19,10 @@ event-routing-backends package, but are not yet maintained to advance alongside
 them.
 
 Getting Started
-***************
+===============
 
 Usage
-=====
+-----
 
 Details of how to run the current version of the script can be found by executing:
 
@@ -32,10 +32,11 @@ Details of how to run the current version of the script can be found by executin
 
 
 Developing
-==========
+----------
 
 One Time Setup
---------------
+^^^^^^^^^^^^^^
+
 .. code-block::
 
   # Clone the repository
@@ -47,7 +48,8 @@ One Time Setup
 
 
 Every time you develop something in this repo
----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. code-block::
 
   # Activate the virtualenv
@@ -83,10 +85,10 @@ Every time you develop something in this repo
 
 
 Getting Help
-************
+============
 
 Documentation
-=============
+-------------
 
 Start by going through `the documentation`_ (in progress!).
 
@@ -94,7 +96,7 @@ Start by going through `the documentation`_ (in progress!).
 
 
 More Help
-=========
+---------
 
 If you're having trouble, we have discussion forums at
 https://discuss.openedx.org where you can connect with others in the

@@ -1,33 +1,22 @@
+"""
+Generates batches of random xAPI events.
+"""
 import datetime
+import pprint
 import uuid
 from random import choice, choices, randrange
 
-from .course_configs import (
-    CourseConfigSmall,
-    CourseConfigMedium,
-    CourseConfigLarge,
-    CourseConfigWhopper,
-)
-from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
+from .course_configs import CourseConfigLarge, CourseConfigMedium, CourseConfigSmall, CourseConfigWhopper
 from .xapi.xapi_grade import FirstTimePassed
-from .xapi.xapi_navigation import (
-    NextNavigation,
-    PreviousNavigation,
-    TabSelectedNavigation,
-    LinkClicked,
-)
-from .xapi.xapi_registration import Registered, Unregistered
+from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
+from .xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
 from .xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
-from .xapi.xapi_video import (
-    LoadedVideo,
-    PlayedVideo,
-    PausedVideo,
-    StoppedVideo,
-    PositionChangedVideo,
-)
+from .xapi.xapi_registration import Registered, Unregistered
+from .xapi.xapi_video import LoadedVideo, PausedVideo, PlayedVideo, PositionChangedVideo, StoppedVideo
 
-# This is the list of event types to generate, and the proportion of total xapi events
-# that should be generated for each. Should total roughly 100 to keep percentages simple.
+# This is the list of event types to generate, and the proportion of total xapi
+# events that should be generated for each. Should total roughly 100 to keep
+# percentages simple.
 EVENT_LOAD = (
     (Registered, 1.138),
     (Unregistered, 0.146),
@@ -69,11 +58,19 @@ def _get_uuid():
 
 
 def _get_random_thing(
-    thing, func_for_new_thing=_get_uuid, one_in_range=1000, max_thing_length=1000000
+    thing,
+    func_for_new_thing=_get_uuid,
+    one_in_range=1000,
+    max_thing_length=1000000
 ):
-    if (not len(thing) or randrange(one_in_range) == 5) and len(
-        thing
-    ) < max_thing_length:
+    """
+    Return a random instantiated object of the type requested.
+
+    A new object will be created approximately one out of every "one_in_range"
+    calls to this function. Otherwise, an existing object will be returned.
+    """
+    if (not thing or randrange(one_in_range) == 5) \
+            and len(thing) < max_thing_length:
         new_thing = func_for_new_thing()
         thing.append(new_thing)
         return new_thing
@@ -82,6 +79,10 @@ def _get_random_thing(
 
 
 class RandomCourse:
+    """
+    Holds "known objects" and configuration values for a fake course.
+    """
+
     items_in_course = 0
     known_problem_ids = []
     known_video_ids = []
@@ -99,7 +100,7 @@ class RandomCourse:
         self.configure()
 
     def __repr__(self):
-        return f"""{self.course_uuid} ({str(self.course_config)}): 
+        return f"""{self.course_uuid} ({str(self.course_config)}):
         {self.start_date} - {self.end_date}
         Items: {self.items_in_course}
         Videos: {len(self.known_video_ids)}
@@ -108,6 +109,9 @@ class RandomCourse:
         """
 
     def configure(self):
+        """
+        Set up the fake course configuration such as course length, start and end dates, and size.
+        """
         course_length_days = randrange(90, 365)
         # Course starts at least course_length_days ago
         latest_course_date = datetime.datetime.utcnow() - datetime.timedelta(
@@ -148,12 +152,21 @@ class RandomCourse:
         ]
 
     def get_random_emission_time(self):
+        """
+        Randomizes an emission time for events that falls within the course start and end dates.
+        """
         return self._random_datetime(
             start_datetime=self.start_date, end_datetime=self.end_date
         )
 
     @staticmethod
     def _random_datetime(start_datetime=None, end_datetime=None):
+        """
+        Create a random datetime within the given boundaries.
+
+        If no start date is given, we start 5 years ago.
+        If no end date is given, we end now.
+        """
         if not end_datetime:
             end_datetime = datetime.datetime.utcnow()
         if not start_datetime:
@@ -169,6 +182,9 @@ class RandomCourse:
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@video+block@{video_uuid}"
 
     def get_video_id(self):
+        """
+        Return a video id from our list of known video ids.
+        """
         return choice(self.known_video_ids)
 
     def _generate_random_problem_id(self):
@@ -176,6 +192,9 @@ class RandomCourse:
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@problem+block@{problem_uuid}"
 
     def get_problem_id(self):
+        """
+        Return a problem id from our list of known problem ids.
+        """
         return choice(self.known_problem_ids)
 
     def _generate_random_sequential_id(self):
@@ -183,13 +202,23 @@ class RandomCourse:
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@sequential+block@{sequential_uuid}"
 
     def get_random_sequential_id(self):
+        """
+        Return a sequential id from our list of known sequential ids.
+        """
         return choice(self.known_sequential_ids)
 
     def get_random_nav_location(self):
+        """
+        Return a navigation location from our list of known ids.
+        """
         return str(randrange(1, self.items_in_course))
 
 
 class EventGenerator:
+    """
+    Generates a batch of random xAPI events based on the EVENT_WEIGHTS proportions.
+    """
+
     known_actor_uuids = []
     known_courses = []
     known_orgs = ["openedX", "burritoX", "tacoX", "chipX", "salsaX", "guacX"]
@@ -198,12 +227,18 @@ class EventGenerator:
         self.batch_size = batch_size
 
     def get_batch_events(self):
-        events = choices(EVENTS, EVENT_WEIGHTS, k=self.batch_size)
-        # print(events)
+        """
+        Create a batch size list of random events.
 
+        Events are from our EVENTS list, based on the EVENT_WEIGHTS proportions.
+        """
+        events = choices(EVENTS, EVENT_WEIGHTS, k=self.batch_size)
         return [e(self).get_data() for e in events]
 
     def get_actor(self):
+        """
+        Return a random actor.
+        """
         return _get_random_thing(self.known_actor_uuids)
 
     def _generate_random_course(self):
@@ -211,12 +246,16 @@ class EventGenerator:
         return RandomCourse(org)
 
     def get_course(self):
+        """
+        Return a random course.
+        """
         return _get_random_thing(
             self.known_courses, self._generate_random_course, one_in_range=10000
         )
 
     def dump_courses(self):
-        import pprint
-
+        """
+        Prettyprint all known courses.
+        """
         for c in self.known_courses:
             pprint.pprint(c)

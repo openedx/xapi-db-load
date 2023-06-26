@@ -1,3 +1,8 @@
+"""
+Configuration values for emulating courses of various sizes.
+"""
+
+
 class CourseConfigSmall:
     items = (10, 20)
     problems = (10, 20)

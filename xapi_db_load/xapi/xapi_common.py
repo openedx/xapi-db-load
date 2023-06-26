@@ -1,4 +1,15 @@
+"""
+Base class for all fake xAPI events.
+"""
+
+
 class XAPIBase:
+    """
+    Base class to handle some common functionality.
+
+    Should be turned into a proper ABC when we have a chance.
+    """
+
     verb = None
     verb_display = None
 

@@ -1,9 +1,12 @@
 """
-Setup for xapi-db-load
+Setup for xapi-db-load.
 """
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 from xapi_db_load import __version__
+
+with open("README.rst", "r") as readme:
+    desc = readme.read()
 
 setup(
     name="xapi-db-load",
@@ -29,6 +32,8 @@ setup(
     license="AGPLv3",
     author="Open edX",
     description="Loads testing xAPI events into databases and LRSs",
+    long_description=desc,
+    long_description_content_type="text/x-rst",
     python_requires=">=3.7",
     classifiers=[
         "Development Status :: 3 - Alpha",

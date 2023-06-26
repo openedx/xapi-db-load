@@ -1,14 +1,28 @@
-from datetime import datetime
+"""
+ClickHouse data lake implementation.
+"""
+
 import random
+from datetime import datetime
 
 import clickhouse_connect
 
 
 class XAPILakeClickhouse:
+    """
+    Lake implementation for ClickHouse.
+    """
+
     client = None
 
-    def __init__(self, db_host="localhost", db_port=18123, db_username="default",
-                 db_password=None, db_name=None):
+    def __init__(
+        self,
+        db_host="localhost",
+        db_port=18123,
+        db_username="default",
+        db_password=None,
+        db_name=None,
+    ):
         self.host = db_host
         self.port = db_port
         self.username = db_username
@@ -22,6 +36,9 @@ class XAPILakeClickhouse:
         self.set_client()
 
     def set_client(self):
+        """
+        Set up the ClickHouse client and connect.
+        """
         client_options = {
             "date_time_input_format": "best_effort",  # Allows RFC dates
             "allow_experimental_object_type": 1,  # Allows JSON data type
@@ -39,23 +56,35 @@ class XAPILakeClickhouse:
             port=self.port,
             database=self.database,
             settings=client_options,
-            secure=secure
+            secure=secure,
         )
 
     def print_db_time(self):
+        """
+        Print the current time according to the db.
+        """
         res = self.client.query("SELECT timezone(), now()")
         # Always flush our output on these so we can follow the logs.
         print(res.result_set, flush=True)
 
     def print_row_counts(self):
+        """
+        Print the current row count.
+        """
         print("Hard table row count:")
         res = self.client.query(f"SELECT count(*) FROM {self.event_table_name}")
         print(res.result_set)
 
     def create_db(self):
+        """
+        Create the destination database if it doesn't exist.
+        """
         self.client.command(f"CREATE DATABASE IF NOT EXISTS {self.database}")
 
     def drop_tables(self):
+        """
+        Drop existing table structures.
+        """
         self.client.command(f"DROP TABLE IF EXISTS {self.event_raw_table_name}")
         self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name}")
         self.client.command(f"DROP FUNCTION IF EXISTS {self.get_org_function_name}")
@@ -63,6 +92,12 @@ class XAPILakeClickhouse:
         print("Tables dropped")
 
     def create_tables(self):
+        """
+        Create the base xAPI tables and top level materialized views.
+
+        In the future we should manage this through the scripts in tutor-contrib-aspects to keep the
+        table structures compatible.
+        """
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.event_raw_table_name} (
                 event_id UUID NOT NULL,
@@ -134,26 +169,18 @@ class XAPILakeClickhouse:
 
     def batch_insert(self, events):
         """
-        event_id UUID NOT NULL,
-        verb_id String NOT NULL,
-        actor_id UUID NOT NULL,
-        org UUID NOT NULL,
-        course_id String NULL,
-        emission_time timestamp NOT NULL,
-        event JSON NOT NULL
+        Insert a batch of events to ClickHouse.
         """
+        print("Inserting clickhouse")
         out_data = []
         for v in events:
             try:
                 out = f"('{v['event_id']}', '{v['emission_time']}', '{v['event']}', '{v['event']}')"
                 out_data.append(out)
-            except:
+            except Exception:
                 print(v)
                 raise
         vals = ",".join(out_data)
-
-        # from pprint import pprint
-        # pprint(out_data)
         sql = f"""
                 INSERT INTO {self.event_raw_table_name} (
                     event_id,
@@ -173,6 +200,9 @@ class XAPILakeClickhouse:
             self.client.command(sql)
 
     def _run_query_and_print(self, query_name, query):
+        """
+        Execute a ClickHouse query and print the elapsed client time.
+        """
         print(query_name)
         start_time = datetime.utcnow()
         result = self.client.query(query)
@@ -184,8 +214,7 @@ class XAPILakeClickhouse:
 
     def do_queries(self, event_generator):
         """
-        Query data from the table and document how long the query runs (while the insert script is running)
-        :return:
+        Query data from the table and document how long the query runs (while the insert script is running).
         """
         # Get our randomly selected targets for this run
         course = random.choice(event_generator.known_courses)
@@ -194,7 +223,7 @@ class XAPILakeClickhouse:
         actor = random.choice(event_generator.known_actor_uuids)
 
         self._run_query_and_print(
-            f"Count of enrollment events for course {course_url}",
+            "Count of enrollment events for course {course_url}",
             f"""
                 select count(*)
                 from {self.event_table_name}
@@ -204,7 +233,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            f"Count of total enrollment events for org {org}",
+            "Count of total enrollment events for org {org}",
             f"""
                 select count(*)
                 from {self.event_table_name}
@@ -214,7 +243,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            f"Count of enrollments for this learner",
+            "Count of enrollments for this learner",
             f"""
                 select count(*)
                 from {self.event_table_name}
@@ -224,7 +253,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            f"Count of enrollments for this course - count of unenrollments, last 30 days",
+            "Count of enrollments for this course - count of unenrollments, last 30 days",
             f"""
                 select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
                 from (
@@ -243,7 +272,7 @@ class XAPILakeClickhouse:
 
         # Number of enrollments for this course - number of unenrollments, all time
         self._run_query_and_print(
-            f"Count of enrollments for this course - count of unenrollments, all time",
+            "Count of enrollments for this course - count of unenrollments, all time",
             f"""
                 select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
                 from (
@@ -261,7 +290,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            f"Count of enrollments for all courses - count of unenrollments, last 5 minutes",
+            "Count of enrollments for all courses - count of unenrollments, last 5 minutes",
             f"""
                 select a.cnt, b.cnt, a.cnt - b.cnt as total_registrations
                 from (
@@ -277,25 +306,28 @@ class XAPILakeClickhouse:
         )
 
     def do_distributions(self):
+        """
+        Execute and print the timing of distribution queries to enable comparisons across runs.
+        """
         self._run_query_and_print(
-           f"Count of courses",
-           f"""
+            "Count of courses",
+            f"""
                select count(distinct course_id)
                from {self.event_table_name}
            """,
         )
 
         self._run_query_and_print(
-           f"Count of learners",
-           f"""
+            "Count of learners",
+            f"""
                select count(distinct actor_id)
                from {self.event_table_name}
            """,
         )
 
         self._run_query_and_print(
-           f"Count of verbs",
-           f"""
+            "Count of verbs",
+            f"""
                select count(*), verb_id
                from {self.event_table_name}
                group by verb_id
@@ -303,8 +335,8 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-           f"Count of orgs",
-           f"""
+            "Count of orgs",
+            f"""
                select count(*), org
                from {self.event_table_name}
                group by org
@@ -312,9 +344,11 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            f"Avg, min, max students per course",
+            "Avg, min, max students per course",
             f"""
-                select avg(a.num_students) as avg_students, min(a.num_students) as min_students, max(a.num_students) max_students
+                select avg(a.num_students) as avg_students,
+                        min(a.num_students) as min_students,
+                        max(a.num_students) max_students
                 from (
                     select count(distinct actor_id) as num_students
                     from {self.event_table_name}
@@ -324,8 +358,8 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-           f"Avg, min, max problems per course",
-           f"""
+            "Avg, min, max problems per course",
+            f"""
                select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems,
                     max(a.num_problems) max_problems
                 from (
@@ -339,8 +373,8 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-           f"Avg, min, max videos per course",
-           f"""
+            "Avg, min, max videos per course",
+            f"""
                select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos,
                max(a.num_videos) max_videos
                from (
@@ -354,7 +388,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            f"Random event by id",
+            "Random event by id",
             f"""
                 select *
                 from {self.event_table_name}

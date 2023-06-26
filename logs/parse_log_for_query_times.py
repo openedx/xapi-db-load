@@ -1,4 +1,3 @@
-
 queries = {
     "Count of enrollment events for course": [],
     "Count of total enrollment events for org": [],
@@ -6,7 +5,7 @@ queries = {
     "Count of enrollments for this learner": [],
     "Count of enrollments for this course - count of unenrollments, last 30 days": [],
     "Count of enrollments for this course - count of unenrollments, all time": [],
-    "Count of enrollments for all courses - count of unenrollments, last 5 minutes": []
+    "Count of enrollments for all courses - count of unenrollments, last 5 minutes": [],
 }
 
 # Just used for testing output
@@ -35,6 +34,7 @@ Collection count:
 8920 of 10000
 2022-12-09 17:12:23.670774
 """.splitlines()
+
 
 def go():
     # fname = "citus_100M_columnar_cluster_no_partition.txt"

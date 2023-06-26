@@ -1,13 +1,15 @@
 with open("ralph_clickhouse_100M_2/ralph_clickhouse_100m_10kbatch.txt", "r") as f:
-    print("""# Automatically generated from get_times.py
+    print(
+        """# Automatically generated from get_times.py
     
     
 import datetime
 
 a = (
-    """)
+    """
+    )
 
-    #count = 0
+    # count = 0
 
     # First few timestamps are startup related
     for line in f.readlines()[4:]:
@@ -15,11 +17,12 @@ a = (
             # count += 1
 
             # Every 10th and 11th timestamp are query timing related
-            #if count % 11 == 0 or count % 12 == 0:
+            # if count % 11 == 0 or count % 12 == 0:
             #    continue
             print(line.strip() + ",")
 
-print("""
+print(
+    """
 )
 
 times = [x[0][1] for x in a]
@@ -39,4 +42,5 @@ for t in times[2:]:
     prev_time = t
 
 print("\\n".join(durations))
-""")
+"""
+)
