@@ -3,6 +3,4 @@
 
 click
 clickhouse-connect[numpy]>0.5<0.6
-psycopg2-binary
-pymongo[srv]
 requests

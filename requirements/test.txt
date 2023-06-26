@@ -19,10 +19,6 @@ clickhouse-connect[numpy]==0.6.4
     # via -r requirements/base.txt
 coverage[toml]==7.2.7
     # via pytest-cov
-dnspython==2.3.0
-    # via
-    #   -r requirements/base.txt
-    #   pymongo
 exceptiongroup==1.1.1
     # via pytest
 idna==3.4
@@ -43,10 +39,6 @@ packaging==23.1
     # via pytest
 pluggy==1.2.0
     # via pytest
-psycopg2-binary==2.9.6
-    # via -r requirements/base.txt
-pymongo[srv]==4.4.0
-    # via -r requirements/base.txt
 pytest==7.4.0
     # via pytest-cov
 pytest-cov==4.1.0
