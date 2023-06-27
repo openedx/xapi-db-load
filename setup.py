@@ -19,9 +19,7 @@ setup(
     """,
     install_requires=[
         "click",
-        "clickhouse-connect[numpy]",
-        "psycopg2-binary",
-        "pymongo[srv]",
+        "clickhouse-connect >= 0.5, < 0.7",
         "requests",
     ],
     url="https://github.com/openedx/xapi-db-load",
