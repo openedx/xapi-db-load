@@ -1,5 +1,8 @@
-from uuid import uuid4
+"""
+Fake xAPI statements for various problem_check events.
+"""
 import json
+from uuid import uuid4
 
 from .xapi_common import XAPIBase
 
@@ -7,9 +10,16 @@ from .xapi_common import XAPIBase
 # TODO: There are various other problem samples we should probably include eventually:
 # https://github.com/openedx/event-routing-backends/tree/master/event_routing_backends/processors/xapi/tests/fixtures/expected
 class BaseProblemCheck(XAPIBase):
+    """
+    Base xAPI class for problem check events.
+    """
+
     problem_type = None  # "browser" or "server"
 
     def get_data(self):
+        """
+        Generate and return the event dict, including xAPI statement as "event".
+        """
         event_id = str(uuid4())
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
@@ -34,6 +44,9 @@ class BaseProblemCheck(XAPIBase):
     def get_randomized_event(
         self, event_id, account, course_locator, problem_id, create_time
     ):
+        """
+        Given the inputs, return an xAPI statement.
+        """
         browser_object = {
             "object": {
                 "definition": {
@@ -84,7 +97,7 @@ class BaseProblemCheck(XAPIBase):
                     ]
                 },
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"
+                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"  # pylint: disable=line-too-long
                 },
             },
             "timestamp": create_time.isoformat(),

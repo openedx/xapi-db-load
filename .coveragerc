@@ -1,6 +1,6 @@
 [run]
 branch = True
 data_file = .coverage
-source=xapi-db-load
+source=xapi_db_load
 omit =
     tests

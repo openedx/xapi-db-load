@@ -1,10 +1,17 @@
-from uuid import uuid4
+"""
+Fake xAPI statements for various hint and answer events.
+"""
 import json
+from uuid import uuid4
 
 from .xapi_common import XAPIBase
 
 
 class HintAnswerBase(XAPIBase):
+    """
+    Base xAPI class for hint and answer events.
+    """
+
     verb_display = "asked"
     verb = "http://adlnet.gov/expapi/verbs/asked"
 
@@ -12,6 +19,9 @@ class HintAnswerBase(XAPIBase):
     type = None
 
     def get_data(self):
+        """
+        Generate and return the event dict, including xAPI statement as "event".
+        """
         event_id = str(uuid4())
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
@@ -33,6 +43,9 @@ class HintAnswerBase(XAPIBase):
         }
 
     def get_randomized_event(self, event_id, account, course, problem_id, create_time):
+        """
+        Given the inputs, return an xAPI statement.
+        """
         hint_object = {
             "object": {
                 "definition": {
@@ -71,7 +84,7 @@ class HintAnswerBase(XAPIBase):
                     ]
                 },
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"
+                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"    # pylint: disable=line-too-long
                 },
             },
             "timestamp": create_time.isoformat(),

@@ -1,13 +1,14 @@
+"""
+Top level script to generate random xAPI events against various backends.
+"""
+
 import datetime
 
 import click
 
-from .backends import (
-    clickhouse_lake as clickhouse,
-    mongo_lake as mongo, citus_lake as citus,
-    ralph_lrs as ralph,
-    csv,
-)
+from .backends import clickhouse_lake as clickhouse
+from .backends import csv
+from .backends import ralph_lrs as ralph
 from .generate_load import EventGenerator
 
 
@@ -15,9 +16,10 @@ from .generate_load import EventGenerator
 @click.option(
     "--backend",
     required=True,
-    type=click.Choice(["clickhouse", "mongo", "citus", "ralph_clickhouse",
-                       "ralph_mongo", "csv_file"],
-                      case_sensitive=True),
+    type=click.Choice(
+        ["clickhouse", "ralph_clickhouse", "csv_file"],
+        case_sensitive=True,
+    ),
     help="Which backend to run against",
 )
 @click.option(
@@ -44,14 +46,16 @@ from .generate_load import EventGenerator
 @click.option("--db_port", help="Database port")
 @click.option("--db_name", default="xapi", help="Database name")
 @click.option("--db_username", help="Database username")
-@click.option("--db_password", help="Password for the database so it's not stored on disk")
-@click.option("--lrs_url", default="http://localhost/", help="URL to the LRS, if used")
-@click.option("--lrs_username", help="LRS username")
+@click.option(
+    "--db_password", help="Password for the database so it's not stored on disk"
+)
+@click.option("--lrs_url", default="http://localhost:8100/", help="URL to the LRS, if used")
+@click.option("--lrs_username", default="ralph", help="LRS username")
 @click.option("--lrs_password", help="Password for the LRS")
 @click.option(
     "--csv_output_file",
     help="Filename where the output file should be written when using the csv backend. "
-         "a .gz extension will be added if it is not present since the csv backend gzips by default."
+    "a .gz extension will be added if it is not present since the csv backend gzips by default.",
 )
 def load_db(
     backend,
@@ -69,6 +73,9 @@ def load_db(
     lrs_password,
     csv_output_file,
 ):
+    """
+    Execute the database load.
+    """
     start = datetime.datetime.utcnow()
 
     # Since we're accepting pw on input we need a way to "None" it.
@@ -77,28 +84,22 @@ def load_db(
 
     if backend == "clickhouse":
         lake = clickhouse.XAPILakeClickhouse(
-            db_host=db_host, db_port=db_port, db_username=db_username,
-            db_password=db_password, db_name=db_name
+            db_host=db_host,
+            db_port=db_port,
+            db_username=db_username,
+            db_password=db_password,
+            db_name=db_name,
         )
-    elif backend == "mongo":
-        lake = mongo.XAPILakeMongo(
-            db_host=db_host, db_port=db_port, db_username=db_username,
-            db_password=db_password, db_name=db_name)
-    elif backend == "citus":
-        lake = citus.XAPILakeCitus(db_host=db_host, db_port=db_port,
-                                   db_username=db_username, db_password=db_password,
-                                   db_name=db_name)
     elif backend == "ralph_clickhouse":
         lake = ralph.XAPILRSRalphClickhouse(
-            db_host=db_host, db_port=db_port, db_username=db_username,
-            db_password=db_password, db_name=db_name, lrs_url=lrs_url,
-            lrs_username=lrs_username, lrs_password=lrs_password
-        )
-    elif backend == "ralph_mongo":
-        lake = ralph.XAPILRSRalphMongo(
-            db_host=db_host, db_port=db_port, db_username=db_username,
-            db_password=db_password, db_name=db_name, lrs_url=lrs_url,
-            lrs_username=lrs_username, lrs_password=lrs_password
+            db_host=db_host,
+            db_port=db_port,
+            db_username=db_username,
+            db_password=db_password,
+            db_name=db_name,
+            lrs_url=lrs_url,
+            lrs_username=lrs_username,
+            lrs_password=lrs_password,
         )
     elif backend == "csv_file":
         lake = csv.XAPILakeCSV(output_file=csv_output_file)
@@ -122,7 +123,6 @@ def load_db(
             lake.print_db_time()
 
         event_generator = EventGenerator(batch_size=batch_size)
-
         events = event_generator.get_batch_events()
         lake.batch_insert(events)
 
@@ -147,4 +147,4 @@ def load_db(
 
 
 if __name__ == "__main__":
-    load_db()
+    load_db()  # pylint: disable=no-value-for-parameter

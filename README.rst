@@ -1,30 +1,31 @@
 Scripts for generating and loading test xAPI events
-===================================================
+***************************************************
 
 |pypi-badge| |ci-badge| |codecov-badge| |doc-badge| |pyversions-badge|
 |license-badge| |status-badge|
 
 
 Purpose
-*******
+=======
 
 Some test scripts to help make apples-to-apples comparisons of different
 database backends for xAPI events. Supports direct database connections to
-ClickHouse, MongoDB, Citus PostgreSQL, and batch loading data to the Ralph
-Learning Record Store with ClickHouse or MongoDB backends. It also can create
-gzipped CSV files for bulk import to other databases.
+ClickHouse, and batch loading data to the Ralph Learning Record Store with the
+ClickHouse backend. It also can create gzipped CSV files for bulk import to
+other databases.
 
 xAPI events generated match the specifications of the Open edX
 event-routing-backends package, but are not yet maintained to advance alongside
 them.
 
 Getting Started
-***************
+===============
 
 Usage
-=====
+-----
 
-Details of how to run the current version of the script can be found by executing:
+Details of how to run the current version of the script can be found by
+executing:
 
 ::
 
@@ -32,22 +33,25 @@ Details of how to run the current version of the script can be found by executin
 
 
 Developing
-==========
+----------
 
 One Time Setup
---------------
+^^^^^^^^^^^^^^
+
 .. code-block::
 
   # Clone the repository
   git clone git@github.com:openedx/xapi-db-load.git
   cd xapi-db-load
 
-  # Set up a virtualenv using virtualenvwrapper with the same name as the repo and activate it
+  # Set up a virtualenv using virtualenvwrapper with the same name as the repo
+  # and activate it
   mkvirtualenv -p python3.8 xapi-db-load
 
 
 Every time you develop something in this repo
----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. code-block::
 
   # Activate the virtualenv
@@ -60,7 +64,8 @@ Every time you develop something in this repo
   # Install/update the dev requirements
   make requirements
 
-  # Run the tests and quality checks (to verify the status before you make any changes)
+  # Run the tests and quality checks (to verify the status before you make any
+  # changes)
   make validate
 
   # Make a new branch for your changes
@@ -83,10 +88,10 @@ Every time you develop something in this repo
 
 
 Getting Help
-************
+============
 
 Documentation
-=============
+-------------
 
 Start by going through `the documentation`_ (in progress!).
 
@@ -94,7 +99,7 @@ Start by going through `the documentation`_ (in progress!).
 
 
 More Help
-=========
+---------
 
 If you're having trouble, we have discussion forums at
 https://discuss.openedx.org where you can connect with others in the
@@ -127,7 +132,8 @@ Contributing
 ************
 
 Contributions are very welcome.
-Please read `How To Contribute <https://openedx.org/r/how-to-contribute>`_ for details.
+Please read `How To Contribute <https://openedx.org/r/how-to-contribute>`_ for
+details.
 
 This project is currently accepting all types of contributions, bug fixes,
 security fixes, maintenance work, or new features.  However, please make sure

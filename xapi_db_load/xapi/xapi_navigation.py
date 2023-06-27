@@ -1,10 +1,17 @@
-from uuid import uuid4
+"""
+Fake xAPI statements for various navigation events.
+"""
 import json
+from uuid import uuid4
 
 from .xapi_common import XAPIBase
 
 
 class BaseNavigation(XAPIBase):
+    """
+    Base xAPI class for navigation events.
+    """
+
     # All subclasses use these verbs currently
     verb = "https://w3id.org/xapi/dod-isd/verbs/navigated"
     verb_display = "navigated"
@@ -17,6 +24,9 @@ class BaseNavigation(XAPIBase):
     type = None
 
     def get_data(self):
+        """
+        Generate and return the event dict, including xAPI statement as "event".
+        """
         event_id = str(uuid4())
         actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
@@ -43,6 +53,9 @@ class BaseNavigation(XAPIBase):
     def get_randomized_event(
         self, event_id, account, course, from_loc, to_loc, create_time
     ):
+        """
+        Given the inputs, return an xAPI statement.
+        """
         event = {
             "id": event_id,
             "actor": {
@@ -63,7 +76,7 @@ class BaseNavigation(XAPIBase):
                     ]
                 },
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0",
+                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0",  # pylint: disable=line-too-long
                 },
             },
             "timestamp": create_time.isoformat(),
@@ -79,7 +92,7 @@ class BaseNavigation(XAPIBase):
                         "definition": {
                             "type": "http://adlnet.gov/expapi/activities/link"
                         },
-                        "id": "http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course/jump_to/block-v1:edX+DemoX+Demo_Course+type@sequential+block@6ab9c442501d472c8ed200e367b4edfa",
+                        "id": "http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course/jump_to/block-v1:edX+DemoX+Demo_Course+type@sequential+block@6ab9c442501d472c8ed200e367b4edfa",  # pylint: disable=line-too-long
                         "objectType": "Activity",
                     }
                 }
