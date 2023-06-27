@@ -171,7 +171,6 @@ class XAPILakeClickhouse:
         """
         Insert a batch of events to ClickHouse.
         """
-        print("Inserting clickhouse")
         out_data = []
         for v in events:
             try:
