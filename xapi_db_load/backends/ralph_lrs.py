@@ -52,7 +52,7 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
 
         Ralph wants one json object per line, not an array of objects.
         """
-        print("Inserting ralph")
+        out_data = [json.loads(x["event"]) for x in events]
         out_data = [json.loads(x["event"]) for x in events]
         resp = requests.post(  # pylint: disable=missing-timeout
             self.lrs_url,
