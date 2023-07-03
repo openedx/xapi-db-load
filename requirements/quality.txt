@@ -15,6 +15,8 @@ certifi==2023.5.7
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
+cffi==1.15.1
+    # via cryptography
 charset-normalizer==3.1.0
     # via
     #   -r requirements/test.txt
@@ -35,6 +37,8 @@ coverage[toml]==7.2.7
     # via
     #   -r requirements/test.txt
     #   pytest-cov
+cryptography==41.0.1
+    # via secretstorage
 dill==0.3.6
     # via pylint
 docutils==0.20.1
@@ -65,6 +69,10 @@ isort==5.12.0
     #   pylint
 jaraco-classes==3.2.3
     # via keyring
+jeepney==0.8.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.1.2
     # via code-annotations
 keyring==24.2.0
@@ -101,6 +109,8 @@ pluggy==1.2.0
     #   pytest
 pycodestyle==2.10.0
     # via -r requirements/quality.in
+pycparser==2.21
+    # via cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
 pygments==2.15.1
@@ -148,6 +158,8 @@ rfc3986==2.0.0
     # via twine
 rich==13.4.2
     # via twine
+secretstorage==3.3.3
+    # via keyring
 six==1.16.0
     # via
     #   bleach
@@ -168,7 +180,7 @@ tomlkit==0.11.8
     # via pylint
 twine==4.0.2
     # via -r requirements/quality.in
-typing-extensions==4.6.3
+typing-extensions==4.7.1
     # via
     #   astroid
     #   pylint
