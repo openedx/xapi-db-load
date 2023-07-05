@@ -2,4 +2,4 @@
 Scripts to generate fake xAPI data against various backends.
 """
 
-__version__ = "0.3"
+__version__ = "0.4"

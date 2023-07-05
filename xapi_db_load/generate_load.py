@@ -213,6 +213,57 @@ class RandomCourse:
         """
         return str(randrange(1, self.items_in_course))
 
+    def serialize_course_data_for_event_sink(self):
+        """
+        Return a dict representing the course data from event-sink-clickhouse.
+        """
+        return {
+            "org": self.org,
+            "course_key": self.course_id,
+            "display_name": f"Course {self.course_uuid[:5]}",
+            "course_start": self.start_date,
+            "course_end": self.end_date,
+            "enrollment_start": self.start_date,
+            "enrollment_end": self.end_date,
+            "self_paced": choice([True, False]),
+            # This is a catchall field, we don't currently use it
+            "course_data_json": "{}",
+            "created": self.start_date,
+            "modified": self.end_date
+        }
+
+    def _serialize_block(self, block_type, block_id, cnt):
+        return {
+            "org": self.org,
+            "course_key": self.course_id,
+            "location": block_id,
+            "display_name": f"{block_type} {cnt}",
+            # This is a catchall field, we don't currently use it
+            "xblock_data_json": "{}",
+            "order": cnt,
+            "edited_on": self.end_date
+        }
+
+    def serialize_block_data_for_event_sink(self):
+        """
+        Return a list of dicts representing all blocks in this course.
+
+        The data format mirrors what is created by event-sink-clickhouse.
+        """
+        blocks = []
+        cnt = 1
+        for v in self.known_video_ids:
+            blocks.append(self._serialize_block("Video", v, cnt))
+            cnt += 1
+        for p in self.known_problem_ids:
+            blocks.append(self._serialize_block("Problem", p, cnt))
+            cnt += 1
+        for s in self.known_sequential_ids:
+            blocks.append(self._serialize_block("Sequential", s, cnt))
+            cnt += 1
+
+        return blocks
+
 
 class EventGenerator:
     """

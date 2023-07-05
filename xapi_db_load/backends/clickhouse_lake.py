@@ -3,6 +3,7 @@ ClickHouse data lake implementation.
 """
 
 import random
+import uuid
 from datetime import datetime
 
 import clickhouse_connect
@@ -165,6 +166,49 @@ class XAPILakeClickhouse:
         print(sql)
         self.client.command(sql)
 
+        sql = """
+            CREATE TABLE IF NOT EXISTS event_sink.course_overviews
+            (
+                org              String,
+                course_key       String,
+                display_name     String,
+                course_start     String,
+                course_end       String,
+                enrollment_start String,
+                enrollment_end   String,
+                self_paced       Bool,
+                course_data_json String,
+                created          String,
+                modified         String,
+                dump_id          UUID,
+                time_last_dumped String
+            )
+                engine = MergeTree PRIMARY KEY (org, course_key, modified, time_last_dumped)
+                    ORDER BY (org, course_key, modified, time_last_dumped);
+        """
+
+        print(sql)
+        self.client.command(sql)
+
+        sql = """
+            CREATE TABLE IF NOT EXISTS event_sink.course_blocks
+            (
+                org              String,
+                course_key       String,
+                location         String,
+                display_name     String,
+                xblock_data_json String,
+                order            Int32 default 0,
+                edited_on        String,
+                dump_id          UUID,
+                time_last_dumped String
+            )
+                engine = MergeTree PRIMARY KEY (org, course_key, location, edited_on)
+                    ORDER BY (org, course_key, location, edited_on, order);
+        """
+        print(sql)
+        self.client.command(sql)
+
         print("Tables created")
 
     def batch_insert(self, events):
@@ -197,6 +241,118 @@ class XAPILakeClickhouse:
             self.set_client()
             print("Retrying insert...")
             self.client.command(sql)
+
+    def insert_event_sink_course_data(self, courses):
+        """
+        Insert the course overview data to ClickHouse.
+
+        This allows us to test join performance to get course and block names.
+        """
+        out_data = []
+        for course in courses:
+            c = course.serialize_course_data_for_event_sink()
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.utcnow()
+            try:
+                out = f"""(
+                    '{c['org']}',
+                    '{c['course_key']}',
+                    '{c['display_name']}',
+                    '{c['course_start']}',
+                    '{c['course_end']}',
+                    '{c['enrollment_start']}',
+                    '{c['enrollment_end']}',
+                    '{c['self_paced']}',
+                    '{c['course_data_json']}',
+                    '{c['created']}',
+                    '{c['modified']}',
+                    '{dump_id}',
+                    '{dump_time}'
+                )"""
+                out_data.append(out)
+            except Exception:
+                print(c)
+                raise
+        vals = ",".join(out_data)
+        sql = f"""
+                INSERT INTO event_sink.course_overviews (
+                    org,
+                    course_key,
+                    display_name,
+                    course_start,
+                    course_end,
+                    enrollment_start,
+                    enrollment_end,
+                    self_paced,
+                    course_data_json,
+                    created,
+                    modified,
+                    dump_id,
+                    time_last_dumped
+                )
+                VALUES {vals}
+            """
+        # Sometimes the connection randomly dies, this gives us a second shot in that case
+        try:
+            self.client.command(sql)
+        except clickhouse_connect.driver.exceptions.OperationalError:
+            print("ClickHouse OperationalError, trying to reconnect.")
+            self.set_client()
+            print("Retrying insert...")
+            self.client.command(sql)
+
+    def insert_event_sink_block_data(self, courses):
+        """
+        Insert the block data to ClickHouse.
+
+        This allows us to test join performance to get course and block names.
+        """
+        for course in courses:
+            out_data = []
+            blocks = course.serialize_block_data_for_event_sink()
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.utcnow()
+            for b in blocks:
+                try:
+                    out = f"""(
+                        '{b['org']}',
+                        '{b['course_key']}',
+                        '{b['location']}',
+                        '{b['display_name']}',
+                        '{b['xblock_data_json']}',
+                        '{b['order']}',
+                        '{b['edited_on']}',
+                        '{dump_id}',
+                        '{dump_time}'
+                    )"""
+                    out_data.append(out)
+                except Exception:
+                    print(b)
+                    raise
+
+            vals = ",".join(out_data)
+            sql = f"""
+                    INSERT INTO event_sink.course_blocks (
+                        org,
+                        course_key,
+                        location,
+                        display_name,
+                        xblock_data_json,
+                        order,
+                        edited_on,
+                        dump_id,
+                        time_last_dumped
+                    )
+                    VALUES {vals}
+                """
+            # Sometimes the connection randomly dies, this gives us a second shot in that case
+            try:
+                self.client.command(sql)
+            except clickhouse_connect.driver.exceptions.OperationalError:
+                print("ClickHouse OperationalError, trying to reconnect.")
+                self.set_client()
+                print("Retrying insert...")
+                self.client.command(sql)
 
     def _run_query_and_print(self, query_name, query):
         """
