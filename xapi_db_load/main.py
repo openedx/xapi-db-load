@@ -53,9 +53,9 @@ from .generate_load import EventGenerator
 @click.option("--lrs_username", default="ralph", help="LRS username")
 @click.option("--lrs_password", help="Password for the LRS")
 @click.option(
-    "--csv_output_file",
-    help="Filename where the output file should be written when using the csv backend. "
-    "a .gz extension will be added if it is not present since the csv backend gzips by default.",
+    "--csv_output_directory",
+    help="Directory where the output files should be written when using the csv backend.",
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, writable=True)
 )
 def load_db(
     backend,
@@ -71,7 +71,7 @@ def load_db(
     lrs_url,
     lrs_username,
     lrs_password,
-    csv_output_file,
+    csv_output_directory,
 ):
     """
     Execute the database load.
@@ -102,7 +102,7 @@ def load_db(
             lrs_password=lrs_password,
         )
     elif backend == "csv_file":
-        lake = csv.XAPILakeCSV(output_file=csv_output_file)
+        lake = csv.XAPILakeCSV(output_directory=csv_output_directory)
     else:
         raise NotImplementedError(f"Unkown backend {backend}.")
 
@@ -117,12 +117,13 @@ def load_db(
     lake.create_tables()
     lake.print_db_time()
 
+    event_generator = EventGenerator(batch_size=batch_size)
+
     for x in range(num_batches):
         if x % 100 == 0:
             print(f"{x} of {num_batches}")
             lake.print_db_time()
 
-        event_generator = EventGenerator(batch_size=batch_size)
         events = event_generator.get_batch_events()
         lake.batch_insert(events)
 
@@ -131,7 +132,11 @@ def load_db(
             lake.print_db_time()
             lake.print_row_counts()
 
-        # event_generator.dump_courses()
+    # event_generator.dump_courses()
+    print("Inserting course metadata...")
+    lake.insert_event_sink_course_data(event_generator.known_courses)
+    print("Inserting block metadata...")
+    lake.insert_event_sink_block_data(event_generator.known_courses)
 
     print(f"Done! Added {num_batches * batch_size:,} rows!")
 

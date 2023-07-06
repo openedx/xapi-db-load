@@ -5,6 +5,8 @@ This can be used to generate a gzipped csv of events that can be loaded into any
 """
 import csv
 import gzip
+import os
+import uuid
 from datetime import datetime
 
 
@@ -13,19 +15,18 @@ class XAPILakeCSV:
     CSV fake data lake implementation.
     """
 
-    def __init__(self, output_file=""):
+    def __init__(self, output_directory):
         # This isn't really a database, so just faking out all of this.
-        if not output_file or (
-            not output_file.endswith(".csv") and not output_file.endswith(".csv.gz")
-        ):
-            raise Exception(  # pylint: disable=broad-exception-raised
-                "No output file given or doesn't end with '.csv' / '.csv.gz'"
-            )
-        if not output_file.endswith(".gz"):
-            output_file = output_file + ".gz"
-        self.out_filehandle = gzip.open(output_file, "wt")
-        self.csv_writer = csv.writer(self.out_filehandle)
+        self.xapi_csv_writer = self._get_csv_handle("xapi", output_directory)
+        self.course_csv_writer = self._get_csv_handle("courses", output_directory)
+        self.blocks_csv_writer = self._get_csv_handle("blocks", output_directory)
+
         self.row_count = 0
+
+    def _get_csv_handle(self, file_type, output_directory):
+        out_filepath = os.path.join(output_directory, f"{file_type}.csv.gz")
+        out_filehandle = gzip.open(out_filepath, "wt")
+        return csv.writer(out_filehandle)
 
     def print_db_time(self):
         """
@@ -61,8 +62,53 @@ class XAPILakeCSV:
         """
         for v in events:
             out = (v["event_id"], v["emission_time"], str(v["event"]))
-            self.csv_writer.writerow(out)
+            self.xapi_csv_writer.writerow(out)
         self.row_count += len(events)
+
+    def insert_event_sink_course_data(self, courses):
+        """
+        Write the course overview data.
+        """
+        for course in courses:
+            c = course.serialize_course_data_for_event_sink()
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.utcnow()
+            self.course_csv_writer.writerow((
+                c['org'],
+                c['course_key'],
+                c['display_name'],
+                c['course_start'],
+                c['course_end'],
+                c['enrollment_start'],
+                c['enrollment_end'],
+                c['self_paced'],
+                c['course_data_json'],
+                c['created'],
+                c['modified'],
+                dump_id,
+                dump_time
+            ))
+
+    def insert_event_sink_block_data(self, courses):
+        """
+        Write out the block data file.
+        """
+        for course in courses:
+            blocks = course.serialize_block_data_for_event_sink()
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.utcnow()
+            for b in blocks:
+                self.blocks_csv_writer.writerow((
+                    b['org'],
+                    b['course_key'],
+                    b['location'],
+                    b['display_name'],
+                    b['xblock_data_json'],
+                    b['order'],
+                    b['edited_on'],
+                    dump_id,
+                    dump_time
+                ))
 
     def do_queries(self, event_generator):
         """
@@ -75,4 +121,3 @@ class XAPILakeCSV:
 
         But this is the last step, so take the opportunity to close the file.
         """
-        self.out_filehandle.close()
