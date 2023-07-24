@@ -93,8 +93,8 @@ class RandomCourse:
     def __init__(self, org):
         self.course_uuid = str(uuid.uuid4())
         self.org = org
-        self.course_id = f"{org}+DemoX+{self.course_uuid}"
-        self.course_url = f"http://localhost:18000/course/course-v1:{self.course_id}"
+        self.course_id = f"course-v1:{org}+DemoX+{self.course_uuid}"
+        self.course_url = f"http://localhost:18000/course/{self.course_id}"
 
         self.course_config = choices(COURSE_CONFIGS, COURSE_CONFIG_WEIGHTS)[0]
         self.configure()
