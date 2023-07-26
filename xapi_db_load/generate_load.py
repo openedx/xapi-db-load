@@ -236,7 +236,7 @@ class RandomCourse:
         return {
             "org": self.org,
             "course_key": self.course_id,
-            "location": block_id,
+            "location": block_id.split("/xblock/")[-1],
             "display_name": f"{block_type} {cnt}",
             # This is a catchall field, we don't currently use it
             "xblock_data_json": "{}",
