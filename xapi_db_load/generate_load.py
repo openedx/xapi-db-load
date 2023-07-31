@@ -245,10 +245,11 @@ class RandomCourse:
         }
 
     def _serialize_course_block(self):
+        location_course_id = self.course_id.replace("course-v1:", "")
         return {
             "org": self.org,
             "course_key": self.course_id,
-            "location": f"block-v1:{self.course_id}+type@course+block@course",
+            "location": f"block-v1:{location_course_id}+type@course+block@course",
             "display_name": f"Course {self.course_uuid[:5]}",
             # This is a catchall field, we don't currently use it
             "xblock_data_json": "{}",
