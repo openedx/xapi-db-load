@@ -42,6 +42,22 @@ from .generate_load import EventGenerator
     default=False,
     help="Just run distribution queries and exit",
 )
+@click.option(
+    "--start_date",
+    default=(datetime.date.today() - datetime.timedelta(days=365)).strftime(
+        "%Y-%m-%d"
+    ),
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="Create events starting at this date, default to 1 yr ago. ex: 2020-11-30"
+)
+@click.option(
+    "--end_date",
+    default=(datetime.date.today() + datetime.timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    ),
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="Create events ending at this date, default to tomorrow. ex: 2020-11-31"
+)
 @click.option("--db_host", default="localhost", help="Database host name")
 @click.option("--db_port", help="Database port")
 @click.option("--db_name", default="xapi", help="Database name")
@@ -63,6 +79,8 @@ def load_db(
     batch_size,
     drop_tables_first,
     distributions_only,
+    start_date,
+    end_date,
     db_host,
     db_port,
     db_name,
@@ -77,6 +95,9 @@ def load_db(
     Execute the database load.
     """
     start = datetime.datetime.utcnow()
+
+    if start_date >= end_date:
+        raise click.UsageError("Start date must be before end date.")
 
     # Since we're accepting pw on input we need a way to "None" it.
     if db_password == " ":
@@ -102,9 +123,13 @@ def load_db(
             lrs_password=lrs_password,
         )
     elif backend == "csv_file":
+        if not csv_output_directory:
+            raise click.UsageError(
+                "--csv_output_directory must be provided for this backend."
+            )
         lake = csv.XAPILakeCSV(output_directory=csv_output_directory)
     else:
-        raise NotImplementedError(f"Unkown backend {backend}.")
+        raise NotImplementedError(f"Unknown backend {backend}.")
 
     if distributions_only:
         lake.do_distributions()
@@ -117,7 +142,11 @@ def load_db(
     lake.create_tables()
     lake.print_db_time()
 
-    event_generator = EventGenerator(batch_size=batch_size)
+    event_generator = EventGenerator(
+        batch_size=batch_size,
+        start_date=start_date,
+        end_date=end_date
+    )
 
     for x in range(num_batches):
         if x % 100 == 0:
