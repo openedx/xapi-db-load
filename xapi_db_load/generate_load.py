@@ -90,12 +90,14 @@ class RandomCourse:
     start_date = None
     end_date = None
 
-    def __init__(self, org):
+    def __init__(self, org, start_date, end_date):
         self.course_uuid = str(uuid.uuid4())
         self.org = org
         self.course_id = f"course-v1:{org}+DemoX+{self.course_uuid}"
         self.course_url = f"http://localhost:18000/course/{self.course_id}"
 
+        self.start_date = start_date
+        self.end_date = end_date
         self.course_config = choices(COURSE_CONFIGS, COURSE_CONFIG_WEIGHTS)[0]
         self.configure()
 
@@ -112,16 +114,6 @@ class RandomCourse:
         """
         Set up the fake course configuration such as course length, start and end dates, and size.
         """
-        course_length_days = randrange(90, 365)
-        # Course starts at least course_length_days ago
-        latest_course_date = datetime.datetime.utcnow() - datetime.timedelta(
-            days=course_length_days
-        )
-        self.start_date = self._random_datetime(end_datetime=latest_course_date)
-        self.end_date = self.start_date + datetime.timedelta(days=course_length_days)
-
-        assert self.end_date > self.start_date
-
         self.items_in_course = randrange(
             self.course_config.items[0], self.course_config.items[1]
         )
@@ -288,8 +280,10 @@ class EventGenerator:
     known_courses = []
     known_orgs = ["openedX", "burritoX", "tacoX", "chipX", "salsaX", "guacX"]
 
-    def __init__(self, batch_size=BATCH_SIZE):
+    def __init__(self, batch_size, start_date, end_date):
         self.batch_size = batch_size
+        self.start_date = start_date
+        self.end_date = end_date
 
     def get_batch_events(self):
         """
@@ -308,7 +302,7 @@ class EventGenerator:
 
     def _generate_random_course(self):
         org = choice(self.known_orgs)
-        return RandomCourse(org)
+        return RandomCourse(org, self.start_date, self.end_date)
 
     def get_course(self):
         """
