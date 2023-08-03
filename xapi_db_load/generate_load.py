@@ -244,6 +244,19 @@ class RandomCourse:
             "edited_on": self.end_date
         }
 
+    def _serialize_course_block(self):
+        location_course_id = self.course_id.replace("course-v1:", "")
+        return {
+            "org": self.org,
+            "course_key": self.course_id,
+            "location": f"block-v1:{location_course_id}+type@course+block@course",
+            "display_name": f"Course {self.course_uuid[:5]}",
+            # This is a catchall field, we don't currently use it
+            "xblock_data_json": "{}",
+            "order": 1,
+            "edited_on": self.end_date
+        }
+
     def serialize_block_data_for_event_sink(self):
         """
         Return a list of dicts representing all blocks in this course.
@@ -261,6 +274,7 @@ class RandomCourse:
         for s in self.known_sequential_ids:
             blocks.append(self._serialize_block("Sequential", s, cnt))
             cnt += 1
+        blocks.append(self._serialize_course_block())
 
         return blocks
 
