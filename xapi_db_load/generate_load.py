@@ -90,14 +90,14 @@ class RandomCourse:
     start_date = None
     end_date = None
 
-    def __init__(self, org, min_start_date, max_end_date):
+    def __init__(self, org, start_date, end_date):
         self.course_uuid = str(uuid.uuid4())
         self.org = org
         self.course_id = f"course-v1:{org}+DemoX+{self.course_uuid}"
         self.course_url = f"http://localhost:18000/course/{self.course_id}"
 
-        self.start_date = min_start_date
-        self.end_date = max_end_date
+        self.start_date = start_date
+        self.end_date = end_date
         self.course_config = choices(COURSE_CONFIGS, COURSE_CONFIG_WEIGHTS)[0]
         self.configure()
 
