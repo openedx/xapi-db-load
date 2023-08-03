@@ -147,7 +147,7 @@ mdurl==0.1.2
     # via
     #   -r requirements/quality.txt
     #   markdown-it-py
-more-itertools==9.1.0
+more-itertools==10.0.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-classes
@@ -169,7 +169,7 @@ pkginfo==1.9.6
     # via
     #   -r requirements/quality.txt
     #   twine
-platformdirs==3.9.1
+platformdirs==3.10.0
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -186,7 +186,7 @@ py==1.11.0
     # via
     #   -r requirements/ci.txt
     #   tox
-pycodestyle==2.10.0
+pycodestyle==2.11.0
     # via -r requirements/quality.txt
 pycparser==2.21
     # via
@@ -200,7 +200,7 @@ pygments==2.15.1
     #   diff-cover
     #   readme-renderer
     #   rich
-pylint==2.17.4
+pylint==2.17.5
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -259,7 +259,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==13.4.2
+rich==13.5.0
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -298,7 +298,7 @@ tomli==2.0.1
     #   pyproject-hooks
     #   pytest
     #   tox
-tomlkit==0.11.8
+tomlkit==0.12.1
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -323,7 +323,7 @@ urllib3==2.0.4
     #   clickhouse-connect
     #   requests
     #   twine
-virtualenv==20.24.1
+virtualenv==20.24.2
     # via
     #   -r requirements/ci.txt
     #   tox
