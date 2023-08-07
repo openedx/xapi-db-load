@@ -26,7 +26,7 @@ cffi==1.15.1
     # via
     #   -r requirements/quality.txt
     #   cryptography
-chardet==5.1.0
+chardet==5.2.0
     # via diff-cover
 charset-normalizer==3.2.0
     # via
@@ -54,7 +54,7 @@ coverage[toml]==7.2.7
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==41.0.2
+cryptography==41.0.3
     # via
     #   -r requirements/quality.txt
     #   secretstorage
@@ -147,7 +147,7 @@ mdurl==0.1.2
     # via
     #   -r requirements/quality.txt
     #   markdown-it-py
-more-itertools==10.0.0
+more-itertools==10.1.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-classes
@@ -163,7 +163,7 @@ pbr==5.11.1
     # via
     #   -r requirements/quality.txt
     #   stevedore
-pip-tools==7.1.0
+pip-tools==7.2.0
     # via -r requirements/pip-tools.txt
 pkginfo==1.9.6
     # via
@@ -194,7 +194,7 @@ pycparser==2.21
     #   cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.txt
-pygments==2.15.1
+pygments==2.16.1
     # via
     #   -r requirements/quality.txt
     #   diff-cover
@@ -259,7 +259,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==13.5.0
+rich==13.5.2
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -331,7 +331,7 @@ webencodings==0.5.1
     # via
     #   -r requirements/quality.txt
     #   bleach
-wheel==0.41.0
+wheel==0.41.1
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools

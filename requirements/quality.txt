@@ -37,7 +37,7 @@ coverage[toml]==7.2.7
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==41.0.2
+cryptography==41.0.3
     # via secretstorage
 dill==0.3.7
     # via pylint
@@ -93,7 +93,7 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.0.0
+more-itertools==10.1.0
     # via jaraco-classes
 packaging==23.1
     # via
@@ -115,7 +115,7 @@ pycparser==2.21
     # via cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
-pygments==2.15.1
+pygments==2.16.1
     # via
     #   readme-renderer
     #   rich
@@ -158,7 +158,7 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.5.0
+rich==13.5.2
     # via twine
 secretstorage==3.3.3
     # via keyring
