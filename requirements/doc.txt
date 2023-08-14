@@ -33,7 +33,7 @@ click==8.1.6
     # via -r requirements/test.txt
 clickhouse-connect==0.6.8
     # via -r requirements/test.txt
-coverage[toml]==7.2.7
+coverage[toml]==7.3.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -61,7 +61,7 @@ importlib-metadata==6.8.0
     #   keyring
     #   sphinx
     #   twine
-importlib-resources==6.0.0
+importlib-resources==6.0.1
     # via keyring
 iniconfig==2.0.0
     # via
