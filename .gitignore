@@ -6,3 +6,6 @@ build/
 *.egg-info/
 tests/__init__.py
 docs/_build/
+.tox/
+coverage.xml
+dist/

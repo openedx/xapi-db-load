@@ -6,10 +6,11 @@ import datetime
 
 import click
 
-from .backends import clickhouse_lake as clickhouse
-from .backends import csv
-from .backends import ralph_lrs as ralph
-from .generate_load import EventGenerator
+from xapi_db_load.backends import clickhouse_lake as clickhouse
+from xapi_db_load.backends import csv
+from xapi_db_load.backends import ralph_lrs as ralph
+from xapi_db_load.generate_load import EventGenerator
+from xapi_db_load.utils import LogTimer, setup_timing
 
 
 @click.command()
@@ -131,43 +132,42 @@ def load_db(
     else:
         raise NotImplementedError(f"Unknown backend {backend}.")
 
+    # Sets up the timing logger. Here to prevent creating log files when
+    # running --help or other commands.
+    setup_timing()
+
     if distributions_only:
-        lake.do_distributions()
+        with LogTimer("distributions", "do_distributiuon"):
+            lake.do_distributions()
         print("Done!")
         return
 
-    if drop_tables_first:
-        lake.drop_tables()
+    with LogTimer("setup", "full_setup"):
+        if drop_tables_first:
+            with LogTimer("setup", "drop_tables"):
+                lake.drop_tables()
 
-    lake.create_tables()
-    lake.print_db_time()
+        with LogTimer("setup", "create_tables"):
+            lake.create_tables()
 
-    event_generator = EventGenerator(
-        batch_size=batch_size,
-        start_date=start_date,
-        end_date=end_date
-    )
+        with LogTimer("setup", "event_generator"):
+            event_generator = EventGenerator(
+                batch_size=batch_size,
+                start_date=start_date,
+                end_date=end_date
+            )
 
-    for x in range(num_batches):
-        if x % 100 == 0:
-            print(f"{x} of {num_batches}")
-            lake.print_db_time()
+    insert_batches(event_generator, num_batches, lake)
 
-        events = event_generator.get_batch_events()
-        lake.batch_insert(events)
-
-        if x % 1000 == 0:
-            lake.do_queries(event_generator)
-            lake.print_db_time()
-            lake.print_row_counts()
-
-    # event_generator.dump_courses()
     print("Inserting course metadata...")
-    lake.insert_event_sink_course_data(event_generator.known_courses)
+    with LogTimer("insert_metadata", "course"):
+        lake.insert_event_sink_course_data(event_generator.known_courses)
     print("Inserting block metadata...")
-    lake.insert_event_sink_block_data(event_generator.known_courses)
+    with LogTimer("insert_metadata", "blocks"):
+        lake.insert_event_sink_block_data(event_generator.known_courses)
 
-    print(f"Done! Added {num_batches * batch_size:,} rows!")
+    with LogTimer("batches", "total"):
+        print(f"Done! Added {num_batches * batch_size:,} rows!")
 
     end = datetime.datetime.utcnow()
     print("Batch insert time: " + str(end - start))
@@ -178,6 +178,28 @@ def load_db(
 
     end = datetime.datetime.utcnow()
     print("Total run time: " + str(end - start))
+
+
+def insert_batches(event_generator, num_batches, lake):
+    """
+    Generate and insert num_batches of events.
+    """
+    for x in range(num_batches):
+        if x % 100 == 0:
+            print(f"{x} of {num_batches}")
+            lake.print_db_time()
+
+        with LogTimer("batch", "get_events"):
+            events = event_generator.get_batch_events()
+
+        with LogTimer("batch", "insert_events"):
+            lake.batch_insert(events)
+
+        if x % 1000 == 0:
+            with LogTimer("batch", "all_queries"):
+                lake.do_queries(event_generator)
+            lake.print_db_time()
+            lake.print_row_counts()
 
 
 if __name__ == "__main__":
