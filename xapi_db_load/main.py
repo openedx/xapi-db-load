@@ -74,6 +74,11 @@ from xapi_db_load.utils import LogTimer, setup_timing
     help="Directory where the output files should be written when using the csv backend.",
     type=click.Path(exists=True, dir_okay=True, file_okay=False, writable=True)
 )
+@click.option(
+    "--log_dir",
+    help="The directory to log timing information to.",
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, writable=True)
+)
 def load_db(
     backend,
     num_batches,
@@ -91,6 +96,7 @@ def load_db(
     lrs_username,
     lrs_password,
     csv_output_directory,
+    log_dir,
 ):
     """
     Execute the database load.
@@ -134,7 +140,7 @@ def load_db(
 
     # Sets up the timing logger. Here to prevent creating log files when
     # running --help or other commands.
-    setup_timing()
+    setup_timing(log_dir)
 
     if distributions_only:
         with LogTimer("distributions", "do_distributiuon"):

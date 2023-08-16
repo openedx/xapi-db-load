@@ -9,25 +9,21 @@ from datetime import datetime
 timing = logging.getLogger("timing")
 
 
-def setup_timing():
+def setup_timing(log_dir):
     """
     Set up the timing logger.
 
     This should probably take an optional logging config file eventually.
     """
     formatter = logging.Formatter('%(message)s')
-    timing_log_name = f"logs/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_timing.log"
 
-    parent_dir = "logs"
-
-    # If the logs dir is writable, use it. On systems like k8s where it's not,
-    # output to the screen.
-    if not os.access(parent_dir, os.W_OK):
-        handler = logging.FileHandler(timing_log_name)
+    if log_dir:
+        timing_log_name = os.path.join(log_dir, f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_timing.log")
         print(f"Logging timing data to {timing_log_name}")
+        handler = logging.FileHandler(timing_log_name)
     else:
+        print("No log dir provided, logging timing data to stdout.")
         handler = logging.StreamHandler()
-        print(f"{parent_dir} is not writable, logging timing data to stdout.")
 
     handler.setFormatter(formatter)
     timing.addHandler(handler)
