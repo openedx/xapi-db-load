@@ -80,7 +80,7 @@ class BaseVideo(XAPIBase):
             "version": "1.0.3",
         }
 
-        if self.verb == "interacted":
+        if self.verb_display == "interacted":
             event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = False
 
         return json.dumps(event)
