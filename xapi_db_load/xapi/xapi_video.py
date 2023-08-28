@@ -80,6 +80,9 @@ class BaseVideo(XAPIBase):
             "version": "1.0.3",
         }
 
+        if self.verb == "interacted":
+            event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = False
+
         return json.dumps(event)
 
 
@@ -93,7 +96,7 @@ class PlayedVideo(BaseVideo):
     verb_display = "played"
 
 
-# TODO: These three technically need different structures, though we're not using them now. Update!
+# TODO: These four technically need different structures, though we're not using them now. Update!
 class StoppedVideo(BaseVideo):
     verb = "http://adlnet.gov/expapi/verbs/terminated"
     verb_display = "terminated"
@@ -109,35 +112,16 @@ class PositionChangedVideo(BaseVideo):
     verb_display = "seeked"
 
 
-class TranscriptEnabled(BaseVideo):
-    """
-    event for enabling transcripts or closed captioning.
-    """
+class CompletedVideo(BaseVideo):
+    verb = "http://adlnet.gov/expapi/verbs/completed"
+    verb_display = "completed"
 
+
+class TranscriptEnabled(BaseVideo):
     verb = "http://adlnet.gov/expapi/verbs/interacted"
     verb_display = "interacted"
-
-    def get_randomized_event(self, event_id, account, course, video_id, create_time):
-        """
-        Override the default implementation to add the xAPI extension to the event.
-        """
-        event = json.loads(super().get_randomized_event(event_id, account, course, video_id, create_time))
-        event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = True
-        return json.dumps(event)
 
 
 class TranscriptDisabled(BaseVideo):
-    """
-    event for disabling transcripts or closed captioning.
-    """
-
     verb = "http://adlnet.gov/expapi/verbs/interacted"
     verb_display = "interacted"
-
-    def get_randomized_event(self, event_id, account, course, video_id, create_time):
-        """
-        Override the default implementation to add the xAPI extension to the event.
-        """
-        event = json.loads(super().get_randomized_event(event_id, account, course, video_id, create_time))
-        event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = False
-        return json.dumps(event)

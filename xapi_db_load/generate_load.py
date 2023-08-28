@@ -13,6 +13,7 @@ from .xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigatio
 from .xapi.xapi_problem import BrowserProblemCheck, ProblemShowAnswer, ProblemShowHint, ServerProblemCheck
 from .xapi.xapi_registration import Registered, Unregistered
 from .xapi.xapi_video import (
+    CompletedVideo,
     LoadedVideo,
     PausedVideo,
     PlayedVideo,
@@ -28,9 +29,10 @@ from .xapi.xapi_video import (
 EVENT_LOAD = (
     (Registered, 1.138),
     (Unregistered, 0.146),
+    (CompletedVideo, 5.124),
     (LoadedVideo, 7.125),
-    (PlayedVideo, 27.519),
-    (PausedVideo, 17.038),
+    (PlayedVideo, 24.519),
+    (PausedVideo, 14.912),
     (StoppedVideo, 3.671),
     (PositionChangedVideo, 13.105),
     (BrowserProblemCheck, 8.726),

@@ -120,7 +120,7 @@ class BrowserProblemCheck(BaseProblemCheck):
 
 
 class ServerProblemCheck(BaseProblemCheck):
-    verb = "http://adlnet.gov/expapi/verbs/evaluated"
+    verb = "https://w3id.org/xapi/acrossx/verbs/evaluated"
     verb_display = "evaluated"
     problem_type = "server"
 
