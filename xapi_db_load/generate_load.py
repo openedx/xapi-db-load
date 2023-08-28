@@ -10,9 +10,17 @@ from .course_configs import CourseConfigLarge, CourseConfigMedium, CourseConfigS
 from .xapi.xapi_grade import FirstTimePassed
 from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
 from .xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
-from .xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
+from .xapi.xapi_problem import BrowserProblemCheck, ProblemShowAnswer, ProblemShowHint, ServerProblemCheck
 from .xapi.xapi_registration import Registered, Unregistered
-from .xapi.xapi_video import LoadedVideo, PausedVideo, PlayedVideo, PositionChangedVideo, StoppedVideo
+from .xapi.xapi_video import (
+    LoadedVideo,
+    PausedVideo,
+    PlayedVideo,
+    PositionChangedVideo,
+    StoppedVideo,
+    TranscriptDisabled,
+    TranscriptEnabled,
+)
 
 # This is the list of event types to generate, and the proportion of total xapi
 # events that should be generated for each. Should total roughly 100 to keep
@@ -25,8 +33,8 @@ EVENT_LOAD = (
     (PausedVideo, 17.038),
     (StoppedVideo, 3.671),
     (PositionChangedVideo, 13.105),
-    (BrowserProblemCheck, 8.776),
-    (ServerProblemCheck, 8.643),
+    (BrowserProblemCheck, 8.726),
+    (ServerProblemCheck, 8.593),
     (NextNavigation, 6.05),
     (PreviousNavigation, 0.811),
     (TabSelectedNavigation, 0.001),
@@ -34,6 +42,10 @@ EVENT_LOAD = (
     (FirstTimePassed, 0.031),
     (ShowHint, 0.076),
     (ShowAnswer, 1.373),
+    (TranscriptEnabled, 0.025),
+    (TranscriptDisabled, 0.025),
+    (ProblemShowAnswer, 0.025),
+    (ProblemShowHint, 0.025),
 )
 
 EVENTS = [i[0] for i in EVENT_LOAD]

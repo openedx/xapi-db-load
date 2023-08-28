@@ -107,3 +107,37 @@ class PausedVideo(BaseVideo):
 class PositionChangedVideo(BaseVideo):
     verb = "https://w3id.org/xapi/video/verbs/seeked"
     verb_display = "seeked"
+
+
+class TranscriptEnabled(BaseVideo):
+    """
+    event for enabling transcripts or closed captioning.
+    """
+
+    verb = "http://adlnet.gov/expapi/verbs/interacted"
+    verb_display = "interacted"
+
+    def get_randomized_event(self, event_id, account, course, video_id, create_time):
+        """
+        Override the default implementation to add the xAPI extension to the event.
+        """
+        event = json.loads(super().get_randomized_event(event_id, account, course, video_id, create_time))
+        event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = True
+        return json.dumps(event)
+
+
+class TranscriptDisabled(BaseVideo):
+    """
+    event for disabling transcripts or closed captioning.
+    """
+
+    verb = "http://adlnet.gov/expapi/verbs/interacted"
+    verb_display = "interacted"
+
+    def get_randomized_event(self, event_id, account, course, video_id, create_time):
+        """
+        Override the default implementation to add the xAPI extension to the event.
+        """
+        event = json.loads(super().get_randomized_event(event_id, account, course, video_id, create_time))
+        event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = False
+        return json.dumps(event)
