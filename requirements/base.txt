@@ -12,12 +12,10 @@ charset-normalizer==3.2.0
     # via requests
 click==8.1.7
     # via -r requirements/base.in
-clickhouse-connect==0.6.8
+clickhouse-connect==0.6.10
     # via -r requirements/base.in
 idna==3.4
     # via requests
-importlib-metadata==6.8.0
-    # via clickhouse-connect
 lz4==4.3.2
     # via clickhouse-connect
 pytz==2023.3
@@ -28,7 +26,5 @@ urllib3==2.0.4
     # via
     #   clickhouse-connect
     #   requests
-zipp==3.16.2
-    # via importlib-metadata
 zstandard==0.21.0
     # via clickhouse-connect
