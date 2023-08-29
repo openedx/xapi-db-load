@@ -6,10 +6,11 @@ import datetime
 
 import click
 
-from .backends import clickhouse_lake as clickhouse
-from .backends import csv
-from .backends import ralph_lrs as ralph
-from .generate_load import EventGenerator
+from xapi_db_load.backends import clickhouse_lake as clickhouse
+from xapi_db_load.backends import csv
+from xapi_db_load.backends import ralph_lrs as ralph
+from xapi_db_load.generate_load import EventGenerator
+from xapi_db_load.utils import LogTimer, setup_timing
 
 
 @click.command()
@@ -42,6 +43,22 @@ from .generate_load import EventGenerator
     default=False,
     help="Just run distribution queries and exit",
 )
+@click.option(
+    "--start_date",
+    default=(datetime.date.today() - datetime.timedelta(days=365)).strftime(
+        "%Y-%m-%d"
+    ),
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="Create events starting at this date, default to 1 yr ago. ex: 2020-11-30"
+)
+@click.option(
+    "--end_date",
+    default=(datetime.date.today() + datetime.timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    ),
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="Create events ending at this date, default to tomorrow. ex: 2020-11-31"
+)
 @click.option("--db_host", default="localhost", help="Database host name")
 @click.option("--db_port", help="Database port")
 @click.option("--db_name", default="xapi", help="Database name")
@@ -57,12 +74,19 @@ from .generate_load import EventGenerator
     help="Directory where the output files should be written when using the csv backend.",
     type=click.Path(exists=True, dir_okay=True, file_okay=False, writable=True)
 )
+@click.option(
+    "--log_dir",
+    help="The directory to log timing information to.",
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, writable=True)
+)
 def load_db(
     backend,
     num_batches,
     batch_size,
     drop_tables_first,
     distributions_only,
+    start_date,
+    end_date,
     db_host,
     db_port,
     db_name,
@@ -72,11 +96,15 @@ def load_db(
     lrs_username,
     lrs_password,
     csv_output_directory,
+    log_dir,
 ):
     """
     Execute the database load.
     """
     start = datetime.datetime.utcnow()
+
+    if start_date >= end_date:
+        raise click.UsageError("Start date must be before end date.")
 
     # Since we're accepting pw on input we need a way to "None" it.
     if db_password == " ":
@@ -102,43 +130,50 @@ def load_db(
             lrs_password=lrs_password,
         )
     elif backend == "csv_file":
+        if not csv_output_directory:
+            raise click.UsageError(
+                "--csv_output_directory must be provided for this backend."
+            )
         lake = csv.XAPILakeCSV(output_directory=csv_output_directory)
     else:
-        raise NotImplementedError(f"Unkown backend {backend}.")
+        raise NotImplementedError(f"Unknown backend {backend}.")
+
+    # Sets up the timing logger. Here to prevent creating log files when
+    # running --help or other commands.
+    setup_timing(log_dir)
 
     if distributions_only:
-        lake.do_distributions()
+        with LogTimer("distributions", "do_distributiuon"):
+            lake.do_distributions()
         print("Done!")
         return
 
-    if drop_tables_first:
-        lake.drop_tables()
+    with LogTimer("setup", "full_setup"):
+        if drop_tables_first:
+            with LogTimer("setup", "drop_tables"):
+                lake.drop_tables()
 
-    lake.create_tables()
-    lake.print_db_time()
+        with LogTimer("setup", "create_tables"):
+            lake.create_tables()
 
-    event_generator = EventGenerator(batch_size=batch_size)
+        with LogTimer("setup", "event_generator"):
+            event_generator = EventGenerator(
+                batch_size=batch_size,
+                start_date=start_date,
+                end_date=end_date
+            )
 
-    for x in range(num_batches):
-        if x % 100 == 0:
-            print(f"{x} of {num_batches}")
-            lake.print_db_time()
+    insert_batches(event_generator, num_batches, lake)
 
-        events = event_generator.get_batch_events()
-        lake.batch_insert(events)
-
-        if x % 1000 == 0:
-            lake.do_queries(event_generator)
-            lake.print_db_time()
-            lake.print_row_counts()
-
-    # event_generator.dump_courses()
     print("Inserting course metadata...")
-    lake.insert_event_sink_course_data(event_generator.known_courses)
+    with LogTimer("insert_metadata", "course"):
+        lake.insert_event_sink_course_data(event_generator.known_courses)
     print("Inserting block metadata...")
-    lake.insert_event_sink_block_data(event_generator.known_courses)
+    with LogTimer("insert_metadata", "blocks"):
+        lake.insert_event_sink_block_data(event_generator.known_courses)
 
-    print(f"Done! Added {num_batches * batch_size:,} rows!")
+    with LogTimer("batches", "total"):
+        print(f"Done! Added {num_batches * batch_size:,} rows!")
 
     end = datetime.datetime.utcnow()
     print("Batch insert time: " + str(end - start))
@@ -149,6 +184,28 @@ def load_db(
 
     end = datetime.datetime.utcnow()
     print("Total run time: " + str(end - start))
+
+
+def insert_batches(event_generator, num_batches, lake):
+    """
+    Generate and insert num_batches of events.
+    """
+    for x in range(num_batches):
+        if x % 100 == 0:
+            print(f"{x} of {num_batches}")
+            lake.print_db_time()
+
+        with LogTimer("batch", "get_events"):
+            events = event_generator.get_batch_events()
+
+        with LogTimer("batch", "insert_events"):
+            lake.batch_insert(events)
+
+        if x % 1000 == 0:
+            with LogTimer("batch", "all_queries"):
+                lake.do_queries(event_generator)
+            lake.print_db_time()
+            lake.print_row_counts()
 
 
 if __name__ == "__main__":

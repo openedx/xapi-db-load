@@ -134,7 +134,7 @@ class XAPILakeClickhouse:
         self.client.command(sql)
 
         sql = f"""
-        CREATE OR REPLACE FUNCTION {self.get_org_function_name} AS (course_url) ->
+        CREATE FUNCTION IF NOT EXISTS {self.get_org_function_name} AS (course_url) ->
         nullIf(EXTRACT(course_url, 'course-v1:([a-zA-Z0-9]*)'), '')
         ;"""
 
