@@ -12,6 +12,8 @@ class BaseVideo(XAPIBase):
     Base xAPI class for video events.
     """
 
+    enabled = False
+
     def get_data(self):
         """
         Generate and return the event dict, including xAPI statement as "event".
@@ -81,7 +83,7 @@ class BaseVideo(XAPIBase):
         }
 
         if self.verb_display == "interacted":
-            event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = False
+            event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = self.enabled
 
         return json.dumps(event)
 
@@ -120,6 +122,7 @@ class CompletedVideo(BaseVideo):
 class TranscriptEnabled(BaseVideo):
     verb = "http://adlnet.gov/expapi/verbs/interacted"
     verb_display = "interacted"
+    enabled = True
 
 
 class TranscriptDisabled(BaseVideo):
