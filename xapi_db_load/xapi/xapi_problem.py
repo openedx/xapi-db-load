@@ -2,6 +2,7 @@
 Fake xAPI statements for various problem_check events.
 """
 import json
+import random
 from uuid import uuid4
 
 from .xapi_common import XAPIBase
@@ -57,6 +58,9 @@ class BaseProblemCheck(XAPIBase):
             }
         }
 
+        success = random.choice([True, False])
+        response = "A correct answer" if success else "An incorrect answer"
+
         server_object = {
             "object": {
                 "definition": {
@@ -71,9 +75,9 @@ class BaseProblemCheck(XAPIBase):
                 "objectType": "Activity",
             },
             "result": {
-                "response": "A correct answer",
+                "response": response,
                 "score": {"max": 1, "min": 0, "raw": 0, "scaled": 0},
-                "success": False,
+                "success": success,
             },
         }
 
