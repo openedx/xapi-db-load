@@ -10,7 +10,7 @@ from .course_configs import CourseConfigLarge, CourseConfigMedium, CourseConfigS
 from .xapi.xapi_grade import FirstTimePassed
 from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
 from .xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
-from .xapi.xapi_problem import BrowserProblemCheck, ProblemShowAnswer, ProblemShowHint, ServerProblemCheck
+from .xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
 from .xapi.xapi_registration import Registered, Unregistered
 from .xapi.xapi_video import (
     CompletedVideo,
@@ -44,10 +44,8 @@ EVENT_LOAD = (
     (FirstTimePassed, 0.031),
     (ShowHint, 0.076),
     (ShowAnswer, 1.373),
-    (TranscriptEnabled, 0.025),
-    (TranscriptDisabled, 0.025),
-    (ProblemShowAnswer, 0.025),
-    (ProblemShowHint, 0.025),
+    (TranscriptEnabled, 0.05),
+    (TranscriptDisabled, 0.05),
 )
 
 EVENTS = [i[0] for i in EVENT_LOAD]
