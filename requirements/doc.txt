@@ -16,7 +16,7 @@ beautifulsoup4==4.12.2
     # via pydata-sphinx-theme
 bleach==6.0.0
     # via readme-renderer
-build==0.10.0
+build==1.0.0
     # via -r requirements/doc.in
 certifi==2023.7.22
     # via
@@ -31,7 +31,7 @@ charset-normalizer==3.2.0
     #   requests
 click==8.1.7
     # via -r requirements/test.txt
-clickhouse-connect==0.6.10
+clickhouse-connect==0.6.11
     # via -r requirements/test.txt
 coverage[toml]==7.3.0
     # via
@@ -56,6 +56,7 @@ imagesize==1.4.1
     # via sphinx
 importlib-metadata==6.8.0
     # via
+    #   build
     #   keyring
     #   sphinx
     #   twine
@@ -113,7 +114,7 @@ pygments==2.16.1
     #   sphinx
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.0
+pytest==7.4.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -144,7 +145,7 @@ six==1.16.0
     # via bleach
 snowballstemmer==2.2.0
     # via sphinx
-soupsieve==2.4.1
+soupsieve==2.5
     # via beautifulsoup4
 sphinx==6.2.1
     # via
