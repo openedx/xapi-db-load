@@ -1,6 +1,9 @@
 """
 Setup for xapi-db-load.
 """
+import os
+import re
+
 from setuptools import find_packages, setup
 
 from xapi_db_load import __version__
