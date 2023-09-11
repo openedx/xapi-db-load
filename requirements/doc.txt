@@ -14,9 +14,7 @@ babel==2.12.1
     #   sphinx
 beautifulsoup4==4.12.2
     # via pydata-sphinx-theme
-bleach==6.0.0
-    # via readme-renderer
-build==1.0.0
+build==1.0.3
     # via -r requirements/doc.in
 certifi==2023.7.22
     # via
@@ -33,7 +31,7 @@ click==8.1.7
     # via -r requirements/test.txt
 clickhouse-connect==0.6.11
     # via -r requirements/test.txt
-coverage[toml]==7.3.0
+coverage[toml]==7.3.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -88,6 +86,8 @@ mdurl==0.1.2
     # via markdown-it-py
 more-itertools==10.1.0
     # via jaraco-classes
+nh3==0.2.14
+    # via readme-renderer
 packaging==23.1
     # via
     #   -r requirements/test.txt
@@ -114,18 +114,18 @@ pygments==2.16.1
     #   sphinx
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.1
+pytest==7.4.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
 pytest-cov==4.1.0
     # via -r requirements/test.txt
-pytz==2023.3
+pytz==2023.3.post1
     # via
     #   -r requirements/test.txt
     #   babel
     #   clickhouse-connect
-readme-renderer==41.0
+readme-renderer==42.0
     # via twine
 requests==2.31.0
     # via
@@ -141,8 +141,6 @@ rich==13.5.2
     # via twine
 secretstorage==3.3.3
     # via keyring
-six==1.16.0
-    # via bleach
 snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.5
@@ -185,8 +183,6 @@ urllib3==2.0.4
     #   clickhouse-connect
     #   requests
     #   twine
-webencodings==0.5.1
-    # via bleach
 zipp==3.16.2
     # via
     #   importlib-metadata
