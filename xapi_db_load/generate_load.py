@@ -7,7 +7,7 @@ import uuid
 from random import choice, choices, randrange
 
 from .course_configs import CourseConfigLarge, CourseConfigMedium, CourseConfigSmall, CourseConfigWhopper
-from .xapi.xapi_grade import FirstTimePassed
+from .xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed
 from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
 from .xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
 from .xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
@@ -34,8 +34,8 @@ EVENT_LOAD = (
     (PlayedVideo, 24.519),
     (PausedVideo, 14.912),
     (StoppedVideo, 3.671),
-    (PositionChangedVideo, 13.105),
-    (BrowserProblemCheck, 8.726),
+    (PositionChangedVideo, 12.105),
+    (BrowserProblemCheck, 8.226),
     (ServerProblemCheck, 8.593),
     (NextNavigation, 6.05),
     (PreviousNavigation, 0.811),
@@ -46,6 +46,7 @@ EVENT_LOAD = (
     (ShowAnswer, 1.373),
     (TranscriptEnabled, 0.05),
     (TranscriptDisabled, 0.05),
+    (CourseGradeCalculated, 1.5),
 )
 
 EVENTS = [i[0] for i in EVENT_LOAD]
