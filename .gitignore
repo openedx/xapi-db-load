@@ -9,3 +9,5 @@ docs/_build/
 .tox/
 coverage.xml
 dist/
+.venv
+.dir-locals.el
