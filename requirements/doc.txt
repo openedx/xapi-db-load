@@ -21,9 +21,9 @@ certifi==2023.7.22
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
-cffi==1.15.1
+cffi==1.16.0
     # via cryptography
-charset-normalizer==3.2.0
+charset-normalizer==3.3.0
     # via
     #   -r requirements/test.txt
     #   requests
@@ -88,7 +88,7 @@ more-itertools==10.1.0
     # via jaraco-classes
 nh3==0.2.14
     # via readme-renderer
-packaging==23.1
+packaging==23.2
     # via
     #   -r requirements/test.txt
     #   build
@@ -137,7 +137,7 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.5.3
+rich==13.6.0
     # via twine
 secretstorage==3.3.3
     # via keyring
