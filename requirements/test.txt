@@ -9,7 +9,7 @@ certifi==2023.7.22
     #   -r requirements/base.txt
     #   clickhouse-connect
     #   requests
-charset-normalizer==3.2.0
+charset-normalizer==3.3.0
     # via
     #   -r requirements/base.txt
     #   requests
@@ -31,7 +31,7 @@ lz4==4.3.2
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
-packaging==23.1
+packaging==23.2
     # via pytest
 pluggy==1.3.0
     # via pytest
