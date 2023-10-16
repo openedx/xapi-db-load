@@ -54,7 +54,7 @@ cryptography==41.0.4
     # via
     #   -r requirements/quality.txt
     #   secretstorage
-diff-cover==7.7.0
+diff-cover==8.0.0
     # via -r requirements/dev.in
 dill==0.3.7
     # via
@@ -187,7 +187,7 @@ py==1.11.0
     # via
     #   -r requirements/ci.txt
     #   tox
-pycodestyle==2.11.0
+pycodestyle==2.11.1
     # via -r requirements/quality.txt
 pycparser==2.21
     # via
