@@ -23,17 +23,18 @@ certifi==2023.7.22
     #   requests
 cffi==1.16.0
     # via cryptography
-charset-normalizer==3.3.0
+charset-normalizer==3.3.1
     # via
     #   -r requirements/test.txt
     #   requests
 click==8.1.7
     # via -r requirements/test.txt
-clickhouse-connect==0.6.14
+clickhouse-connect==0.6.17
     # via -r requirements/test.txt
 coverage[toml]==7.3.2
     # via
     #   -r requirements/test.txt
+    #   coverage
     #   pytest-cov
 cryptography==41.0.4
     # via secretstorage
@@ -177,7 +178,7 @@ typing-extensions==4.8.0
     # via
     #   pydata-sphinx-theme
     #   rich
-urllib3==2.0.6
+urllib3==2.0.7
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect

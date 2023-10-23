@@ -8,11 +8,11 @@ certifi==2023.7.22
     # via
     #   clickhouse-connect
     #   requests
-charset-normalizer==3.3.0
+charset-normalizer==3.3.1
     # via requests
 click==8.1.7
     # via -r requirements/base.in
-clickhouse-connect==0.6.14
+clickhouse-connect==0.6.17
     # via -r requirements/base.in
 idna==3.4
     # via requests
@@ -22,7 +22,7 @@ pytz==2023.3.post1
     # via clickhouse-connect
 requests==2.31.0
     # via -r requirements/base.in
-urllib3==2.0.6
+urllib3==2.0.7
     # via
     #   clickhouse-connect
     #   requests
