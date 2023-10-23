@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-astroid==2.15.8
+astroid==3.0.1
     # via
     #   pylint
     #   pylint-celery
@@ -15,7 +15,7 @@ certifi==2023.7.22
     #   requests
 cffi==1.16.0
     # via cryptography
-charset-normalizer==3.3.0
+charset-normalizer==3.3.1
     # via
     #   -r requirements/test.txt
     #   requests
@@ -27,13 +27,14 @@ click==8.1.7
     #   edx-lint
 click-log==0.4.0
     # via edx-lint
-clickhouse-connect==0.6.14
+clickhouse-connect==0.6.17
     # via -r requirements/test.txt
 code-annotations==1.5.0
     # via edx-lint
 coverage[toml]==7.3.2
     # via
     #   -r requirements/test.txt
+    #   coverage
     #   pytest-cov
 cryptography==41.0.4
     # via secretstorage
@@ -75,8 +76,6 @@ jinja2==3.1.2
     # via code-annotations
 keyring==24.2.0
     # via twine
-lazy-object-proxy==1.9.0
-    # via astroid
 lz4==4.3.2
     # via
     #   -r requirements/test.txt
@@ -117,7 +116,7 @@ pygments==2.16.1
     # via
     #   readme-renderer
     #   rich
-pylint==2.17.7
+pylint==3.0.2
     # via
     #   edx-lint
     #   pylint-celery
@@ -125,7 +124,7 @@ pylint==2.17.7
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via edx-lint
-pylint-django==2.5.3
+pylint-django==2.5.4
     # via edx-lint
 pylint-plugin-utils==0.8.2
     # via
@@ -183,14 +182,12 @@ typing-extensions==4.8.0
     #   astroid
     #   pylint
     #   rich
-urllib3==2.0.6
+urllib3==2.0.7
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
     #   twine
-wrapt==1.15.0
-    # via astroid
 zipp==3.17.0
     # via
     #   importlib-metadata
