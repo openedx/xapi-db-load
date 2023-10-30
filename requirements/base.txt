@@ -12,7 +12,7 @@ charset-normalizer==3.3.1
     # via requests
 click==8.1.7
     # via -r requirements/base.in
-clickhouse-connect==0.6.17
+clickhouse-connect==0.6.18
     # via -r requirements/base.in
 idna==3.4
     # via requests
