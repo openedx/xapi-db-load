@@ -24,7 +24,7 @@ cffi==1.16.0
     #   cryptography
 chardet==5.2.0
     # via diff-cover
-charset-normalizer==3.3.1
+charset-normalizer==3.3.2
     # via
     #   -r requirements/quality.txt
     #   requests
@@ -75,7 +75,7 @@ exceptiongroup==1.1.3
     # via
     #   -r requirements/quality.txt
     #   pytest
-filelock==3.13.0
+filelock==3.13.1
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -295,7 +295,7 @@ tomli==2.0.1
     #   pyproject-hooks
     #   pytest
     #   tox
-tomlkit==0.12.1
+tomlkit==0.12.2
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -321,7 +321,7 @@ virtualenv==20.24.6
     # via
     #   -r requirements/ci.txt
     #   tox
-wheel==0.41.2
+wheel==0.41.3
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools
@@ -331,7 +331,7 @@ zipp==3.17.0
     #   -r requirements/quality.txt
     #   importlib-metadata
     #   importlib-resources
-zstandard==0.21.0
+zstandard==0.22.0
     # via
     #   -r requirements/quality.txt
     #   clickhouse-connect

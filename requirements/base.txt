@@ -8,7 +8,7 @@ certifi==2023.7.22
     # via
     #   clickhouse-connect
     #   requests
-charset-normalizer==3.3.1
+charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via -r requirements/base.in
@@ -26,5 +26,5 @@ urllib3==2.0.7
     # via
     #   clickhouse-connect
     #   requests
-zstandard==0.21.0
+zstandard==0.22.0
     # via clickhouse-connect
