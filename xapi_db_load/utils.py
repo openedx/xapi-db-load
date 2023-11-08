@@ -6,7 +6,69 @@ import logging
 import os
 from datetime import datetime
 
+import click
+
+from xapi_db_load.backends import clickhouse_lake as clickhouse
+from xapi_db_load.backends import csv
+from xapi_db_load.backends import ralph_lrs as ralph
+
 timing = logging.getLogger("timing")
+
+
+def get_backend_from_config(config):
+    """
+    Return an instantiated backend from the given config dict.
+    """
+    return get_backend(
+        config["backend"],
+        config["db_host"],
+        config["db_port"],
+        config["db_username"],
+        config["db_password"],
+        config["db_name"],
+        config.get("lrs_url"),
+        config.get("lrs_username"),
+        config.get("lrs_password"),
+        config.get("csv_output_directory"),
+    )
+
+
+def get_backend(
+    backend, db_host, db_port, db_username, db_password, db_name,
+    lrs_url=None, lrs_username=None, lrs_password=None, csv_output_directory=None
+):
+    """
+    Return an instantiated backend from the given arguments.
+    """
+    if backend == "clickhouse":
+        lake = clickhouse.XAPILakeClickhouse(
+            db_host=db_host,
+            db_port=db_port,
+            db_username=db_username,
+            db_password=db_password,
+            db_name=db_name,
+        )
+    elif backend == "ralph_clickhouse":
+        lake = ralph.XAPILRSRalphClickhouse(
+            db_host=db_host,
+            db_port=db_port,
+            db_username=db_username,
+            db_password=db_password,
+            db_name=db_name,
+            lrs_url=lrs_url,
+            lrs_username=lrs_username,
+            lrs_password=lrs_password,
+        )
+    elif backend == "csv_file":
+        if not csv_output_directory:
+            raise click.UsageError(
+                "--csv_output_directory must be provided for this backend."
+            )
+        lake = csv.XAPILakeCSV(output_directory=csv_output_directory)
+    else:
+        raise NotImplementedError(f"Unknown backend {backend}.")
+
+    return lake
 
 
 def setup_timing(log_dir):

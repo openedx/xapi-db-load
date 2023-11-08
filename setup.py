@@ -16,6 +16,7 @@ setup(
     entry_points="""
         [console_scripts]
         xapi-db-load=xapi_db_load.main:load_db
+        xapi-db-load-config=xapi_db_load.main:load_db_config
     """,
     install_requires=[
         "click",
