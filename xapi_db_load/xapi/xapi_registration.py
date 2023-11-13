@@ -2,6 +2,7 @@
 Fake xAPI statements for various registration events.
 """
 import json
+from random import choice
 from uuid import uuid4
 
 from .xapi_common import XAPIBase
@@ -39,6 +40,7 @@ class BaseRegistration(XAPIBase):
         """
         Given the inputs, return an xAPI statement.
         """
+        enrollment_mode = choice(("audit", "honor", "verified"))
         event = {
             "id": event_id,
             "actor": {
@@ -53,7 +55,7 @@ class BaseRegistration(XAPIBase):
             "object": {
                 "definition": {
                     "extensions": {
-                        "https://w3id.org/xapi/acrossx/extensions/type": "audit"
+                        "https://w3id.org/xapi/acrossx/extensions/type": enrollment_mode
                     },
                     "name": {"en": "Demonstration Course"},
                     "type": "http://adlnet.gov/expapi/activities/course",

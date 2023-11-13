@@ -3,47 +3,7 @@ Configuration values for emulating courses of various sizes.
 """
 import datetime
 import uuid
-from random import choice, choices, randrange
-
-
-class CourseConfigSmall:
-    items = (10, 20)
-    problems = (10, 20)
-    videos = (5, 10)
-    sequences = (5, 10)
-
-
-class CourseConfigMedium:
-    items = (20, 40)
-    problems = (20, 40)
-    videos = (10, 20)
-    sequences = (10, 20)
-
-
-class CourseConfigLarge:
-    items = (40, 80)
-    problems = (40, 80)
-    videos = (10, 30)
-    sequences = (20, 40)
-
-
-class CourseConfigWhopper:
-    items = (80, 200)
-    problems = (80, 160)
-    videos = (10, 40)
-    sequences = (40, 80)
-
-
-# These determine the proportions of each size of course created
-COURSE_CONFIG_WEIGHTS = (
-    (CourseConfigSmall, 10),
-    (CourseConfigMedium, 50),
-    (CourseConfigLarge, 30),
-    (CourseConfigWhopper, 10),
-)
-
-COURSE_CONFIGS = [i[0] for i in COURSE_CONFIG_WEIGHTS]
-COURSE_CONFIG_WEIGHTS = [i[1] for i in COURSE_CONFIG_WEIGHTS]
+from random import choice, randrange
 
 
 class RandomCourse:
@@ -58,19 +18,31 @@ class RandomCourse:
     start_date = None
     end_date = None
 
-    def __init__(self, org, start_date, end_date):
-        self.course_uuid = str(uuid.uuid4())
+    def __init__(
+        self,
+        org,
+        overall_start_date,
+        overall_end_date,
+        course_length,
+        course_config_name,
+        course_size_makeup
+    ):
+        self.course_uuid = str(uuid.uuid4())[:6]
+        self.course_name = f"{self.course_uuid} ({course_config_name})"
         self.org = org
         self.course_id = f"course-v1:{org}+DemoX+{self.course_uuid}"
         self.course_url = f"http://localhost:18000/course/{self.course_id}"
 
-        self.start_date = start_date
-        self.end_date = end_date
-        self.course_config = choices(COURSE_CONFIGS, COURSE_CONFIG_WEIGHTS)[0]
+        delta = datetime.timedelta(days=course_length)
+        self.start_date = self._random_datetime(overall_start_date, overall_end_date-delta)
+        self.end_date = self.start_date + delta
+
+        self.course_config_name = course_config_name
+        self.course_config = course_size_makeup
         self.configure()
 
     def __repr__(self):
-        return f"""{self.course_uuid} ({str(self.course_config)}):
+        return f"""{self.course_name}:
         {self.start_date} - {self.end_date}
         Items: {self.items_in_course}
         Videos: {len(self.known_video_ids)}
@@ -82,33 +54,21 @@ class RandomCourse:
         """
         Set up the fake course configuration such as course length, start and end dates, and size.
         """
-        self.items_in_course = randrange(
-            self.course_config.items[0], self.course_config.items[1]
-        )
+        self.items_in_course = self.course_config["items"]
 
         self.known_problem_ids = [
             self._generate_random_problem_id()
-            for _ in range(
-                randrange(
-                    self.course_config.problems[0], self.course_config.problems[1]
-                )
-            )
+            for _ in range(self.course_config["problems"])
         ]
 
         self.known_video_ids = [
             self._generate_random_video_id()
-            for _ in range(
-                randrange(self.course_config.videos[0], self.course_config.videos[1])
-            )
+            for _ in range(self.course_config["videos"])
         ]
 
         self.known_sequential_ids = [
             self._generate_random_sequential_id()
-            for _ in range(
-                randrange(
-                    self.course_config.sequences[0], self.course_config.sequences[1]
-                )
-            )
+            for _ in range(self.course_config["sequences"])
         ]
 
     def get_random_emission_time(self):
@@ -138,7 +98,7 @@ class RandomCourse:
         return start_datetime + datetime.timedelta(seconds=random_second)
 
     def _generate_random_video_id(self):
-        video_uuid = str(uuid.uuid4())
+        video_uuid = str(uuid.uuid4())[:8]
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@video+block@{video_uuid}"
 
     def get_video_id(self):
@@ -148,7 +108,7 @@ class RandomCourse:
         return choice(self.known_video_ids)
 
     def _generate_random_problem_id(self):
-        problem_uuid = str(uuid.uuid4())
+        problem_uuid = str(uuid.uuid4())[:8]
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@problem+block@{problem_uuid}"
 
     def get_problem_id(self):
@@ -158,7 +118,7 @@ class RandomCourse:
         return choice(self.known_problem_ids)
 
     def _generate_random_sequential_id(self):
-        sequential_uuid = str(uuid.uuid4())
+        sequential_uuid = str(uuid.uuid4())[:8]
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@sequential+block@{sequential_uuid}"
 
     def get_random_sequential_id(self):
@@ -180,7 +140,7 @@ class RandomCourse:
         return {
             "org": self.org,
             "course_key": self.course_id,
-            "display_name": f"Course {self.course_uuid[:5]}",
+            "display_name": self.course_name,
             "course_start": self.start_date,
             "course_end": self.end_date,
             "enrollment_start": self.start_date,
@@ -222,6 +182,19 @@ class RandomCourse:
         Return a list of dicts representing all blocks in this course.
 
         The data format mirrors what is created by event-sink-clickhouse.
+
+        Block types we care about:
+        -- course block
+        -- x video block
+        -- vertical block
+        -- static_tab block
+        -- x sequential
+        -- x problem block
+        -- html block
+        -- discussion block
+        -- course_info
+        -- chapter block
+        -- about block
         """
         blocks = []
         cnt = 1

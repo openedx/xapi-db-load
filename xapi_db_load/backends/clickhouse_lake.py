@@ -76,141 +76,6 @@ class XAPILakeClickhouse:
         res = self.client.query(f"SELECT count(*) FROM {self.event_table_name}")
         print(res.result_set)
 
-    def create_db(self):
-        """
-        Create the destination database if it doesn't exist.
-        """
-        self.client.command(f"CREATE DATABASE IF NOT EXISTS {self.database}")
-
-    def drop_tables(self):
-        """
-        Drop existing table structures.
-        """
-        self.client.command(f"DROP TABLE IF EXISTS {self.event_raw_table_name}")
-        self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name}")
-        self.client.command(f"DROP FUNCTION IF EXISTS {self.get_org_function_name}")
-        self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name_mv}")
-        print("Tables dropped")
-
-    def create_tables(self):
-        """
-        Create the base xAPI tables and top level materialized views.
-
-        In the future we should manage this through the scripts in tutor-contrib-aspects to keep the
-        table structures compatible.
-        """
-        sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.event_raw_table_name} (
-                event_id UUID NOT NULL,
-                emission_time DateTime64(6) NOT NULL,
-                event JSON NOT NULL,
-                event_str String NOT NULL,
-            )
-            ENGINE MergeTree ORDER BY (
-                emission_time,
-                event_id)
-            PRIMARY KEY (emission_time, event_id)
-        """
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = f"""
-        CREATE TABLE IF NOT EXISTS {self.event_table_name} (
-            event_id UUID NOT NULL,
-            verb_id String NOT NULL,
-            actor_id String NOT NULL,
-            object_id String NOT NULL,
-            org String NOT NULL,
-            course_id String NOT NULL,
-            emission_time DateTime64(6) NOT NULL,
-            event_str String NOT NULL
-        ) ENGINE MergeTree
-        ORDER BY (org, course_id, verb_id, actor_id, emission_time, event_id)
-        PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time, event_id);
-        """
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = f"""
-        CREATE FUNCTION IF NOT EXISTS {self.get_org_function_name} AS (course_url) ->
-        nullIf(EXTRACT(course_url, 'course-v1:([a-zA-Z0-9]*)'), '')
-        ;"""
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = f"""
-            CREATE MATERIALIZED VIEW IF NOT EXISTS {self.event_table_name_mv}
-            TO {self.event_table_name} AS
-            SELECT
-            event_id as event_id,
-            JSON_VALUE(event_str, '$.verb.id') as verb_id,
-            JSON_VALUE(event_str, '$.actor.account.name') as actor_id,
-            JSON_VALUE(event_str, '$.object.id') as object_id,
-            -- If the contextActivities parent is a course, use that. Otherwise use the object id for the course id
-            if(
-                JSON_VALUE(
-                    event_str,
-                    '$.context.contextActivities.parent[0].definition.type')
-                        = 'http://adlnet.gov/expapi/activities/course',
-                    JSON_VALUE(event_str, '$.context.contextActivities.parent[0].id'),
-                    JSON_VALUE(event_str, '$.object.id')
-                ) as course_id,
-            {self.get_org_function_name}(course_id) as org,
-            emission_time as emission_time,
-            event_str as event_str
-            FROM {self.event_raw_table_name};
-        """
-        print(sql)
-        self.client.command(sql)
-
-        sql = """
-            CREATE TABLE IF NOT EXISTS event_sink.course_overviews
-            (
-                org              String,
-                course_key       String,
-                display_name     String,
-                course_start     String,
-                course_end       String,
-                enrollment_start String,
-                enrollment_end   String,
-                self_paced       Bool,
-                course_data_json String,
-                created          String,
-                modified         String,
-                dump_id          UUID,
-                time_last_dumped String
-            )
-                engine = MergeTree PRIMARY KEY (org, course_key, modified, time_last_dumped)
-                    ORDER BY (org, course_key, modified, time_last_dumped);
-        """
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = """
-            CREATE TABLE IF NOT EXISTS event_sink.course_blocks
-            (
-                org              String,
-                course_key       String,
-                location         String,
-                display_name     String,
-                xblock_data_json String,
-                order            Int32 default 0,
-                edited_on        String,
-                dump_id          UUID,
-                time_last_dumped String
-            )
-                engine = MergeTree PRIMARY KEY (org, course_key, location, edited_on)
-                    ORDER BY (org, course_key, location, edited_on, order);
-        """
-        print(sql)
-        self.client.command(sql)
-
-        print("Tables created")
-
     def batch_insert(self, events):
         """
         Insert a batch of events to ClickHouse.
@@ -372,10 +237,10 @@ class XAPILakeClickhouse:
         Query data from the table and document how long the query runs (while the insert script is running).
         """
         # Get our randomly selected targets for this run
-        course = random.choice(event_generator.known_courses)
+        course = event_generator.get_course()
         course_url = course.course_url
-        org = random.choice(event_generator.known_orgs)
-        actor = random.choice(event_generator.known_actor_uuids)
+        org = event_generator.get_org()
+        actor = event_generator.get_actor()
 
         self._run_query_and_print(
             "Count of enrollment events for course {course_url}",

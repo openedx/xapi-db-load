@@ -59,4 +59,8 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
             json=out_data,
             headers={"Content-Type": "application/json"},
         )
-        resp.raise_for_status()
+        try:
+            resp.raise_for_status()
+        except requests.HTTPError:
+            print(json.dumps(out_data))
+            raise

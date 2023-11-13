@@ -4,7 +4,7 @@ Generates batches of random xAPI events.
 import datetime
 import pprint
 import uuid
-from random import choice, choices, randrange
+from random import choice, choices
 
 from xapi_db_load.utils import LogTimer, setup_timing
 
@@ -54,32 +54,9 @@ EVENT_LOAD = (
 EVENTS = [i[0] for i in EVENT_LOAD]
 EVENT_WEIGHTS = [i[1] for i in EVENT_LOAD]
 
-BATCH_SIZE = 100
-
 
 def _get_uuid():
     return str(uuid.uuid4())
-
-
-def _get_random_thing(
-    thing,
-    func_for_new_thing=_get_uuid,
-    one_in_range=1000,
-    max_thing_length=1000000
-):
-    """
-    Return a random instantiated object of the type requested.
-
-    A new object will be created approximately one out of every "one_in_range"
-    calls to this function. Otherwise, an existing object will be returned.
-    """
-    if (not thing or randrange(one_in_range) == 5) \
-            and len(thing) < max_thing_length:
-        new_thing = func_for_new_thing()
-        thing.append(new_thing)
-        return new_thing
-
-    return choice(thing)
 
 
 class EventGenerator:
@@ -87,14 +64,70 @@ class EventGenerator:
     Generates a batch of random xAPI events based on the EVENT_WEIGHTS proportions.
     """
 
-    known_actor_uuids = []
+    known_actors = []
     known_courses = []
-    known_orgs = ["openedX", "burritoX", "tacoX", "chipX", "salsaX", "guacX"]
+    known_orgs = []
+    course_config_names = []
+    course_config_weights = []
 
-    def __init__(self, batch_size, start_date, end_date):
-        self.batch_size = batch_size
-        self.start_date = start_date
-        self.end_date = end_date
+    def __init__(self, config):
+        self.config = config
+        self.start_date = config["start_date"]  # datetime.datetime.strptime(config["start_date"], "%Y-%m-%d")
+        self.end_date = config["end_date"]  # datetime.datetime.strptime(config["end_date"], "%Y-%m-%d")
+        self._validate_config()
+        self.setup_course_config_weights()
+        self.setup_orgs()
+        self.setup_courses()
+        self.setup_actors()
+
+    def _validate_config(self):
+        if self.start_date >= self.end_date:
+            raise ValueError("Start date must be before end date.")
+
+        if (self.end_date - self.start_date).days < self.config["course_length_days"]:
+            raise ValueError("The time between start and end dates must be longer than course_length_days.")
+
+        course_size_makeup_keys = set(self.config["course_size_makeup"].keys())
+        course_size_pct_keys = set(self.config["course_size_pct"].keys())
+
+        if course_size_makeup_keys != course_size_pct_keys:
+            raise ValueError("course_size_makeup and course_size_pct must contain the same keys.")
+
+        for s in self.config["course_size_makeup"]:
+            if self.config["course_size_makeup"][s]["learners"] > self.config["num_learners"]:
+                raise ValueError(f"Course size {s} wants more learners than are configure in num_learners.")
+
+    def setup_course_config_weights(self):
+        for course_config_name, course_config_weight in self.config["course_size_pct"].items():
+            self.course_config_names.append(course_config_name)
+            self.course_config_weights.append(course_config_weight)
+
+    def setup_orgs(self):
+        for i in range(self.config["num_organizations"]):
+            self.known_orgs.append(f"Org{i}")
+
+    def setup_courses(self):
+        for i in range(self.config["num_courses"]):
+            course_config_name = self.get_weighted_course_config()
+            course_config_makeup = self.config["course_size_makeup"][course_config_name]
+            org = choice(self.known_orgs)
+
+            self.known_courses.append(RandomCourse(
+                org,
+                self.start_date,
+                self.end_date,
+                self.config["course_length_days"],
+                course_config_name,
+                course_config_makeup
+            ))
+
+    def setup_actors(self):
+        for i in range(self.config["num_learners"]):
+            #self.known_actors.append(f"actor_{i}")
+            self.known_actors.append(_get_uuid())
+
+    def get_weighted_course_config(self):
+        return choices(self.course_config_names, self.course_config_weights)[0]
 
     def get_batch_events(self):
         """
@@ -102,26 +135,20 @@ class EventGenerator:
 
         Events are from our EVENTS list, based on the EVENT_WEIGHTS proportions.
         """
-        events = choices(EVENTS, EVENT_WEIGHTS, k=self.batch_size)
+        events = choices(EVENTS, EVENT_WEIGHTS, k=self.config["batch_size"])
         return [e(self).get_data() for e in events]
 
     def get_actor(self):
         """
         Return a random actor.
         """
-        return _get_random_thing(self.known_actor_uuids)
-
-    def _generate_random_course(self):
-        org = choice(self.known_orgs)
-        return RandomCourse(org, self.start_date, self.end_date)
+        return choice(self.known_actors)
 
     def get_course(self):
-        """
-        Return a random course.
-        """
-        return _get_random_thing(
-            self.known_courses, self._generate_random_course, one_in_range=10000
-        )
+        return choice(self.known_courses)
+
+    def get_org(self):
+        return choice(self.known_orgs)
 
     def dump_courses(self):
         """
@@ -137,25 +164,14 @@ def generate_events(config, backend):
     """
     setup_timing(config["log_dir"])
 
-    if config["start_date"] >= config["end_date"]:
-        raise ValueError("Start date must be before end date.")
-
+    print("Checking table existence and current row count in backend...")
+    backend.print_row_counts()
     start = datetime.datetime.utcnow()
 
     with LogTimer("setup", "full_setup"):
-        if config["drop_tables_first"]:
-            with LogTimer("setup", "drop_tables"):
-                backend.drop_tables()
-
-        with LogTimer("setup", "create_tables"):
-            backend.create_tables()
-
         with LogTimer("setup", "event_generator"):
-            event_generator = EventGenerator(
-                batch_size=config.get("batch_size", BATCH_SIZE),
-                start_date=config["start_date"],
-                end_date=config["end_date"]
-            )
+            event_generator = EventGenerator(config)
+            event_generator.dump_courses()
 
     insert_batches(event_generator, config["num_batches"], backend)
 
@@ -174,7 +190,9 @@ def generate_events(config, backend):
 
     backend.print_db_time()
     backend.print_row_counts()
-    backend.do_distributions()
+
+    if config["run_distribution_queries"]:
+        backend.do_distributions()
 
     end = datetime.datetime.utcnow()
     print("Total run time: " + str(end - start))

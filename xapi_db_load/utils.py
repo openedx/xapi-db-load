@@ -21,11 +21,11 @@ def get_backend_from_config(config):
     """
     return get_backend(
         config["backend"],
-        config["db_host"],
-        config["db_port"],
-        config["db_username"],
-        config["db_password"],
-        config["db_name"],
+        config.get("db_host"),
+        config.get("db_port"),
+        config.get("db_username"),
+        config.get("db_password"),
+        config.get("db_name"),
         config.get("lrs_url"),
         config.get("lrs_username"),
         config.get("lrs_password"),
