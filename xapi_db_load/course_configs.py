@@ -92,8 +92,14 @@ class RandomCourse:
         else:
             start = self.start_date
 
+        # Make sure we're passing in a datetime, not a date
+        start = datetime.datetime.combine(start, datetime.time())
+
+        # time() is midnight, so make sure we get that last day in there
+        end = datetime.datetime.combine(self.end_date, datetime.time()) + datetime.timedelta(days=1)
+
         return self._random_datetime(
-            start_datetime=start, end_datetime=self.end_date
+            start_datetime=start, end_datetime=end
         )
 
     @staticmethod
