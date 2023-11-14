@@ -1,11 +1,11 @@
 # ClickHouse Backend configuration
 # ################################
-# backend: clickhouse
-# db_host: localhost
-# db_port: null
-# db_name: xapi # xapi_load_test
-# db_username: ch_admin
-# db_password: 7NRe69D4zWWT0rf2G7gWa7RB
+backend: clickhouse
+db_host: localhost
+db_port: null
+db_name: xapi # xapi_load_test
+db_username: ch_admin
+db_password: abc123
 
 # Ralph / ClickHouse backend configuration
 # ########################################
@@ -21,14 +21,14 @@
 
 # CSV backend configuration
 # #########################
-backend: csv_file
-csv_output_directory: logs
+# backend: csv_file
+# csv_output_directory: logs
 
 # Run options
 run_distribution_queries: false
 log_dir: logs
-num_batches: 1
-batch_size: 400000
+num_batches: 200
+batch_size: 5000
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01

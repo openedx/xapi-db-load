@@ -19,19 +19,19 @@ class BaseVideo(XAPIBase):
         Generate and return the event dict, including xAPI statement as "event".
         """
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
+        actor = course.get_actor()
         video_id = course.get_video_id()
-        emission_time = course.get_random_emission_time()
+        emission_time = course.get_random_emission_time(actor)
 
         e = self.get_randomized_event(
-            event_id, actor_id, course, video_id, emission_time
+            event_id, actor.id, course, video_id, emission_time
         )
 
         return {
             "event_id": event_id,
             "verb": self.verb,
-            "actor_id": actor_id,
+            "actor_id": actor.id,
             "org": course.org,
             "course_run_id": course.course_url,
             "video_id": video_id,

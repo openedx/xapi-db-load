@@ -3,7 +3,11 @@ Configuration values for emulating courses of various sizes.
 """
 import datetime
 import uuid
+from collections import namedtuple
 from random import choice, randrange
+
+
+Student = namedtuple('Student', ["id", "enroll_datetime"])
 
 
 class RandomCourse:
@@ -15,6 +19,7 @@ class RandomCourse:
     known_problem_ids = []
     known_video_ids = []
     known_sequential_ids = []
+    known_actors = []
     start_date = None
     end_date = None
 
@@ -24,6 +29,7 @@ class RandomCourse:
         overall_start_date,
         overall_end_date,
         course_length,
+        actors,
         course_config_name,
         course_size_makeup
     ):
@@ -37,6 +43,11 @@ class RandomCourse:
         self.start_date = self._random_datetime(overall_start_date, overall_end_date-delta)
         self.end_date = self.start_date + delta
 
+        self.known_actors = [
+            Student(a, self._random_datetime(self.start_date, self.end_date))
+            for a in actors
+        ]
+
         self.course_config_name = course_config_name
         self.course_config = course_size_makeup
         self.configure()
@@ -48,6 +59,7 @@ class RandomCourse:
         Videos: {len(self.known_video_ids)}
         Problems: {len(self.known_problem_ids)}
         Sequences: {len(self.known_sequential_ids)}
+        Actors: {len(self.known_actors)}
         """
 
     def configure(self):
@@ -71,12 +83,17 @@ class RandomCourse:
             for _ in range(self.course_config["sequences"])
         ]
 
-    def get_random_emission_time(self):
+    def get_random_emission_time(self, student=None):
         """
         Randomizes an emission time for events that falls within the course start and end dates.
         """
+        if student:
+            start = student.enroll_datetime
+        else:
+            start = self.start_date
+
         return self._random_datetime(
-            start_datetime=self.start_date, end_datetime=self.end_date
+            start_datetime=start, end_datetime=self.end_date
         )
 
     @staticmethod
@@ -100,6 +117,12 @@ class RandomCourse:
     def _generate_random_video_id(self):
         video_uuid = str(uuid.uuid4())[:8]
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@video+block@{video_uuid}"
+
+    def get_actor(self):
+        """
+        Return an actor from those known in this course.
+        """
+        return choice(self.known_actors)
 
     def get_video_id(self):
         """

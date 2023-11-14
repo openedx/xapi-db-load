@@ -72,13 +72,13 @@ class EventGenerator:
 
     def __init__(self, config):
         self.config = config
-        self.start_date = config["start_date"]  # datetime.datetime.strptime(config["start_date"], "%Y-%m-%d")
-        self.end_date = config["end_date"]  # datetime.datetime.strptime(config["end_date"], "%Y-%m-%d")
+        self.start_date = config["start_date"]
+        self.end_date = config["end_date"]
         self._validate_config()
         self.setup_course_config_weights()
         self.setup_orgs()
-        self.setup_courses()
         self.setup_actors()
+        self.setup_courses()
 
     def _validate_config(self):
         if self.start_date >= self.end_date:
@@ -111,19 +111,24 @@ class EventGenerator:
             course_config_name = self.get_weighted_course_config()
             course_config_makeup = self.config["course_size_makeup"][course_config_name]
             org = choice(self.known_orgs)
+            actors = choices(self.known_actors, k=course_config_makeup["learners"])
 
             self.known_courses.append(RandomCourse(
                 org,
                 self.start_date,
                 self.end_date,
                 self.config["course_length_days"],
+                actors,
                 course_config_name,
                 course_config_makeup
             ))
 
     def setup_actors(self):
+        """
+        Create all known actors. Random samplings of these will be passed
+        into courses.
+        """
         for i in range(self.config["num_learners"]):
-            #self.known_actors.append(f"actor_{i}")
             self.known_actors.append(_get_uuid())
 
     def get_weighted_course_config(self):
@@ -138,11 +143,13 @@ class EventGenerator:
         events = choices(EVENTS, EVENT_WEIGHTS, k=self.config["batch_size"])
         return [e(self).get_data() for e in events]
 
-    def get_actor(self):
-        """
-        Return a random actor.
-        """
-        return choice(self.known_actors)
+    def get_enrollment_events(self):
+        # Generate enrollment events for all students
+        enrollments = []
+        for course in self.known_courses:
+            for student in course.known_actors:
+                enrollments.append(Registered(self).get_data(course, student))
+        return enrollments
 
     def get_course(self):
         return choice(self.known_courses)
@@ -173,6 +180,7 @@ def generate_events(config, backend):
             event_generator = EventGenerator(config)
             event_generator.dump_courses()
 
+    insert_registrations(event_generator, backend)
     insert_batches(event_generator, config["num_batches"], backend)
 
     print("Inserting course metadata...")
@@ -196,6 +204,19 @@ def generate_events(config, backend):
 
     end = datetime.datetime.utcnow()
     print("Total run time: " + str(end - start))
+
+
+def insert_registrations(event_generator, lake):
+    """
+    Insert all of the registration events
+    """
+    with LogTimer("enrollment", "get_enrollment_events"):
+        events = event_generator.get_enrollment_events()
+
+    with LogTimer("enrollment", "insert_events"):
+        lake.batch_insert(events)
+
+    print(f"{len(events)} enrollment events inserted.")
 
 
 def insert_batches(event_generator, num_batches, lake):

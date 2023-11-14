@@ -22,19 +22,19 @@ class BaseProblemCheck(XAPIBase):
         Generate and return the event dict, including xAPI statement as "event".
         """
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
+        actor = course.get_actor()
+        emission_time = course.get_random_emission_time(actor)
         problem_id = course.get_problem_id()
-        emission_time = course.get_random_emission_time()
 
         e = self.get_randomized_event(
-            event_id, actor_id, course.course_url, problem_id, emission_time
+            event_id, actor.id, course.course_url, problem_id, emission_time
         )
 
         return {
             "event_id": event_id,
             "verb": self.verb,
-            "actor_id": actor_id,
+            "actor_id": actor.id,
             "org": course.org,
             "problem_id": problem_id,
             "course_run_id": course.course_url,

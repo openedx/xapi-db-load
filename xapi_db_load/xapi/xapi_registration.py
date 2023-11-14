@@ -13,14 +13,22 @@ class BaseRegistration(XAPIBase):
     Base xAPI class for registration events.
     """
 
-    def get_data(self):
+    def get_data(self, course=None, student=None):
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
+        # We generate registration events for every course and student as part
+        # of startup, but also randomly through the events.
+        if not course:
+            course = self.parent_load_generator.get_course()
+
+        if not student:
+            student = course.get_actor()
+
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
-        course = self.parent_load_generator.get_course()
-        emission_time = course.get_random_emission_time()
+
+        actor_id = student.id
+        emission_time = course.get_random_emission_time(student)
 
         e = self.get_randomized_event(
             event_id, actor_id, course.course_url, emission_time

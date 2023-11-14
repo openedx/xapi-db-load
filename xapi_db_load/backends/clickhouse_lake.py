@@ -240,7 +240,7 @@ class XAPILakeClickhouse:
         course = event_generator.get_course()
         course_url = course.course_url
         org = event_generator.get_org()
-        actor = event_generator.get_actor()
+        actor = course.get_actor().id
 
         self._run_query_and_print(
             "Count of enrollment events for course {course_url}",
