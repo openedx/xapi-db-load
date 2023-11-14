@@ -1,11 +1,11 @@
 # ClickHouse Backend configuration
 # ################################
-backend: clickhouse
-db_host: localhost
-db_port: null
-db_name: xapi # xapi_load_test
-db_username: ch_admin
-db_password: abc123
+# backend: clickhouse
+# db_host: localhost
+# db_port: null
+# db_name: xapi # xapi_load_test
+# db_username: ch_admin
+# db_password: abc123
 
 # Ralph / ClickHouse backend configuration
 # ########################################
@@ -21,14 +21,14 @@ db_password: abc123
 
 # CSV backend configuration
 # #########################
-# backend: csv_file
-# csv_output_directory: logs
+backend: csv_file
+csv_output_directory: logs
 
 # Run options
 run_distribution_queries: false
 log_dir: logs
 num_batches: 200
-batch_size: 5000
+batch_size: 500
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01
@@ -41,7 +41,7 @@ course_length_days: 120
 # The size of the test
 num_organizations: 3
 num_courses: 20
-num_learners: 1000
+num_actors: 1000
 
 # Distribution of the size of the courses
 course_size_pct:
@@ -51,28 +51,28 @@ course_size_pct:
   huge: 10
 
 # Course size configurations, how many of each type of object are created for
-# each course of this size. "learners" must be less than or equal to "num_learners".
+# each course of this size. "actors" must be less than or equal to "num_actors".
 course_size_makeup:
   small:
-    learners: 30
+    actors: 30
     items: 20
     problems: 20
     videos: 10
     sequences: 10
   medium:
-    learners: 100
+    actors: 100
     items: 40
     problems: 40
     videos: 20
     sequences: 20
   large:
-    learners: 500
+    actors: 500
     items: 80
     problems: 80
     videos: 30
     sequences: 40
   huge:
-    learners: 1000
+    actors: 1000
     items: 200
     problems: 160
     videos: 40

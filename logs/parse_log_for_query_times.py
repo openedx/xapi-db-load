@@ -1,8 +1,7 @@
 queries = {
     "Count of enrollment events for course": [],
     "Count of total enrollment events for org": [],
-    # "for this learner" for Clickhouse, "for this actor" for some others...
-    "Count of enrollments for this learner": [],
+    "Count of enrollments for this actor": [],
     "Count of enrollments for this course - count of unenrollments, last 30 days": [],
     "Count of enrollments for this course - count of unenrollments, all time": [],
     "Count of enrollments for all courses - count of unenrollments, last 5 minutes": [],

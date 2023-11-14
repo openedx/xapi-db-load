@@ -263,7 +263,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            "Count of enrollments for this learner",
+            "Count of enrollments for this actpr",
             f"""
                 select count(*)
                 from {self.event_table_name}
@@ -338,7 +338,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            "Count of learners",
+            "Count of actors",
             f"""
                select count(distinct actor_id)
                from {self.event_table_name}
@@ -364,13 +364,13 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            "Avg, min, max students per course",
+            "Avg, min, max actors per course",
             f"""
-                select avg(a.num_students) as avg_students,
-                        min(a.num_students) as min_students,
-                        max(a.num_students) max_students
+                select avg(a.num_actors) as avg_actors,
+                        min(a.num_actors) as min_actors,
+                        max(a.num_actors) max_actors
                 from (
-                    select count(distinct actor_id) as num_students
+                    select count(distinct actor_id) as num_actors
                     from {self.event_table_name}
                     group by course_id
                 ) a

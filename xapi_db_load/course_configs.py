@@ -7,7 +7,7 @@ from collections import namedtuple
 from random import choice, randrange
 
 
-Student = namedtuple('Student', ["id", "enroll_datetime"])
+Actor = namedtuple('Actor', ["id", "enroll_datetime"])
 
 
 class RandomCourse:
@@ -44,7 +44,7 @@ class RandomCourse:
         self.end_date = self.start_date + delta
 
         self.known_actors = [
-            Student(a, self._random_datetime(self.start_date, self.end_date))
+            Actor(a, self._random_datetime(self.start_date, self.end_date))
             for a in actors
         ]
 
@@ -83,12 +83,12 @@ class RandomCourse:
             for _ in range(self.course_config["sequences"])
         ]
 
-    def get_random_emission_time(self, student=None):
+    def get_random_emission_time(self, actor=None):
         """
         Randomizes an emission time for events that falls within the course start and end dates.
         """
-        if student:
-            start = student.enroll_datetime
+        if actor:
+            start = actor.enroll_datetime
         else:
             start = self.start_date
 

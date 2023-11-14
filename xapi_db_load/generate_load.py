@@ -94,8 +94,8 @@ class EventGenerator:
             raise ValueError("course_size_makeup and course_size_pct must contain the same keys.")
 
         for s in self.config["course_size_makeup"]:
-            if self.config["course_size_makeup"][s]["learners"] > self.config["num_learners"]:
-                raise ValueError(f"Course size {s} wants more learners than are configure in num_learners.")
+            if self.config["course_size_makeup"][s]["actors"] > self.config["num_actors"]:
+                raise ValueError(f"Course size {s} wants more actors than are configured in num_actors.")
 
     def setup_course_config_weights(self):
         for course_config_name, course_config_weight in self.config["course_size_pct"].items():
@@ -111,7 +111,7 @@ class EventGenerator:
             course_config_name = self.get_weighted_course_config()
             course_config_makeup = self.config["course_size_makeup"][course_config_name]
             org = choice(self.known_orgs)
-            actors = choices(self.known_actors, k=course_config_makeup["learners"])
+            actors = choices(self.known_actors, k=course_config_makeup["actors"])
 
             self.known_courses.append(RandomCourse(
                 org,
@@ -128,7 +128,7 @@ class EventGenerator:
         Create all known actors. Random samplings of these will be passed
         into courses.
         """
-        for i in range(self.config["num_learners"]):
+        for i in range(self.config["num_actors"]):
             self.known_actors.append(_get_uuid())
 
     def get_weighted_course_config(self):
@@ -144,11 +144,13 @@ class EventGenerator:
         return [e(self).get_data() for e in events]
 
     def get_enrollment_events(self):
-        # Generate enrollment events for all students
+        """
+        Generate enrollment events for all actors.
+        """
         enrollments = []
         for course in self.known_courses:
-            for student in course.known_actors:
-                enrollments.append(Registered(self).get_data(course, student))
+            for actor in course.known_actors:
+                enrollments.append(Registered(self).get_data(course, actor))
         return enrollments
 
     def get_course(self):
@@ -208,7 +210,7 @@ def generate_events(config, backend):
 
 def insert_registrations(event_generator, lake):
     """
-    Insert all of the registration events
+    Insert all the registration events
     """
     with LogTimer("enrollment", "get_enrollment_events"):
         events = event_generator.get_enrollment_events()
