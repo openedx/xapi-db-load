@@ -27,7 +27,7 @@ click==8.1.7
     #   edx-lint
 click-log==0.4.0
     # via edx-lint
-clickhouse-connect==0.6.18
+clickhouse-connect==0.6.20
     # via -r requirements/test.txt
 code-annotations==1.5.0
     # via edx-lint
@@ -56,7 +56,7 @@ importlib-metadata==6.8.0
     # via
     #   keyring
     #   twine
-importlib-resources==6.1.0
+importlib-resources==6.1.1
     # via keyring
 iniconfig==2.0.0
     # via
@@ -74,7 +74,7 @@ jeepney==0.8.0
     #   secretstorage
 jinja2==3.1.2
     # via code-annotations
-keyring==24.2.0
+keyring==24.3.0
     # via twine
 lz4==4.3.2
     # via
@@ -96,12 +96,14 @@ packaging==23.2
     # via
     #   -r requirements/test.txt
     #   pytest
-pbr==5.11.1
+pbr==6.0.0
     # via stevedore
 pkginfo==1.9.6
     # via twine
 platformdirs==3.11.0
-    # via pylint
+    # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   pylint
 pluggy==1.3.0
     # via
     #   -r requirements/test.txt
@@ -173,7 +175,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.12.2
+tomlkit==0.12.3
     # via pylint
 twine==4.0.2
     # via -r requirements/quality.in
@@ -182,7 +184,7 @@ typing-extensions==4.8.0
     #   astroid
     #   pylint
     #   rich
-urllib3==2.0.7
+urllib3==2.1.0
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
