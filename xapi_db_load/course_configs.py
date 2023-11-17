@@ -2,6 +2,8 @@
 Configuration values for emulating courses of various sizes.
 """
 import datetime
+import json
+import random
 import uuid
 from collections import namedtuple
 from random import choice, randrange
@@ -16,10 +18,12 @@ class RandomCourse:
     """
 
     items_in_course = 0
-    known_problem_ids = []
-    known_video_ids = []
-    known_sequential_ids = []
-    known_actors = []
+    chapter_ids = []
+    sequential_ids = []
+    vertical_ids = []
+    problem_ids = []
+    video_ids = []
+    actors = []
     start_date = None
     end_date = None
 
@@ -43,7 +47,7 @@ class RandomCourse:
         self.start_date = self._random_datetime(overall_start_date, overall_end_date-delta)
         self.end_date = self.start_date + delta
 
-        self.known_actors = [
+        self.actors = [
             Actor(a, self._random_datetime(self.start_date, self.end_date))
             for a in actors
         ]
@@ -55,32 +59,36 @@ class RandomCourse:
     def __repr__(self):
         return f"""{self.course_name}:
         {self.start_date} - {self.end_date}
-        Items: {self.items_in_course}
-        Videos: {len(self.known_video_ids)}
-        Problems: {len(self.known_problem_ids)}
-        Sequences: {len(self.known_sequential_ids)}
-        Actors: {len(self.known_actors)}
+        {self.course_config}
         """
 
     def configure(self):
         """
         Set up the fake course configuration such as course length, start and end dates, and size.
         """
-        self.items_in_course = self.course_config["items"]
+        self.chapter_ids = [
+            self._generate_random_block_type_id("chapter")
+            for _ in range(self.course_config["chapters"])
+        ]
 
-        self.known_problem_ids = [
-            self._generate_random_problem_id()
+        self.sequential_ids = [
+            self._generate_random_block_type_id("sequential")
+            for _ in range(self.course_config["sequences"])
+        ]
+
+        self.vertical_ids = [
+            self._generate_random_block_type_id("vertical")
+            for _ in range(self.course_config["verticals"])
+        ]
+
+        self.problem_ids = [
+            self._generate_random_block_type_id("problem")
             for _ in range(self.course_config["problems"])
         ]
 
-        self.known_video_ids = [
-            self._generate_random_video_id()
+        self.video_ids = [
+            self._generate_random_block_type_id("video")
             for _ in range(self.course_config["videos"])
-        ]
-
-        self.known_sequential_ids = [
-            self._generate_random_sequential_id()
-            for _ in range(self.course_config["sequences"])
         ]
 
     def get_random_emission_time(self, actor=None):
@@ -120,41 +128,33 @@ class RandomCourse:
         random_second = randrange(int_delta)
         return start_datetime + datetime.timedelta(seconds=random_second)
 
-    def _generate_random_video_id(self):
-        video_uuid = str(uuid.uuid4())[:8]
-        return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@video+block@{video_uuid}"
-
     def get_actor(self):
         """
         Return an actor from those known in this course.
         """
-        return choice(self.known_actors)
+        return choice(self.actors)
 
     def get_video_id(self):
         """
         Return a video id from our list of known video ids.
         """
-        return choice(self.known_video_ids)
+        return choice(self.video_ids)
 
-    def _generate_random_problem_id(self):
-        problem_uuid = str(uuid.uuid4())[:8]
-        return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@problem+block@{problem_uuid}"
+    def _generate_random_block_type_id(self, type):
+        block_uuid = str(uuid.uuid4())[:8]
+        return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@{type}+block@{block_uuid}"
 
     def get_problem_id(self):
         """
         Return a problem id from our list of known problem ids.
         """
-        return choice(self.known_problem_ids)
-
-    def _generate_random_sequential_id(self):
-        sequential_uuid = str(uuid.uuid4())[:8]
-        return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@sequential+block@{sequential_uuid}"
+        return choice(self.problem_ids)
 
     def get_random_sequential_id(self):
         """
         Return a sequential id from our list of known sequential ids.
         """
-        return choice(self.known_sequential_ids)
+        return choice(self.sequential_ids)
 
     def get_random_nav_location(self):
         """
@@ -213,29 +213,88 @@ class RandomCourse:
         The data format mirrors what is created by event-sink-clickhouse.
 
         Block types we care about:
-        -- course block
+        -- x course block
         -- x video block
-        -- vertical block
+        -- x vertical block
         -- static_tab block
         -- x sequential
         -- x problem block
         -- html block
         -- discussion block
         -- course_info
-        -- chapter block
+        -- x chapter block
         -- about block
         """
         blocks = []
         cnt = 1
-        for v in self.known_video_ids:
+
+        # Get all of our blocks in order
+        for v in self.video_ids:
             blocks.append(self._serialize_block("Video", v, cnt))
             cnt += 1
-        for p in self.known_problem_ids:
+        for p in self.problem_ids:
             blocks.append(self._serialize_block("Problem", p, cnt))
             cnt += 1
-        for s in self.known_sequential_ids:
-            blocks.append(self._serialize_block("Sequential", s, cnt))
-            cnt += 1
-        blocks.append(self._serialize_course_block())
 
-        return blocks
+        course_structure = [self._serialize_course_block()]
+
+        for c in self.chapter_ids:
+            course_structure.append(self._serialize_block("Chapter", c, cnt))
+            cnt += 1
+
+        for s in self.sequential_ids:
+            # Randomly insert some sequentials under the chapters
+            course_structure.insert(
+                # Start at 2 here to make sure it's after the course and first
+                # chapter block
+                random.randint(2, len(course_structure)),
+                self._serialize_block("Sequential", s, cnt)
+            )
+            cnt += 1
+
+        for v in self.vertical_ids:
+            # Randomly insert some verticals under the sequentials
+            course_structure.insert(
+                # Start at 3 here to make sure it's after the course and first
+                # chapter block and first sequential block
+                random.randint(2, len(course_structure)),
+                self._serialize_block("Vertical", v, cnt)
+            )
+            cnt += 1
+
+        # Now add in the blocks wherever, as long as they're after the
+        # course, first chapter, first sequential, and first vertical. After
+        # that they'll all be mixed together, but this will do for now.
+        for b in blocks:
+            course_structure.insert(
+                random.randint(4, len(course_structure)),
+                b
+            )
+
+        # Now actually set up the locations. These are important and used to
+        # generate block display names in the database
+        section_idx = 0
+        subsection_idx = 0
+        unit_idx = 0
+
+        for block in course_structure:
+            if block["display_name"].startswith("Chapter"):
+                section_idx += 1
+                subsection_idx = 0
+                unit_idx = 0
+            elif block["display_name"].startswith("Sequential"):
+                subsection_idx += 1
+                unit_idx = 0
+            elif block["display_name"].startswith("Vertical"):
+                unit_idx += 1
+
+            # In event-sink-clickhouse block_type is also included, but I'm
+            # omitting for now since we don't currently use it and this is
+            # already way too expensive an operation.
+            block["xblock_data_json"] = json.dumps({
+                "section": section_idx,
+                "subsection": subsection_idx,
+                "unit": unit_idx,
+            })
+
+        return course_structure

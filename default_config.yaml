@@ -9,15 +9,15 @@
 
 # Ralph / ClickHouse backend configuration
 # ########################################
-# backend: ralph_clickhouse
-# db_host: localhost
-# db_port: null
-# db_name: xapi_load_test
-# db_username: ch_admin
-# db_password: abc123
-# lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
-# lrs_username: ralph
-# lrs_password: abc123
+#backend: ralph_clickhouse
+#db_host: localhost
+#db_port: null
+#db_name: xapi
+#db_username: ch_admin
+#db_password: 7NRe69D4zWWT0rf2G7gWa7RB
+#lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
+#lrs_username: ralph
+#lrs_password: sdtiqjqwixhzcboqzbiryrulzcpvfmsfvqqw
 
 # CSV backend configuration
 # #########################
@@ -27,8 +27,8 @@ csv_output_directory: logs
 # Run options
 run_distribution_queries: false
 log_dir: logs
-num_batches: 200
-batch_size: 500
+num_batches: 2
+batch_size: 5
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01
@@ -55,25 +55,29 @@ course_size_pct:
 course_size_makeup:
   small:
     actors: 30
-    items: 20
     problems: 20
     videos: 10
+    chapters: 3
     sequences: 10
+    verticals: 20
   medium:
     actors: 100
-    items: 40
     problems: 40
     videos: 20
+    chapters: 4
     sequences: 20
+    verticals: 30
   large:
     actors: 500
-    items: 80
     problems: 80
     videos: 30
+    chapters: 5
     sequences: 40
+    verticals: 80
   huge:
     actors: 1000
-    items: 200
     problems: 160
     videos: 40
-    sequences: 80
+    chapters: 10
+    sequences: 50
+    verticals: 100

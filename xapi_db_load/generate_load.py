@@ -64,9 +64,9 @@ class EventGenerator:
     Generates a batch of random xAPI events based on the EVENT_WEIGHTS proportions.
     """
 
-    known_actors = []
-    known_courses = []
-    known_orgs = []
+    actors = []
+    courses = []
+    orgs = []
     course_config_names = []
     course_config_weights = []
 
@@ -104,16 +104,16 @@ class EventGenerator:
 
     def setup_orgs(self):
         for i in range(self.config["num_organizations"]):
-            self.known_orgs.append(f"Org{i}")
+            self.orgs.append(f"Org{i}")
 
     def setup_courses(self):
         for i in range(self.config["num_courses"]):
             course_config_name = self.get_weighted_course_config()
             course_config_makeup = self.config["course_size_makeup"][course_config_name]
-            org = choice(self.known_orgs)
-            actors = choices(self.known_actors, k=course_config_makeup["actors"])
+            org = choice(self.orgs)
+            actors = choices(self.actors, k=course_config_makeup["actors"])
 
-            self.known_courses.append(RandomCourse(
+            self.courses.append(RandomCourse(
                 org,
                 self.start_date,
                 self.end_date,
@@ -129,7 +129,7 @@ class EventGenerator:
         into courses.
         """
         for i in range(self.config["num_actors"]):
-            self.known_actors.append(_get_uuid())
+            self.actors.append(_get_uuid())
 
     def get_weighted_course_config(self):
         return choices(self.course_config_names, self.course_config_weights)[0]
@@ -148,22 +148,22 @@ class EventGenerator:
         Generate enrollment events for all actors.
         """
         enrollments = []
-        for course in self.known_courses:
-            for actor in course.known_actors:
+        for course in self.courses:
+            for actor in course.actors:
                 enrollments.append(Registered(self).get_data(course, actor))
         return enrollments
 
     def get_course(self):
-        return choice(self.known_courses)
+        return choice(self.courses)
 
     def get_org(self):
-        return choice(self.known_orgs)
+        return choice(self.orgs)
 
     def dump_courses(self):
         """
         Prettyprint all known courses.
         """
-        for c in self.known_courses:
+        for c in self.courses:
             pprint.pprint(c)
 
 
@@ -182,15 +182,16 @@ def generate_events(config, backend):
             event_generator = EventGenerator(config)
             event_generator.dump_courses()
 
-    insert_registrations(event_generator, backend)
-    insert_batches(event_generator, config["num_batches"], backend)
-
     print("Inserting course metadata...")
     with LogTimer("insert_metadata", "course"):
-        backend.insert_event_sink_course_data(event_generator.known_courses)
+        backend.insert_event_sink_course_data(event_generator.courses)
+
     print("Inserting block metadata...")
     with LogTimer("insert_metadata", "blocks"):
-        backend.insert_event_sink_block_data(event_generator.known_courses)
+        backend.insert_event_sink_block_data(event_generator.courses)
+
+    insert_registrations(event_generator, backend)
+    insert_batches(event_generator, config["num_batches"], backend)
 
     with LogTimer("batches", "total"):
         print(f"Done! Added {config['num_batches'] * config['batch_size']:,} rows!")
