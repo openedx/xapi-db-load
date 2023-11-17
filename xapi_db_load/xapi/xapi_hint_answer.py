@@ -84,8 +84,9 @@ class HintAnswerBase(XAPIBase):
                     ]
                 },
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"    # pylint: disable=line-too-long
-                },
+                    "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
+                }
             },
             "timestamp": create_time.isoformat(),
             "verb": {"display": {"en": self.verb_display}, "id": self.verb},
