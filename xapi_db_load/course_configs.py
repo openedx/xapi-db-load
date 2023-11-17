@@ -91,6 +91,9 @@ class RandomCourse:
             for _ in range(self.course_config["videos"])
         ]
 
+        for config in ("videos", "problems", "verticals", "sequences", "chapters"):
+            self.items_in_course += self.course_config[config]
+
     def get_random_emission_time(self, actor=None):
         """
         Randomizes an emission time for events that falls within the course start and end dates.

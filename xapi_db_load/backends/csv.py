@@ -9,24 +9,26 @@ import os
 import uuid
 from datetime import datetime
 
+from smart_open import open as smart
+
 
 class XAPILakeCSV:
     """
     CSV fake data lake implementation.
     """
 
-    def __init__(self, output_directory):
+    def __init__(self, output_destination):
         # This isn't really a database, so just faking out all of this.
-        self.xapi_csv_writer = self._get_csv_handle("xapi", output_directory)
-        self.course_csv_writer = self._get_csv_handle("courses", output_directory)
-        self.blocks_csv_writer = self._get_csv_handle("blocks", output_directory)
+        self.xapi_csv_writer = self._get_csv_handle("xapi", output_destination)
+        self.course_csv_writer = self._get_csv_handle("courses", output_destination)
+        self.blocks_csv_writer = self._get_csv_handle("blocks", output_destination)
 
         self.row_count = 0
 
-    def _get_csv_handle(self, file_type, output_directory):
-        out_filepath = os.path.join(output_directory, f"{file_type}.csv.gz")
-        out_filehandle = gzip.open(out_filepath, "wt")
-        return csv.writer(out_filehandle)
+    def _get_csv_handle(self, file_type, output_destination):
+        out_filepath = os.path.join(output_destination, f"{file_type}.csv.gz")
+        x = smart(out_filepath, "w", compression=".gz")
+        return csv.writer(x)
 
     def print_db_time(self):
         """

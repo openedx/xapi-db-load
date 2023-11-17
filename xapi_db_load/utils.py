@@ -29,13 +29,13 @@ def get_backend_from_config(config):
         config.get("lrs_url"),
         config.get("lrs_username"),
         config.get("lrs_password"),
-        config.get("csv_output_directory"),
+        config.get("csv_output_destination"),
     )
 
 
 def get_backend(
     backend, db_host, db_port, db_username, db_password, db_name,
-    lrs_url=None, lrs_username=None, lrs_password=None, csv_output_directory=None
+    lrs_url=None, lrs_username=None, lrs_password=None, csv_output_destination=None
 ):
     """
     Return an instantiated backend from the given arguments.
@@ -60,11 +60,11 @@ def get_backend(
             lrs_password=lrs_password,
         )
     elif backend == "csv_file":
-        if not csv_output_directory:
+        if not csv_output_destination:
             raise click.UsageError(
-                "--csv_output_directory must be provided for this backend."
+                "--csv_output_destination must be provided for this backend."
             )
-        lake = csv.XAPILakeCSV(output_directory=csv_output_directory)
+        lake = csv.XAPILakeCSV(output_destination=csv_output_destination)
     else:
         raise NotImplementedError(f"Unknown backend {backend}.")
 

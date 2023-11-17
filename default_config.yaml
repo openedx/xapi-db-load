@@ -22,7 +22,10 @@
 # CSV backend configuration
 # #########################
 backend: csv_file
-csv_output_directory: logs
+# This can be anything smart_open can handle, a local directory or
+# an S3 bucket, etc.
+# https://pypi.org/project/smart-open/
+csv_output_destination: s3://openedx-aspects-loadtest/logs/small_test/
 
 # Run options
 run_distribution_queries: false
