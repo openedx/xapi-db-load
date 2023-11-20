@@ -15,7 +15,7 @@ setup(
     include_package_data=True,
     entry_points="""
         [console_scripts]
-        xapi-db-load=xapi_db_load.main:load_db
+        xapi-db-load=xapi_db_load.main:cli
     """,
     install_requires=[
         "click",

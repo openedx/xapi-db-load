@@ -1,8 +1,7 @@
 """
 ClickHouse data lake implementation.
 """
-
-import random
+import os
 import uuid
 from datetime import datetime
 
@@ -23,12 +22,18 @@ class XAPILakeClickhouse:
         db_username="default",
         db_password=None,
         db_name=None,
+        db_event_sink_name=None,
+        s3_key=None,
+        s3_secret=None,
     ):
         self.host = db_host
         self.port = db_port
         self.username = db_username
         self.database = db_name
+        self.event_sink_database = db_event_sink_name
         self.db_password = db_password
+        self.s3_key = s3_key
+        self.s3_secret = s3_secret
 
         self.event_raw_table_name = "xapi_events_all"
         self.event_table_name = "xapi_events_all_parsed"
@@ -140,7 +145,7 @@ class XAPILakeClickhouse:
                 raise
         vals = ",".join(out_data)
         sql = f"""
-                INSERT INTO event_sink.course_overviews (
+                INSERT INTO {self.event_sink_database}.course_overviews (
                     org,
                     course_key,
                     display_name,
@@ -197,7 +202,7 @@ class XAPILakeClickhouse:
 
             vals = ",".join(out_data)
             sql = f"""
-                    INSERT INTO event_sink.course_blocks (
+                    INSERT INTO {self.event_sink_database}.course_blocks (
                         org,
                         course_key,
                         location,
@@ -218,6 +223,49 @@ class XAPILakeClickhouse:
                 self.set_client()
                 print("Retrying insert...")
                 self.client.command(sql)
+
+    def load_from_s3(self, s3_location):
+        """
+        Loads generated csv.gz files from S3
+
+        This does a bulk file insert directly from S3 to ClickHouse, so files
+        never get downloaded directly to the process running the load.
+        """
+        courses = os.path.join(s3_location, 'courses.csv.gz')
+        blocks = os.path.join(s3_location, 'blocks.csv.gz')
+        statements = os.path.join(s3_location, 'xapi.csv.gz')
+
+        courses_sql = f"""
+        INSERT INTO {self.event_sink_database}.course_overviews
+           SELECT *
+           FROM s3('{courses}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
+        """
+
+        blocks_sql = f"""
+        INSERT INTO {self.event_sink_database}.course_blocks
+           SELECT *
+           FROM s3('{blocks}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
+        """
+
+        statements_sql = f"""
+        INSERT INTO {self.database}.{self.event_raw_table_name}
+           SELECT *
+           FROM s3('{statements}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
+        """
+
+        print("Inserting courses")
+        self.client.command(courses_sql)
+
+        print("Inserting blocks")
+        self.client.command(blocks_sql)
+
+        print("Inserting statements")
+        self.client.command(statements_sql)
+
+    def finalize(self):
+        """
+        Nothing to finalize here
+        """
 
     def _run_query_and_print(self, query_name, query):
         """

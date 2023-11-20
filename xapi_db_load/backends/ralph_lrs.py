@@ -40,8 +40,9 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
         db_username="default",
         db_password=None,
         db_name="xapi",
+        db_event_sink_name="event_sink",
     ):
-        super().__init__(db_host, db_port, db_username, db_password, db_name)
+        super().__init__(db_host, db_port, db_username, db_password, db_name, db_event_sink_name)
         self.lrs_url = lrs_url
         self.lrs_username = lrs_username
         self.lrs_password = lrs_password

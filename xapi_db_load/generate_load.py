@@ -199,6 +199,7 @@ def generate_events(config, backend):
     end = datetime.datetime.utcnow()
     print("Batch insert time: " + str(end - start))
 
+    backend.finalize()
     backend.print_db_time()
     backend.print_row_counts()
 
@@ -238,7 +239,7 @@ def insert_batches(event_generator, num_batches, lake):
             lake.batch_insert(events)
 
         if x % 1000 == 0:
-            with LogTimer("batch", "all_queries"):
-                lake.do_queries(event_generator)
+            #with LogTimer("batch", "all_queries"):
+            #    lake.do_queries(event_generator)
             lake.print_db_time()
             lake.print_row_counts()

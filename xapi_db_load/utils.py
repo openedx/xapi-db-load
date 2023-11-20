@@ -26,6 +26,9 @@ def get_backend_from_config(config):
         config.get("db_username"),
         config.get("db_password"),
         config.get("db_name"),
+        config.get("db_event_sink_name"),
+        config.get("s3_key"),
+        config.get("s3_secret"),
         config.get("lrs_url"),
         config.get("lrs_username"),
         config.get("lrs_password"),
@@ -34,8 +37,9 @@ def get_backend_from_config(config):
 
 
 def get_backend(
-    backend, db_host, db_port, db_username, db_password, db_name,
-    lrs_url=None, lrs_username=None, lrs_password=None, csv_output_destination=None
+    backend, db_host, db_port, db_username, db_password, db_name, db_event_sink_name,
+    s3_key=None, s3_secret=None, lrs_url=None, lrs_username=None, lrs_password=None,
+    csv_output_destination=None
 ):
     """
     Return an instantiated backend from the given arguments.
@@ -47,6 +51,9 @@ def get_backend(
             db_username=db_username,
             db_password=db_password,
             db_name=db_name,
+            db_event_sink_name=db_event_sink_name,
+            s3_key=s3_key,
+            s3_secret=s3_secret
         )
     elif backend == "ralph_clickhouse":
         lake = ralph.XAPILRSRalphClickhouse(
@@ -55,6 +62,7 @@ def get_backend(
             db_username=db_username,
             db_password=db_password,
             db_name=db_name,
+            db_event_sink_name=db_event_sink_name,
             lrs_url=lrs_url,
             lrs_username=lrs_username,
             lrs_password=lrs_password,

@@ -19,16 +19,16 @@ class XAPILakeCSV:
 
     def __init__(self, output_destination):
         # This isn't really a database, so just faking out all of this.
-        self.xapi_csv_writer = self._get_csv_handle("xapi", output_destination)
-        self.course_csv_writer = self._get_csv_handle("courses", output_destination)
-        self.blocks_csv_writer = self._get_csv_handle("blocks", output_destination)
+        self.xapi_csv_handle, self.xapi_csv_writer = self._get_csv_handle("xapi", output_destination)
+        self.course_csv_handle, self.course_csv_writer = self._get_csv_handle("courses", output_destination)
+        self.blocks_csv_handle, self.blocks_csv_writer = self._get_csv_handle("blocks", output_destination)
 
         self.row_count = 0
 
     def _get_csv_handle(self, file_type, output_destination):
         out_filepath = os.path.join(output_destination, f"{file_type}.csv.gz")
-        x = smart(out_filepath, "w", compression=".gz")
-        return csv.writer(x)
+        file_handle = smart(out_filepath, "w", compression=".gz")
+        return file_handle, csv.writer(file_handle)
 
     def print_db_time(self):
         """
@@ -63,7 +63,7 @@ class XAPILakeCSV:
         Write a batch of rows to the CSV.
         """
         for v in events:
-            out = (v["event_id"], v["emission_time"], str(v["event"]))
+            out = (v["event_id"], v["emission_time"], '', str(v["event"]))
             self.xapi_csv_writer.writerow(out)
         self.row_count += len(events)
 
@@ -112,6 +112,14 @@ class XAPILakeCSV:
                     dump_time
                 ))
 
+    def finalize(self):
+        """
+        These need to be closed in S3 in order for files to be readable on import.
+        """
+        self.xapi_csv_handle.close()
+        self.course_csv_handle.close()
+        self.blocks_csv_handle.close()
+
     def do_queries(self, event_generator):
         """
         Execute queries, not needed here.
@@ -120,6 +128,4 @@ class XAPILakeCSV:
     def do_distributions(self):
         """
         Execute distribution queries, not needed here.
-
-        But this is the last step, so take the opportunity to close the file.
         """

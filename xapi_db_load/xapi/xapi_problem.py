@@ -61,8 +61,9 @@ class BaseProblemCheck(XAPIBase):
         response_options = [
             ("A correct answer", True),
             ("An incorrect answer", False),
-            ('["A correct answer 1", "A correct answer 2"]', True),
-            ('["A correct answer 1", "An incorrect answer 2"]', False),
+            # FIXME: These aren't serializing correctly
+            #('["A correct answer 1", "A correct answer 2"]', True),
+            #('["A correct answer 1", "An incorrect answer 2"]', False),
         ]
 
         response, success = random.choice(response_options)
