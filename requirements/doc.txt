@@ -16,7 +16,7 @@ beautifulsoup4==4.12.2
     # via pydata-sphinx-theme
 build==1.0.3
     # via -r requirements/doc.in
-certifi==2023.7.22
+certifi==2023.11.17
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -29,7 +29,7 @@ charset-normalizer==3.3.2
     #   requests
 click==8.1.7
     # via -r requirements/test.txt
-clickhouse-connect==0.6.18
+clickhouse-connect==0.6.20
     # via -r requirements/test.txt
 coverage[toml]==7.3.2
     # via
@@ -59,7 +59,7 @@ importlib-metadata==6.8.0
     #   keyring
     #   sphinx
     #   twine
-importlib-resources==6.1.0
+importlib-resources==6.1.1
     # via keyring
 iniconfig==2.0.0
     # via
@@ -73,7 +73,7 @@ jeepney==0.8.0
     #   secretstorage
 jinja2==3.1.2
     # via sphinx
-keyring==24.2.0
+keyring==24.3.0
     # via twine
 lz4==4.3.2
     # via
@@ -106,7 +106,7 @@ pycparser==2.21
     # via cffi
 pydata-sphinx-theme==0.14.3
     # via sphinx-book-theme
-pygments==2.16.1
+pygments==2.17.1
     # via
     #   accessible-pygments
     #   pydata-sphinx-theme
@@ -138,7 +138,7 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.6.0
+rich==13.7.0
     # via twine
 secretstorage==3.3.3
     # via keyring
@@ -178,7 +178,7 @@ typing-extensions==4.8.0
     # via
     #   pydata-sphinx-theme
     #   rich
-urllib3==2.0.7
+urllib3==2.1.0
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
