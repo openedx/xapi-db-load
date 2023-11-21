@@ -29,8 +29,8 @@ backend: csv_file
 # This can be anything smart_open can handle, a local directory or
 # an S3 bucket, etc., but importing to ClickHouse only supports S3 right now
 # https://pypi.org/project/smart-open/
-csv_output_destination: s3://openedx-aspects-loadtest/logs/large_test/
-csv_load_from_s3_after: true
+csv_output_destination: logs/ # s3://openedx-aspects-loadtest/logs/large_test/
+csv_load_from_s3_after: false
 
 # Load from S3 configuration
 # ##########################
@@ -39,8 +39,8 @@ s3_source_location: https://openedx-aspects-loadtest.s3.amazonaws.com/logs/large
 # Run options
 run_distribution_queries: false
 log_dir: logs
-num_batches: 10000
-batch_size: 30000
+num_batches: 3
+batch_size: 1000
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01
@@ -72,6 +72,7 @@ course_size_makeup:
     chapters: 3
     sequences: 10
     verticals: 20
+    forum_posts: 20
   medium:
     actors: 500
     problems: 40
@@ -79,6 +80,7 @@ course_size_makeup:
     chapters: 4
     sequences: 20
     verticals: 30
+    forum_posts: 40
   large:
     actors: 5000
     problems: 80
@@ -86,6 +88,7 @@ course_size_makeup:
     chapters: 5
     sequences: 40
     verticals: 80
+    forum_posts: 200
   huge:
     actors: 10000
     problems: 160
@@ -93,3 +96,4 @@ course_size_makeup:
     chapters: 10
     sequences: 50
     verticals: 100
+    forum_posts: 1000

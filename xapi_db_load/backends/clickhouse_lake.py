@@ -255,12 +255,15 @@ class XAPILakeClickhouse:
 
         print("Inserting courses")
         self.client.command(courses_sql)
+        self.print_db_time()
 
         print("Inserting blocks")
         self.client.command(blocks_sql)
+        self.print_db_time()
 
         print("Inserting statements")
         self.client.command(statements_sql)
+        self.print_db_time()
 
     def finalize(self):
         """

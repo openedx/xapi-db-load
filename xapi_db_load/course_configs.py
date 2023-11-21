@@ -23,6 +23,7 @@ class RandomCourse:
     vertical_ids = []
     problem_ids = []
     video_ids = []
+    forum_post_ids = []
     actors = []
     start_date = None
     end_date = None
@@ -91,7 +92,12 @@ class RandomCourse:
             for _ in range(self.course_config["videos"])
         ]
 
-        for config in ("videos", "problems", "verticals", "sequences", "chapters"):
+        self.forum_post_ids = [
+            self._generate_random_forum_post_id()
+            for _ in range(self.course_config["forum_posts"])
+        ]
+
+        for config in ("videos", "problems", "verticals", "sequences", "chapters", "forum_posts"):
             self.items_in_course += self.course_config[config]
 
     def get_random_emission_time(self, actor=None):
@@ -158,6 +164,16 @@ class RandomCourse:
         Return a sequential id from our list of known sequential ids.
         """
         return choice(self.sequential_ids)
+
+    def get_random_forum_post_id(self):
+        """
+        Return a sequential id from our list of known sequential ids.
+        """
+        return choice(self.forum_post_ids)
+
+    def _generate_random_forum_post_id(self):
+        thread_id = str(uuid.uuid4())[:8]
+        return f"http://localhost:18000/api/discussion/v1/threads/{thread_id}"
 
     def get_random_nav_location(self):
         """

@@ -9,6 +9,7 @@ from random import choice, choices
 from xapi_db_load.utils import LogTimer, setup_timing
 
 from .course_configs import RandomCourse
+from .xapi.xapi_forum import PostCreated
 from .xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed
 from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
 from .xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
@@ -33,7 +34,7 @@ EVENT_LOAD = (
     (Unregistered, 0.146),
     (CompletedVideo, 5.124),
     (LoadedVideo, 7.125),
-    (PlayedVideo, 24.519),
+    (PlayedVideo, 24.019),
     (PausedVideo, 14.912),
     (StoppedVideo, 3.671),
     (PositionChangedVideo, 12.105),
@@ -49,6 +50,7 @@ EVENT_LOAD = (
     (TranscriptEnabled, 0.05),
     (TranscriptDisabled, 0.05),
     (CourseGradeCalculated, 1.5),
+    (PostCreated, 0.5),
 )
 
 EVENTS = [i[0] for i in EVENT_LOAD]
