@@ -52,18 +52,19 @@ course_length_days: 120
 
 # The size of the test
 num_organizations: 3
-num_courses: 20
-num_actors: 10000
-
-# Distribution of the size of the courses
-course_size_pct:
+num_actors: 1000
+# How many of each size course to create. The sum of these is the total number
+# of courses created for the test.
+num_course_sizes:
   small: 20
-  medium: 30
+  medium: 40
   large: 40
   huge: 10
 
 # Course size configurations, how many of each type of object are created for
 # each course of this size. "actors" must be less than or equal to "num_actors".
+# For a course of this size to be created it needs to exist both here and in
+# "num_course_sizes".
 course_size_makeup:
   small:
     actors: 30
@@ -74,7 +75,7 @@ course_size_makeup:
     verticals: 20
     forum_posts: 20
   medium:
-    actors: 500
+    actors: 50
     problems: 40
     videos: 20
     chapters: 4
@@ -82,7 +83,7 @@ course_size_makeup:
     verticals: 30
     forum_posts: 40
   large:
-    actors: 5000
+    actors: 500
     problems: 80
     videos: 30
     chapters: 5
@@ -90,7 +91,7 @@ course_size_makeup:
     verticals: 80
     forum_posts: 200
   huge:
-    actors: 10000
+    actors: 1000
     problems: 160
     videos: 40
     chapters: 10

@@ -69,15 +69,12 @@ class EventGenerator:
     actors = []
     courses = []
     orgs = []
-    course_config_names = []
-    course_config_weights = []
 
     def __init__(self, config):
         self.config = config
         self.start_date = config["start_date"]
         self.end_date = config["end_date"]
         self._validate_config()
-        self.setup_course_config_weights()
         self.setup_orgs()
         self.setup_actors()
         self.setup_courses()
@@ -89,41 +86,31 @@ class EventGenerator:
         if (self.end_date - self.start_date).days < self.config["course_length_days"]:
             raise ValueError("The time between start and end dates must be longer than course_length_days.")
 
-        course_size_makeup_keys = set(self.config["course_size_makeup"].keys())
-        course_size_pct_keys = set(self.config["course_size_pct"].keys())
-
-        if course_size_makeup_keys != course_size_pct_keys:
-            raise ValueError("course_size_makeup and course_size_pct must contain the same keys.")
-
-        for s in self.config["course_size_makeup"]:
+        for s in self.config["num_course_sizes"]:
             if self.config["course_size_makeup"][s]["actors"] > self.config["num_actors"]:
                 raise ValueError(f"Course size {s} wants more actors than are configured in num_actors.")
-
-    def setup_course_config_weights(self):
-        for course_config_name, course_config_weight in self.config["course_size_pct"].items():
-            self.course_config_names.append(course_config_name)
-            self.course_config_weights.append(course_config_weight)
 
     def setup_orgs(self):
         for i in range(self.config["num_organizations"]):
             self.orgs.append(f"Org{i}")
 
     def setup_courses(self):
-        for i in range(self.config["num_courses"]):
-            course_config_name = self.get_weighted_course_config()
-            course_config_makeup = self.config["course_size_makeup"][course_config_name]
-            org = choice(self.orgs)
-            actors = choices(self.actors, k=course_config_makeup["actors"])
+        for course_config_name, num_courses in self.config["num_course_sizes"].items():
+            print(f"Setting up {num_courses} {course_config_name} courses")
+            for _ in range(num_courses):
+                course_config_makeup = self.config["course_size_makeup"][course_config_name]
+                org = choice(self.orgs)
+                actors = choices(self.actors, k=course_config_makeup["actors"])
 
-            self.courses.append(RandomCourse(
-                org,
-                self.start_date,
-                self.end_date,
-                self.config["course_length_days"],
-                actors,
-                course_config_name,
-                course_config_makeup
-            ))
+                self.courses.append(RandomCourse(
+                    org,
+                    self.start_date,
+                    self.end_date,
+                    self.config["course_length_days"],
+                    actors,
+                    course_config_name,
+                    course_config_makeup
+                ))
 
     def setup_actors(self):
         """
@@ -132,9 +119,6 @@ class EventGenerator:
         """
         for i in range(self.config["num_actors"]):
             self.actors.append(_get_uuid())
-
-    def get_weighted_course_config(self):
-        return choices(self.course_config_names, self.course_config_weights)[0]
 
     def get_batch_events(self):
         """
