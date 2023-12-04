@@ -47,7 +47,7 @@ click-log==0.4.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-clickhouse-connect==0.6.21
+clickhouse-connect==0.6.22
     # via -r requirements/quality.txt
 code-annotations==1.5.0
     # via
@@ -62,7 +62,7 @@ coverage[toml]==7.3.2
     #   -r requirements/quality.txt
     #   coverage
     #   pytest-cov
-cryptography==41.0.5
+cryptography==41.0.7
     # via
     #   -r requirements/quality.txt
     #   secretstorage
@@ -95,7 +95,7 @@ idna==3.6
     # via
     #   -r requirements/quality.txt
     #   requests
-importlib-metadata==6.8.0
+importlib-metadata==7.0.0
     # via
     #   -r requirements/pip-tools.txt
     #   -r requirements/quality.txt
@@ -312,7 +312,7 @@ tomlkit==0.12.3
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.11.3
+tox==4.11.4
     # via -r requirements/ci.txt
 twine==4.0.2
     # via -r requirements/quality.txt
@@ -328,7 +328,7 @@ urllib3==2.1.0
     #   clickhouse-connect
     #   requests
     #   twine
-virtualenv==20.24.7
+virtualenv==20.25.0
     # via
     #   -r requirements/ci.txt
     #   tox
