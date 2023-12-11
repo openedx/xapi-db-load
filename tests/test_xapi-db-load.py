@@ -44,21 +44,20 @@ def test_csv(tmpdir):
             catch_exceptions=False
         )
 
-        assert f"Currently written row count" in result.output
+        assert "Currently written row count" in result.output
         assert "Done" in result.output
         assert "Total run time" in result.output
 
-        expected_enrollments = (test_config["num_course_sizes"]["small"] *
-                                test_config["course_size_makeup"]["small"]["actors"])
+        makeup = test_config["course_size_makeup"]["small"]
+
+        expected_enrollments = test_config["num_course_sizes"]["small"] * makeup["actors"]
         expected_statements = test_config["num_batches"] * test_config["batch_size"] + expected_enrollments
         expected_actors = test_config["num_actors"]
         expected_courses = test_config["num_course_sizes"]["small"]
 
         # We want all the configured block types, which are currently everything in
         # the config except the actor and forum post count
-        expected_course_blocks = (sum(test_config["course_size_makeup"]["small"].values()) -
-                                  test_config["course_size_makeup"]["small"]["actors"] -
-                                  test_config["course_size_makeup"]["small"]["forum_posts"])
+        expected_course_blocks = sum(makeup.values()) - makeup["actors"] - makeup["forum_posts"]
 
         # Plus 1 for the course block
         expected_blocks = (expected_course_blocks + 1) * expected_courses
@@ -75,7 +74,7 @@ def test_csv(tmpdir):
 
 
 @patch("xapi_db_load.backends.clickhouse_lake.clickhouse_connect")
-def test_clickhouse_lake(mock_clickhouse, tmpdir):
+def test_clickhouse_lake(_, tmpdir):
     test_path = "tests/fixtures/small_clickhouse_config.yaml"
 
     with override_config(test_path, tmpdir):
@@ -102,7 +101,7 @@ def test_ralph_clickhouse(mock_requests, _, tmpdir):
         result = runner.invoke(
             load_db,
             f"--config_file {test_path}",
-            catch_exceptions = False,
+            catch_exceptions=False,
         )
     print(mock_requests.mock_calls)
     print(result.output)
