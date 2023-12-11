@@ -22,15 +22,16 @@ class FirstTimePassed(XAPIBase):
         """
         event_id = str(uuid4())
         course = self.parent_load_generator.get_course()
-        actor = course.get_actor()
-        emission_time = course.get_random_emission_time(actor)
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
 
-        e = self.get_randomized_event(event_id, actor.id, course, emission_time)
+        e = self.get_randomized_event(event_id, actor_id, course, emission_time)
 
         return {
             "event_id": event_id,
             "verb": self.verb,
-            "actor_id": actor.id,
+            "actor_id": actor_id,
             "org": course.org,
             "course_run_id": course.course_url,
             "emission_time": emission_time,
@@ -85,14 +86,15 @@ class GradeCalculated(XAPIBase):
         """
         event_id = str(uuid4())
         course = self.parent_load_generator.get_course()
-        actor = course.get_actor()
-        emission_time = course.get_random_emission_time(actor)
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
 
-        e = self.get_randomized_event(event_id, actor.id, course, emission_time)
+        e = self.get_randomized_event(event_id, actor_id, course, emission_time)
         return {
             "event_id": event_id,
             "verb": self.verb,
-            "actor_id": actor.id,
+            "actor_id": actor_id,
             "org": course.org,
             "course_run_id": course.course_url,
             "emission_time": emission_time,

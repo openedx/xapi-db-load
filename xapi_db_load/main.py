@@ -8,9 +8,21 @@ from xapi_db_load.generate_load import generate_events
 from xapi_db_load.utils import get_backend_from_config
 
 
+def get_config(config_file):
+    """
+    Wrap around config loading.
+
+    We override this in tests so that we can use temp dirs for logs etc.
+    """
+    with open(config_file, 'r') as y:
+        return yaml.safe_load(y)
+
+
 @click.group()
 def cli():
-    pass
+    """
+    Top level group of command objects.
+    """
 
 
 @click.command()
@@ -28,20 +40,21 @@ def cli():
 )
 def load_db(config_file):
     """
-    Execute the database load.
+    Execute a database load by performing inserts.
     """
-    with open(config_file, 'r') as y:
-        config = yaml.safe_load(y)
-
+    config = get_config(config_file)
     backend = get_backend_from_config(config)
-    print(config)
     generate_events(config, backend)
 
-    if config["backend"] == "csv_file" and config["csv_load_from_s3_after"]:
+    try_s3_load = "csv_load_from_s3_after" in config and config["csv_load_from_s3_after"]
+
+    if config["backend"] == "csv_file" and try_s3_load:
         print("Attempting to load to ClickHouse from S3...")
         config["backend"] = "clickhouse"
         ch_backend = get_backend_from_config(config)
         ch_backend.load_from_s3(config["s3_source_location"])
+    elif try_s3_load:
+        print("Backend is not 'csv_file', skipping load from S3.")
 
     print("Done.")
 
@@ -61,16 +74,14 @@ def load_db(config_file):
 )
 def load_db_from_s3(config_file):
     """
-    Execute the database load.
+    Execute the database by importing existing files from S3.
     """
-    with open(config_file, 'r') as y:
-        config = yaml.safe_load(y)
+    config = get_config(config_file)
 
-    if not "clickhouse" in config["backend"]:
-        raise click.BadParameter("You must have a ClickHouse based backend to load from S3.")
+    if "clickhouse" not in config["backend"]:
+        raise click.BadParameter("You must use a ClickHouse based backend to load from S3.")
 
     backend = get_backend_from_config(config)
-    print(config)
     backend.load_from_s3(config["s3_source_location"])
 
 
@@ -78,4 +89,4 @@ cli.add_command(load_db)
 cli.add_command(load_db_from_s3)
 
 if __name__ == "__main__":
-    cli()  # pylint: disable=no-value-for-parameter
+    cli()

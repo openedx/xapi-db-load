@@ -8,8 +8,50 @@ import uuid
 from collections import namedtuple
 from random import choice, randrange
 
+EnrolledActor = namedtuple("Actor", ["actor", "enroll_datetime"])
 
-Actor = namedtuple('Actor', ["id", "enroll_datetime"])
+
+class Actor:
+    """
+    Wrapper for actor PII data.
+
+    These are a combination of fields from edx-platform UserProfile and
+    ExternalId models. These fields are largely unpopulated in real life,
+    especially after the introduction of the profile MFE, but operators have
+    the capability to fill them in various ways.
+    """
+
+    def __init__(self, user_id):
+        # Integer user id, just the counter from actor population
+        self.user_id = user_id
+
+        # "external_id" UUID
+        self.id = str(uuid.uuid4())
+
+        # LMS username
+        self.username = f"actor_{self.user_id}"
+
+        # These may or may not ever be populated in real life, potentially
+        # useful values are populated here.
+        self.name = f"Actor {user_id}"
+        self.year_of_birth = random.randint(1900, 2010)
+        self.gender = random.choice(["", "m", "f", "o"])
+        self.level_of_education = random.choice(["", "p", "m", "b", "none", "other"])
+        self.country = random.choice(["", "US", "CO", "AU", "IN", "PK"])
+        self.goals = ""
+        self.bio = ""
+
+        # These will probably never be populated, and aren't expected to be used
+        # but are part of the event sink and table
+        self.meta = "{}"
+        self.courseware = ""
+        self.language = ""
+        self.location = ""
+        self.mailing_address = ""
+        self.city = ""
+        self.state = ""
+        self.profile_image_uploaded_at = ""
+        self.phone_number = ""
 
 
 class RandomCourse:
@@ -45,11 +87,11 @@ class RandomCourse:
         self.course_url = f"http://localhost:18000/course/{self.course_id}"
 
         delta = datetime.timedelta(days=course_length)
-        self.start_date = self._random_datetime(overall_start_date, overall_end_date-delta)
+        self.start_date = self._random_datetime(overall_start_date, overall_end_date - delta)
         self.end_date = self.start_date + delta
 
         self.actors = [
-            Actor(a, self._random_datetime(self.start_date, self.end_date))
+            EnrolledActor(a, self._random_datetime(self.start_date, self.end_date))
             for a in actors
         ]
 
@@ -137,7 +179,7 @@ class RandomCourse:
         random_second = randrange(int_delta)
         return start_datetime + datetime.timedelta(seconds=random_second)
 
-    def get_actor(self):
+    def get_enrolled_actor(self):
         """
         Return an actor from those known in this course.
         """
@@ -149,9 +191,9 @@ class RandomCourse:
         """
         return choice(self.video_ids)
 
-    def _generate_random_block_type_id(self, type):
+    def _generate_random_block_type_id(self, block_type):
         block_uuid = str(uuid.uuid4())[:8]
-        return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@{type}+block@{block_uuid}"
+        return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@{block_type}+block@{block_uuid}"
 
     def get_problem_id(self):
         """

@@ -21,9 +21,9 @@ class BaseForum(XAPIBase):
 
         event_id = str(uuid4())
         course = self.parent_load_generator.get_course()
-        actor = course.get_actor()
-        actor_id = actor.id
-        emission_time = course.get_random_emission_time(actor)
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
         post_id = course.get_random_forum_post_id()
 
         e = self.get_randomized_event(

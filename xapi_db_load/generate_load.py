@@ -8,7 +8,7 @@ from random import choice, choices
 
 from xapi_db_load.utils import LogTimer, setup_timing
 
-from .course_configs import RandomCourse
+from .course_configs import Actor, RandomCourse
 from .xapi.xapi_forum import PostCreated
 from .xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed
 from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
@@ -80,6 +80,9 @@ class EventGenerator:
         self.setup_courses()
 
     def _validate_config(self):
+        """
+        Make sure the given values make sense.
+        """
         if self.start_date >= self.end_date:
             raise ValueError("Start date must be before end date.")
 
@@ -91,10 +94,16 @@ class EventGenerator:
                 raise ValueError(f"Course size {s} wants more actors than are configured in num_actors.")
 
     def setup_orgs(self):
+        """
+        Create some random organizations based on the config.
+        """
         for i in range(self.config["num_organizations"]):
             self.orgs.append(f"Org{i}")
 
     def setup_courses(self):
+        """
+        Pre-create a number of courses based on the config.
+        """
         for course_config_name, num_courses in self.config["num_course_sizes"].items():
             print(f"Setting up {num_courses} {course_config_name} courses")
             for _ in range(num_courses):
@@ -114,11 +123,12 @@ class EventGenerator:
 
     def setup_actors(self):
         """
-        Create all known actors. Random samplings of these will be passed
-        into courses.
+        Create all known actors.
+
+        Random samplings of these will be passed into courses.
         """
         for i in range(self.config["num_actors"]):
-            self.actors.append(_get_uuid())
+            self.actors.append(Actor(i))
 
     def get_batch_events(self):
         """
@@ -140,9 +150,15 @@ class EventGenerator:
         return enrollments
 
     def get_course(self):
+        """
+        Return a random course from our pre-built list.
+        """
         return choice(self.courses)
 
     def get_org(self):
+        """
+        Return a random org from our pre-built list.
+        """
         return choice(self.orgs)
 
     def dump_courses(self):
@@ -176,6 +192,10 @@ def generate_events(config, backend):
     with LogTimer("insert_metadata", "blocks"):
         backend.insert_event_sink_block_data(event_generator.courses)
 
+    print("Inserting user data...")
+    with LogTimer("insert_metadata", "user_data"):
+        backend.insert_event_sink_actor_data(event_generator.actors)
+
     insert_registrations(event_generator, backend)
     insert_batches(event_generator, config["num_batches"], backend)
 
@@ -198,7 +218,7 @@ def generate_events(config, backend):
 
 def insert_registrations(event_generator, lake):
     """
-    Insert all the registration events
+    Insert all of the registration events.
     """
     with LogTimer("enrollment", "get_enrollment_events"):
         events = event_generator.get_enrollment_events()
@@ -225,7 +245,7 @@ def insert_batches(event_generator, num_batches, lake):
             lake.batch_insert(events)
 
         if x % 1000 == 0:
-            #with LogTimer("batch", "all_queries"):
-            #    lake.do_queries(event_generator)
+            with LogTimer("batch", "all_queries"):
+                lake.do_queries(event_generator)
             lake.print_db_time()
             lake.print_row_counts()

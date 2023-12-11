@@ -24,18 +24,19 @@ class BaseVideo(XAPIBase):
         """
         event_id = str(uuid4())
         course = self.parent_load_generator.get_course()
-        actor = course.get_actor()
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
         video_id = course.get_video_id()
-        emission_time = course.get_random_emission_time(actor)
+        emission_time = course.get_random_emission_time(enrolled_actor)
 
         e = self.get_randomized_event(
-            event_id, actor.id, course, video_id, emission_time
+            event_id, actor_id, course, video_id, emission_time
         )
 
         return {
             "event_id": event_id,
             "verb": self.verb,
-            "actor_id": actor.id,
+            "actor_id": actor_id,
             "org": course.org,
             "course_run_id": course.course_url,
             "video_id": video_id,
@@ -146,6 +147,12 @@ class CompletedVideo(BaseVideo):
 # Currently closed captions and transcripts use the same output events, so
 # this technically covers both
 class TranscriptEnabled(BaseVideo):
+    """
+    TranscriptEnabled event.
+
+    This comment is needed for linting purposes.
+    """
+
     verb = "http://adlnet.gov/expapi/verbs/interacted"
     verb_display = "interacted"
     caption = True

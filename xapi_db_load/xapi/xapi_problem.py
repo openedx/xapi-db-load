@@ -23,18 +23,19 @@ class BaseProblemCheck(XAPIBase):
         """
         event_id = str(uuid4())
         course = self.parent_load_generator.get_course()
-        actor = course.get_actor()
-        emission_time = course.get_random_emission_time(actor)
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
         problem_id = course.get_problem_id()
 
         e = self.get_randomized_event(
-            event_id, actor.id, course.course_url, problem_id, emission_time
+            event_id, actor_id, course.course_url, problem_id, emission_time
         )
 
         return {
             "event_id": event_id,
             "verb": self.verb,
-            "actor_id": actor.id,
+            "actor_id": actor_id,
             "org": course.org,
             "problem_id": problem_id,
             "course_run_id": course.course_url,
@@ -62,8 +63,8 @@ class BaseProblemCheck(XAPIBase):
             ("A correct answer", True),
             ("An incorrect answer", False),
             # FIXME: These aren't serializing correctly
-            #('["A correct answer 1", "A correct answer 2"]', True),
-            #('["A correct answer 1", "An incorrect answer 2"]', False),
+            # ('["A correct answer 1", "A correct answer 2"]', True),
+            # ('["A correct answer 1", "An incorrect answer 2"]', False),
         ]
 
         response, success = random.choice(response_options)

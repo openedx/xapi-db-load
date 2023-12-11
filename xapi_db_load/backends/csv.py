@@ -4,7 +4,6 @@ CSV Lake implementation.
 This can be used to generate a gzipped csv of events that can be loaded into any system.
 """
 import csv
-import gzip
 import os
 import uuid
 from datetime import datetime
@@ -22,6 +21,10 @@ class XAPILakeCSV:
         self.xapi_csv_handle, self.xapi_csv_writer = self._get_csv_handle("xapi", output_destination)
         self.course_csv_handle, self.course_csv_writer = self._get_csv_handle("courses", output_destination)
         self.blocks_csv_handle, self.blocks_csv_writer = self._get_csv_handle("blocks", output_destination)
+        self.profile_csv_handle, self.profile_csv_writer = self._get_csv_handle("user_profiles", output_destination)
+        self.external_id_csv_handle, self.external_id_csv_writer = self._get_csv_handle(
+            "external_ids", output_destination
+        )
 
         self.row_count = 0
 
@@ -112,9 +115,51 @@ class XAPILakeCSV:
                     dump_time
                 ))
 
+    def insert_event_sink_actor_data(self, actors):
+        """
+        Write out the user profile data and external id files.
+        """
+        for actor in actors:
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.utcnow()
+
+            self.external_id_csv_writer.writerow((
+                actor.id,
+                "xapi",
+                actor.username,
+                actor.user_id,
+                dump_id,
+                dump_time,
+            ))
+
+            self.profile_csv_writer.writerow((
+                # This first column is usually the MySQL row pk, we just
+                # user this for now to have a unique id.
+                actor.user_id,
+                actor.user_id,
+                actor.name,
+                actor.meta,
+                actor.courseware,
+                actor.language,
+                actor.location,
+                actor.year_of_birth,
+                actor.gender,
+                actor.level_of_education,
+                actor.mailing_address,
+                actor.city,
+                actor.country,
+                actor.state,
+                actor.goals,
+                actor.bio,
+                actor.profile_image_uploaded_at,
+                actor.phone_number,
+                dump_id,
+                dump_time
+            ))
+
     def finalize(self):
         """
-        These need to be closed in S3 in order for files to be readable on import.
+        Close file handles so that they can be readable on import.
         """
         self.xapi_csv_handle.close()
         self.course_csv_handle.close()

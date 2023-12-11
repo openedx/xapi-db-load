@@ -29,19 +29,20 @@ class BaseNavigation(XAPIBase):
         """
         event_id = str(uuid4())
         course = self.parent_load_generator.get_course()
-        actor = course.get_actor()
-        emission_time = course.get_random_emission_time(actor)
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
         from_loc = self.from_loc or course.get_random_nav_location()
         to_loc = self.to_loc or course.get_random_nav_location()
 
         e = self.get_randomized_event(
-            event_id, actor.id, course, from_loc, to_loc, emission_time
+            event_id, actor_id, course, from_loc, to_loc, emission_time
         )
 
         return {
             "event_id": event_id,
             "verb": self.verb,
-            "actor_id": actor.id,
+            "actor_id": actor_id,
             "org": course.org,
             "course_run_id": course.course_url,
             "emission_time": emission_time,

@@ -1,14 +1,23 @@
+# CSV backend configuration
+# #########################
+backend: csv_file
+# This can be anything smart_open can handle, a local directory or
+# an S3 bucket, etc., but importing to ClickHouse only supports S3 right now
+# https://pypi.org/project/smart-open/
+csv_output_destination: logs/ # s3://openedx-aspects-loadtest/logs/large_test/
+csv_load_from_s3_after: false
+
 # ClickHouse Backend configuration
 # ################################
 # backend: clickhouse
-db_host: localhost
-db_port: 8443
-db_name: xapi_lt
-db_event_sink_name: event_sink
-db_username: ch_admin
-db_password:
-s3_key:
-s3_secret:
+# db_host: localhost
+# db_port: 8443
+# db_name: xapi_lt
+# db_event_sink_name: event_sink
+# db_username: ch_admin
+# db_password:
+# s3_key:
+# s3_secret:
 
 
 # Ralph / ClickHouse backend configuration
@@ -23,24 +32,15 @@ s3_secret:
 #lrs_username: ralph
 #lrs_password: sdtiqjqwixhzcboqzbiryrulzcpvfmsfvqqw
 
-# CSV backend configuration
-# #########################
-backend: csv_file
-# This can be anything smart_open can handle, a local directory or
-# an S3 bucket, etc., but importing to ClickHouse only supports S3 right now
-# https://pypi.org/project/smart-open/
-csv_output_destination: logs/ # s3://openedx-aspects-loadtest/logs/large_test/
-csv_load_from_s3_after: false
-
 # Load from S3 configuration
 # ##########################
-s3_source_location: https://openedx-aspects-loadtest.s3.amazonaws.com/logs/large_test/
+# s3_source_location: https://openedx-aspects-loadtest.s3.amazonaws.com/logs/large_test/
 
 # Run options
 run_distribution_queries: false
 log_dir: logs
 num_batches: 3
-batch_size: 1000
+batch_size: 100
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01
@@ -52,14 +52,15 @@ course_length_days: 120
 
 # The size of the test
 num_organizations: 3
-num_actors: 1000
+num_actors: 10
+
 # How many of each size course to create. The sum of these is the total number
 # of courses created for the test.
 num_course_sizes:
-  small: 20
-  medium: 40
-  large: 40
-  huge: 10
+  small: 1
+  medium: 1
+  large: 1
+  huge: 1
 
 # Course size configurations, how many of each type of object are created for
 # each course of this size. "actors" must be less than or equal to "num_actors".
@@ -67,7 +68,7 @@ num_course_sizes:
 # "num_course_sizes".
 course_size_makeup:
   small:
-    actors: 30
+    actors: 5
     problems: 20
     videos: 10
     chapters: 3
@@ -75,7 +76,7 @@ course_size_makeup:
     verticals: 20
     forum_posts: 20
   medium:
-    actors: 50
+    actors: 7
     problems: 40
     videos: 20
     chapters: 4
@@ -83,7 +84,7 @@ course_size_makeup:
     verticals: 30
     forum_posts: 40
   large:
-    actors: 500
+    actors: 10
     problems: 80
     videos: 30
     chapters: 5
@@ -91,7 +92,7 @@ course_size_makeup:
     verticals: 80
     forum_posts: 200
   huge:
-    actors: 1000
+    actors: 10
     problems: 160
     videos: 40
     chapters: 10

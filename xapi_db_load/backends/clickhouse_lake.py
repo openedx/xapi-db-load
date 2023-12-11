@@ -103,14 +103,8 @@ class XAPILakeClickhouse:
                 )
                 VALUES {vals}
             """
-        # Sometimes the connection randomly dies, this gives us a second shot in that case
-        try:
-            self.client.command(sql)
-        except clickhouse_connect.driver.exceptions.OperationalError:
-            print("ClickHouse OperationalError, trying to reconnect.")
-            self.set_client()
-            print("Retrying insert...")
-            self.client.command(sql)
+
+        self._insert_sql_with_retry(sql)
 
     def insert_event_sink_course_data(self, courses):
         """
@@ -145,31 +139,11 @@ class XAPILakeClickhouse:
                 raise
         vals = ",".join(out_data)
         sql = f"""
-                INSERT INTO {self.event_sink_database}.course_overviews (
-                    org,
-                    course_key,
-                    display_name,
-                    course_start,
-                    course_end,
-                    enrollment_start,
-                    enrollment_end,
-                    self_paced,
-                    course_data_json,
-                    created,
-                    modified,
-                    dump_id,
-                    time_last_dumped
-                )
+                INSERT INTO {self.event_sink_database}.course_overviews
                 VALUES {vals}
             """
-        # Sometimes the connection randomly dies, this gives us a second shot in that case
-        try:
-            self.client.command(sql)
-        except clickhouse_connect.driver.exceptions.OperationalError:
-            print("ClickHouse OperationalError, trying to reconnect.")
-            self.set_client()
-            print("Retrying insert...")
-            self.client.command(sql)
+
+        self._insert_sql_with_retry(sql)
 
     def insert_event_sink_block_data(self, courses):
         """
@@ -202,72 +176,126 @@ class XAPILakeClickhouse:
 
             vals = ",".join(out_data)
             sql = f"""
-                    INSERT INTO {self.event_sink_database}.course_blocks (
-                        org,
-                        course_key,
-                        location,
-                        display_name,
-                        xblock_data_json,
-                        order,
-                        edited_on,
-                        dump_id,
-                        time_last_dumped
-                    )
+                    INSERT INTO {self.event_sink_database}.course_blocks
                     VALUES {vals}
                 """
-            # Sometimes the connection randomly dies, this gives us a second shot in that case
+
+            self._insert_sql_with_retry(sql)
+
+    def insert_event_sink_actor_data(self, actors):
+        """
+        Insert the user_profile and external_id data to ClickHouse.
+
+        This allows us to test PII reports.
+        """
+        out_external_id = []
+        out_profile = []
+        for actor in actors:
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.utcnow()
             try:
-                self.client.command(sql)
-            except clickhouse_connect.driver.exceptions.OperationalError:
-                print("ClickHouse OperationalError, trying to reconnect.")
-                self.set_client()
-                print("Retrying insert...")
-                self.client.command(sql)
+                id_row = f"""(
+                    '{actor.id}',
+                    'xapi',
+                    '{actor.username}',
+                    '{actor.user_id}',
+                    '{dump_id}',
+                    '{dump_time}'
+                )"""
+                out_external_id.append(id_row)
+
+                # This first column is usually the MySQL row pk, we just
+                # user this for now to have a unique id.
+                profile_row = f"""(
+                    '{actor.user_id}',
+                    '{actor.user_id}',
+                    '{actor.name}',
+                    '{actor.meta}',
+                    '{actor.courseware}',
+                    '{actor.language}',
+                    '{actor.location}',
+                    '{actor.year_of_birth}',
+                    '{actor.gender}',
+                    '{actor.level_of_education}',
+                    '{actor.mailing_address}',
+                    '{actor.city}',
+                    '{actor.country}',
+                    '{actor.state}',
+                    '{actor.goals}',
+                    '{actor.bio}',
+                    '{actor.profile_image_uploaded_at}',
+                    '{actor.phone_number}',
+                    '{dump_id}',
+                    '{dump_time}'
+                )"""
+
+                out_profile.append(profile_row)
+            except Exception:
+                print(actor)
+                raise
+
+        # Now do the actual inserts...
+        vals = ",".join(out_external_id)
+        sql = f"""
+                INSERT INTO {self.event_sink_database}.external_id
+                VALUES {vals}
+            """
+        self._insert_sql_with_retry(sql)
+
+        vals = ",".join(out_profile)
+        sql = f"""
+                INSERT INTO {self.event_sink_database}.user_profile
+                VALUES {vals}
+            """
+        self._insert_sql_with_retry(sql)
+
+    def _insert_sql_with_retry(self, sql):
+        """
+        Wrap insert commands with a single retry.
+        """
+        # Sometimes the connection randomly dies, this gives us a second shot in that case
+        try:
+            self.client.command(sql)
+        except clickhouse_connect.driver.exceptions.OperationalError:
+            print("ClickHouse OperationalError, trying to reconnect.")
+            self.set_client()
+            print("Retrying insert...")
+            self.client.command(sql)
+        except clickhouse_connect.driver.exceptions.DatabaseError:
+            print("ClickHouse DatabaseError:")
+            print(sql)
+            raise
 
     def load_from_s3(self, s3_location):
         """
-        Loads generated csv.gz files from S3
+        Load generated csv.gz files from S3.
 
         This does a bulk file insert directly from S3 to ClickHouse, so files
-        never get downloaded directly to the process running the load.
+        never get downloaded directly to the local process.
         """
-        courses = os.path.join(s3_location, 'courses.csv.gz')
-        blocks = os.path.join(s3_location, 'blocks.csv.gz')
-        statements = os.path.join(s3_location, 'xapi.csv.gz')
+        loads = (
+            (f"{self.event_sink_database}.course_overviews", os.path.join(s3_location, "courses.csv.gz")),
+            (f"{self.event_sink_database}.course_blocks", os.path.join(s3_location, "blocks.csv.gz")),
+            (f"{self.event_sink_database}.external_id", os.path.join(s3_location, "external_ids.csv.gz")),
+            (f"{self.event_sink_database}.user_profile", os.path.join(s3_location, "user_profiles.csv.gz")),
+            (f"{self.database}.{self.event_raw_table_name}", os.path.join(s3_location, "xapi.csv.gz"))
+        )
 
-        courses_sql = f"""
-        INSERT INTO {self.event_sink_database}.course_overviews
-           SELECT *
-           FROM s3('{courses}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
-        """
+        for table_name, file_path in loads:
+            print(f"Inserting into {table_name}")
 
-        blocks_sql = f"""
-        INSERT INTO {self.event_sink_database}.course_blocks
-           SELECT *
-           FROM s3('{blocks}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
-        """
+            sql = f"""
+            INSERT INTO {table_name}
+               SELECT *
+               FROM s3('{file_path}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
+            """
 
-        statements_sql = f"""
-        INSERT INTO {self.database}.{self.event_raw_table_name}
-           SELECT *
-           FROM s3('{statements}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
-        """
-
-        print("Inserting courses")
-        self.client.command(courses_sql)
-        self.print_db_time()
-
-        print("Inserting blocks")
-        self.client.command(blocks_sql)
-        self.print_db_time()
-
-        print("Inserting statements")
-        self.client.command(statements_sql)
-        self.print_db_time()
+            self.client.command(sql)
+            self.print_db_time()
 
     def finalize(self):
         """
-        Nothing to finalize here
+        Nothing to finalize here.
         """
 
     def _run_query_and_print(self, query_name, query):
@@ -291,7 +319,7 @@ class XAPILakeClickhouse:
         course = event_generator.get_course()
         course_url = course.course_url
         org = event_generator.get_org()
-        actor = course.get_actor().id
+        actor = course.get_enrolled_actor().actor.id
 
         self._run_query_and_print(
             "Count of enrollment events for course {course_url}",
