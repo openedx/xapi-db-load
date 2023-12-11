@@ -209,9 +209,6 @@ def generate_events(config, backend):
     backend.print_db_time()
     backend.print_row_counts()
 
-    if config["run_distribution_queries"]:
-        backend.do_distributions()
-
     end = datetime.datetime.utcnow()
     print("Total run time: " + str(end - start))
 

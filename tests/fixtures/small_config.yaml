@@ -5,8 +5,6 @@ backend: csv_file
 csv_output_destination: logs/tests/
 csv_load_from_s3_after: false
 
-# Run options
-run_distribution_queries: true
 # This will be overwritten to a temp path in tests
 log_dir: logs
 num_batches: 3

@@ -8,7 +8,6 @@ db_username: ch_admin
 db_password: foo
 
 # Run options
-run_distribution_queries: true
 log_dir: logs
 num_batches: 3
 batch_size: 100

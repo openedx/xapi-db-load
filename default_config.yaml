@@ -22,22 +22,21 @@ csv_load_from_s3_after: false
 
 # Ralph / ClickHouse backend configuration
 # ########################################
-#backend: ralph_clickhouse
-#db_host: localhost
-#db_port: null
-#db_name: xapi
-#db_username: ch_admin
-#db_password: 7NRe69D4zWWT0rf2G7gWa7RB
-#lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
-#lrs_username: ralph
-#lrs_password: sdtiqjqwixhzcboqzbiryrulzcpvfmsfvqqw
+# backend: ralph_clickhouse
+# db_host: localhost
+# db_port: null
+# db_name: xapi
+# db_username: ch_admin
+# db_password: 7NRe69D4zWWT0rf2G7gWa7RB
+# lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
+# lrs_username: ralph
+# lrs_password: sdtiqjqwixhzcboqzbiryrulzcpvfmsfvqqw
 
 # Load from S3 configuration
 # ##########################
 # s3_source_location: https://openedx-aspects-loadtest.s3.amazonaws.com/logs/large_test/
 
 # Run options
-run_distribution_queries: false
 log_dir: logs
 num_batches: 3
 batch_size: 100

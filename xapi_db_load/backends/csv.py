@@ -169,8 +169,3 @@ class XAPILakeCSV:
         """
         Execute queries, not needed here.
         """
-
-    def do_distributions(self):
-        """
-        Execute distribution queries, not needed here.
-        """
