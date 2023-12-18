@@ -8,7 +8,7 @@ accessible-pygments==0.0.4
     # via pydata-sphinx-theme
 alabaster==0.7.13
     # via sphinx
-babel==2.13.1
+babel==2.14.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
@@ -29,9 +29,9 @@ charset-normalizer==3.3.2
     #   requests
 click==8.1.7
     # via -r requirements/test.txt
-clickhouse-connect==0.6.22
+clickhouse-connect==0.6.23
     # via -r requirements/test.txt
-coverage[toml]==7.3.2
+coverage[toml]==7.3.3
     # via
     #   -r requirements/test.txt
     #   coverage

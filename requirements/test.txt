@@ -15,9 +15,9 @@ charset-normalizer==3.3.2
     #   requests
 click==8.1.7
     # via -r requirements/base.txt
-clickhouse-connect==0.6.22
+clickhouse-connect==0.6.23
     # via -r requirements/base.txt
-coverage[toml]==7.3.2
+coverage[toml]==7.3.3
     # via
     #   coverage
     #   pytest-cov
