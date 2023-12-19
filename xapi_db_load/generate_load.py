@@ -127,8 +127,7 @@ class EventGenerator:
 
         Random samplings of these will be passed into courses.
         """
-        for i in range(self.config["num_actors"]):
-            self.actors.append(Actor(i))
+        self.actors = [Actor(i) for i in range(self.config["num_actors"])]
 
     def get_batch_events(self):
         """

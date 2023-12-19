@@ -16,8 +16,9 @@ class XAPILakeCSV:
     CSV fake data lake implementation.
     """
 
-    def __init__(self, output_destination):
-        # This isn't really a database, so just faking out all of this.
+    def __init__(self, config):
+        output_destination = config['csv_output_destination']
+
         self.xapi_csv_handle, self.xapi_csv_writer = self._get_csv_handle("xapi", output_destination)
         self.course_csv_handle, self.course_csv_writer = self._get_csv_handle("courses", output_destination)
         self.blocks_csv_handle, self.blocks_csv_writer = self._get_csv_handle("blocks", output_destination)

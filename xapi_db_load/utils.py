@@ -6,8 +6,6 @@ import logging
 import os
 from datetime import datetime
 
-import click
-
 from xapi_db_load.backends import clickhouse_lake as clickhouse
 from xapi_db_load.backends import csv
 from xapi_db_load.backends import ralph_lrs as ralph
@@ -15,64 +13,23 @@ from xapi_db_load.backends import ralph_lrs as ralph
 timing = logging.getLogger("timing")
 
 
+class ConfigurationError(Exception):
+    """
+    Exception raised by backends when a configuration file is invalid.
+    """
+
+
 def get_backend_from_config(config):
     """
     Return an instantiated backend from the given config dict.
     """
-    return get_backend(
-        config["backend"],
-        config.get("db_host"),
-        config.get("db_port"),
-        config.get("db_username"),
-        config.get("db_password"),
-        config.get("db_name"),
-        config.get("db_event_sink_name"),
-        config.get("s3_key"),
-        config.get("s3_secret"),
-        config.get("lrs_url"),
-        config.get("lrs_username"),
-        config.get("lrs_password"),
-        config.get("csv_output_destination"),
-    )
-
-
-def get_backend(
-    backend, db_host, db_port, db_username, db_password, db_name, db_event_sink_name,
-    s3_key=None, s3_secret=None, lrs_url=None, lrs_username=None, lrs_password=None,
-    csv_output_destination=None
-):
-    """
-    Return an instantiated backend from the given arguments.
-    """
+    backend = config["backend"]
     if backend == "clickhouse":
-        lake = clickhouse.XAPILakeClickhouse(
-            db_host=db_host,
-            db_port=db_port,
-            db_username=db_username,
-            db_password=db_password,
-            db_name=db_name,
-            db_event_sink_name=db_event_sink_name,
-            s3_key=s3_key,
-            s3_secret=s3_secret
-        )
+        lake = clickhouse.XAPILakeClickhouse(config)
     elif backend == "ralph_clickhouse":
-        lake = ralph.XAPILRSRalphClickhouse(
-            db_host=db_host,
-            db_port=db_port,
-            db_username=db_username,
-            db_password=db_password,
-            db_name=db_name,
-            db_event_sink_name=db_event_sink_name,
-            lrs_url=lrs_url,
-            lrs_username=lrs_username,
-            lrs_password=lrs_password,
-        )
+        lake = ralph.XAPILRSRalphClickhouse(config)
     elif backend == "csv_file":
-        if not csv_output_destination:
-            raise click.UsageError(
-                "--csv_output_destination must be provided for this backend."
-            )
-        lake = csv.XAPILakeCSV(output_destination=csv_output_destination)
+        lake = csv.XAPILakeCSV(config)
     else:
         raise NotImplementedError(f"Unknown backend {backend}.")
 

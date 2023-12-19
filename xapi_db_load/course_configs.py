@@ -247,9 +247,9 @@ class RandomCourse:
             "org": self.org,
             "course_key": self.course_id,
             "location": block_id.split("/xblock/")[-1],
-            "display_name": f"{block_type} {cnt}",
-            # This is a catchall field, we don't currently use it
-            "xblock_data_json": "{}",
+            "display_name": f"{block_type.title()} {cnt}",
+            # This gets appended with location data below
+            "xblock_data_json": {"block_type": block_type},
             "order": cnt,
             "edited_on": self.end_date
         }
@@ -261,8 +261,8 @@ class RandomCourse:
             "course_key": self.course_id,
             "location": f"block-v1:{location_course_id}+type@course+block@course",
             "display_name": f"Course {self.course_uuid[:5]}",
-            # This is a catchall field, we don't currently use it
-            "xblock_data_json": "{}",
+            # This gets appended with location data below
+            "xblock_data_json": {"block_type": "course"},
             "order": 1,
             "edited_on": self.end_date
         }
@@ -291,16 +291,16 @@ class RandomCourse:
 
         # Get all of our blocks in order
         for v in self.video_ids:
-            blocks.append(self._serialize_block("Video", v, cnt))
+            blocks.append(self._serialize_block("video", v, cnt))
             cnt += 1
         for p in self.problem_ids:
-            blocks.append(self._serialize_block("Problem", p, cnt))
+            blocks.append(self._serialize_block("problem", p, cnt))
             cnt += 1
 
         course_structure = [self._serialize_course_block()]
 
         for c in self.chapter_ids:
-            course_structure.append(self._serialize_block("Chapter", c, cnt))
+            course_structure.append(self._serialize_block("chapter", c, cnt))
             cnt += 1
 
         for s in self.sequential_ids:
@@ -309,7 +309,7 @@ class RandomCourse:
                 # Start at 2 here to make sure it's after the course and first
                 # chapter block
                 random.randint(2, len(course_structure)),
-                self._serialize_block("Sequential", s, cnt)
+                self._serialize_block("sequential", s, cnt)
             )
             cnt += 1
 
@@ -319,7 +319,7 @@ class RandomCourse:
                 # Start at 3 here to make sure it's after the course and first
                 # chapter block and first sequential block
                 random.randint(2, len(course_structure)),
-                self._serialize_block("Vertical", v, cnt)
+                self._serialize_block("vertical", v, cnt)
             )
             cnt += 1
 
@@ -349,13 +349,12 @@ class RandomCourse:
             elif block["display_name"].startswith("Vertical"):
                 unit_idx += 1
 
-            # In event-sink-clickhouse block_type is also included, but I'm
-            # omitting for now since we don't currently use it and this is
-            # already way too expensive an operation.
-            block["xblock_data_json"] = json.dumps({
+            block["xblock_data_json"].update({
                 "section": section_idx,
                 "subsection": subsection_idx,
                 "unit": unit_idx,
             })
+
+            block["xblock_data_json"] = json.dumps(block["xblock_data_json"])
 
         return course_structure

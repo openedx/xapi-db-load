@@ -15,30 +15,18 @@ class XAPILakeClickhouse:
 
     client = None
 
-    def __init__(
-        self,
-        db_host="localhost",
-        db_port=18123,
-        db_username="default",
-        db_password=None,
-        db_name=None,
-        db_event_sink_name=None,
-        s3_key=None,
-        s3_secret=None,
-    ):
-        self.host = db_host
-        self.port = db_port
-        self.username = db_username
-        self.database = db_name
-        self.event_sink_database = db_event_sink_name
-        self.db_password = db_password
-        self.s3_key = s3_key
-        self.s3_secret = s3_secret
+    def __init__(self, config):
+        self.host = config.get("db_host", "localhost")
+        self.port = config.get("db_port", "18123")
+        self.username = config.get("db_username", "default")
+        self.database = config.get("db_name", "xapi")
+        self.event_sink_database = config.get("db_event_sink_name", "event_sink")
+        self.db_password = config.get("db_password")
+        self.s3_key = config.get("s3_key")
+        self.s3_secret = config.get("s3_secret")
 
-        self.event_raw_table_name = "xapi_events_all"
-        self.event_table_name = "xapi_events_all_parsed"
-        self.event_table_name_mv = "xapi_events_all_parsed_mv"
-        self.get_org_function_name = "get_org_from_course_url"
+        self.event_raw_table_name = config.get("event_raw_table_name", "xapi_events_all")
+        self.event_table_name = config.get("event_table_name", "xapi_events_all_parsed")
         self.set_client()
 
     def set_client(self):
@@ -193,46 +181,43 @@ class XAPILakeClickhouse:
         for actor in actors:
             dump_id = str(uuid.uuid4())
             dump_time = datetime.utcnow()
-            try:
-                id_row = f"""(
-                    '{actor.id}',
-                    'xapi',
-                    '{actor.username}',
-                    '{actor.user_id}',
-                    '{dump_id}',
-                    '{dump_time}'
-                )"""
-                out_external_id.append(id_row)
 
-                # This first column is usually the MySQL row pk, we just
-                # user this for now to have a unique id.
-                profile_row = f"""(
-                    '{actor.user_id}',
-                    '{actor.user_id}',
-                    '{actor.name}',
-                    '{actor.meta}',
-                    '{actor.courseware}',
-                    '{actor.language}',
-                    '{actor.location}',
-                    '{actor.year_of_birth}',
-                    '{actor.gender}',
-                    '{actor.level_of_education}',
-                    '{actor.mailing_address}',
-                    '{actor.city}',
-                    '{actor.country}',
-                    '{actor.state}',
-                    '{actor.goals}',
-                    '{actor.bio}',
-                    '{actor.profile_image_uploaded_at}',
-                    '{actor.phone_number}',
-                    '{dump_id}',
-                    '{dump_time}'
-                )"""
+            id_row = f"""(
+                '{actor.id}',
+                'xapi',
+                '{actor.username}',
+                '{actor.user_id}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+            out_external_id.append(id_row)
 
-                out_profile.append(profile_row)
-            except Exception:
-                print(actor)
-                raise
+            # This first column is usually the MySQL row pk, we just
+            # user this for now to have a unique id.
+            profile_row = f"""(
+                '{actor.user_id}',
+                '{actor.user_id}',
+                '{actor.name}',
+                '{actor.meta}',
+                '{actor.courseware}',
+                '{actor.language}',
+                '{actor.location}',
+                '{actor.year_of_birth}',
+                '{actor.gender}',
+                '{actor.level_of_education}',
+                '{actor.mailing_address}',
+                '{actor.city}',
+                '{actor.country}',
+                '{actor.state}',
+                '{actor.goals}',
+                '{actor.bio}',
+                '{actor.profile_image_uploaded_at}',
+                '{actor.phone_number}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+
+            out_profile.append(profile_row)
 
         # Now do the actual inserts...
         vals = ",".join(out_external_id)
@@ -342,7 +327,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            "Count of enrollments for this actpr",
+            "Count of enrollments for this actor",
             f"""
                 select count(*)
                 from {self.event_table_name}

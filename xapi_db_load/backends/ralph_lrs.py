@@ -30,22 +30,11 @@ class XAPILRSRalphClickhouse(XAPILakeClickhouse):
     Wraps the XAPILakeClickhouse backend so that queries can be run against it while using Ralph to do the insertion.
     """
 
-    def __init__(
-        self,
-        db_host,
-        lrs_url,
-        lrs_username,
-        lrs_password,
-        db_port=18123,
-        db_username="default",
-        db_password=None,
-        db_name="xapi",
-        db_event_sink_name="event_sink",
-    ):
-        super().__init__(db_host, db_port, db_username, db_password, db_name, db_event_sink_name)
-        self.lrs_url = lrs_url
-        self.lrs_username = lrs_username
-        self.lrs_password = lrs_password
+    def __init__(self, config):
+        super().__init__(config)
+        self.lrs_url = config["lrs_url"]
+        self.lrs_username = config["lrs_username"]
+        self.lrs_password = config["lrs_password"]
 
     def batch_insert(self, events):
         """
