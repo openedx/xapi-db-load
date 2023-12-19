@@ -21,6 +21,7 @@ setup(
         "click",
         "clickhouse-connect >= 0.5, < 0.7",
         "requests",
+        "smart_open[s3]",
     ],
     url="https://github.com/openedx/xapi-db-load",
     project_urls={
