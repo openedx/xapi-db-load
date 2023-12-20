@@ -4,6 +4,15 @@
 #
 #    make upgrade
 #
+boto3==1.33.12
+    # via
+    #   -r requirements/base.txt
+    #   smart-open
+botocore==1.33.12
+    # via
+    #   -r requirements/base.txt
+    #   boto3
+    #   s3transfer
 certifi==2023.11.17
     # via
     #   -r requirements/base.txt
@@ -29,6 +38,11 @@ idna==3.6
     #   requests
 iniconfig==2.0.0
     # via pytest
+jmespath==1.0.1
+    # via
+    #   -r requirements/base.txt
+    #   boto3
+    #   botocore
 lz4==4.3.2
     # via
     #   -r requirements/base.txt
@@ -41,19 +55,38 @@ pytest==7.4.3
     # via pytest-cov
 pytest-cov==4.1.0
     # via -r requirements/test.in
+python-dateutil==2.8.2
+    # via
+    #   -r requirements/base.txt
+    #   botocore
 pytz==2023.3.post1
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
+pyyaml==6.0.1
+    # via -r requirements/base.txt
 requests==2.31.0
     # via -r requirements/base.txt
+s3transfer==0.8.2
+    # via
+    #   -r requirements/base.txt
+    #   boto3
+six==1.16.0
+    # via
+    #   -r requirements/base.txt
+    #   python-dateutil
+smart-open[s3]==6.4.0
+    # via
+    #   -r requirements/base.txt
+    #   smart-open
 tomli==2.0.1
     # via
     #   coverage
     #   pytest
-urllib3==2.1.0
+urllib3==1.26.18
     # via
     #   -r requirements/base.txt
+    #   botocore
     #   clickhouse-connect
     #   requests
 zstandard==0.22.0

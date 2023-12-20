@@ -21,9 +21,10 @@ class FirstTimePassed(XAPIBase):
         Generate and return the event dict, including xAPI statement as "event".
         """
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
-        emission_time = course.get_random_emission_time()
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
 
         e = self.get_randomized_event(event_id, actor_id, course, emission_time)
 
@@ -49,7 +50,8 @@ class FirstTimePassed(XAPIBase):
             },
             "context": {
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"  # pylint: disable=line-too-long
+                    "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
                 }
             },
             "object": {
@@ -83,9 +85,10 @@ class GradeCalculated(XAPIBase):
         Generate and return the event dict, including xAPI statement as "event".
         """
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
-        emission_time = course.get_random_emission_time()
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
 
         e = self.get_randomized_event(event_id, actor_id, course, emission_time)
         return {

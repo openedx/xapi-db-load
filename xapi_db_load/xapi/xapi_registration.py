@@ -2,6 +2,7 @@
 Fake xAPI statements for various registration events.
 """
 import json
+from random import choice
 from uuid import uuid4
 
 from .xapi_common import XAPIBase
@@ -12,14 +13,22 @@ class BaseRegistration(XAPIBase):
     Base xAPI class for registration events.
     """
 
-    def get_data(self):
+    def get_data(self, course=None, enrolled_actor=None):
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
+        # We generate registration events for every course and actor as part
+        # of startup, but also randomly through the events, so sometimes we will
+        # have a course and actor, other times not.
+        if not course:
+            course = self.parent_load_generator.get_course()
+
+        if not enrolled_actor:
+            enrolled_actor = course.get_enrolled_actor()
+
+        actor_id = enrolled_actor.actor.id
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
-        course = self.parent_load_generator.get_course()
-        emission_time = course.get_random_emission_time()
+        emission_time = course.get_random_emission_time(enrolled_actor)
 
         e = self.get_randomized_event(
             event_id, actor_id, course.course_url, emission_time
@@ -39,6 +48,7 @@ class BaseRegistration(XAPIBase):
         """
         Given the inputs, return an xAPI statement.
         """
+        enrollment_mode = choice(("audit", "honor", "verified"))
         event = {
             "id": event_id,
             "actor": {
@@ -47,13 +57,14 @@ class BaseRegistration(XAPIBase):
             },
             "context": {
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0"  # pylint: disable=line-too-long
+                    "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
                 }
             },
             "object": {
                 "definition": {
                     "extensions": {
-                        "https://w3id.org/xapi/acrossx/extensions/type": "audit"
+                        "https://w3id.org/xapi/acrossx/extensions/type": enrollment_mode
                     },
                     "name": {"en": "Demonstration Course"},
                     "type": "http://adlnet.gov/expapi/activities/course",

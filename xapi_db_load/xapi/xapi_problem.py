@@ -22,10 +22,11 @@ class BaseProblemCheck(XAPIBase):
         Generate and return the event dict, including xAPI statement as "event".
         """
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
         problem_id = course.get_problem_id()
-        emission_time = course.get_random_emission_time()
 
         e = self.get_randomized_event(
             event_id, actor_id, course.course_url, problem_id, emission_time
@@ -58,13 +59,31 @@ class BaseProblemCheck(XAPIBase):
             }
         }
 
-        success = random.choice([True, False])
-        response = "A correct answer" if success else "An incorrect answer"
+        response_options = [
+            ("A correct answer", True),
+            ("An incorrect answer", False),
+            # FIXME: These aren't serializing correctly
+            # ('["A correct answer 1", "A correct answer 2"]', True),
+            # ('["A correct answer 1", "An incorrect answer 2"]', False),
+        ]
+
+        response, success = random.choice(response_options)
+        attempts = random.randrange(1, 10)
+
+        max_score = random.randint(1, 100)
+        raw_score = random.randint(0, max_score)
+        scaled_score = raw_score / max_score
+        score_obj = {
+            "scaled": scaled_score,
+            "raw": raw_score,
+            "min": 0.0,
+            "max": max_score
+        }
 
         server_object = {
             "object": {
                 "definition": {
-                    "extensions": {"http://id.tincanapi.com/extension/attempt-id": 10},
+                    "extensions": {"http://id.tincanapi.com/extension/attempt-id": attempts},
                     "description": {
                         "en-US": "Add the question text, or prompt, here. This text is required."
                     },
@@ -76,7 +95,7 @@ class BaseProblemCheck(XAPIBase):
             },
             "result": {
                 "response": response,
-                "score": {"max": 1, "min": 0, "raw": 0, "scaled": 0},
+                "score": score_obj,
                 "success": success,
             },
         }

@@ -3,4 +3,6 @@
 
 click
 clickhouse-connect>0.5<0.7
+pyyaml
 requests
+smart_open[s3]

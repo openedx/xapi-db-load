@@ -1,8 +1,7 @@
 """
 ClickHouse data lake implementation.
 """
-
-import random
+import os
 import uuid
 from datetime import datetime
 
@@ -16,24 +15,18 @@ class XAPILakeClickhouse:
 
     client = None
 
-    def __init__(
-        self,
-        db_host="localhost",
-        db_port=18123,
-        db_username="default",
-        db_password=None,
-        db_name=None,
-    ):
-        self.host = db_host
-        self.port = db_port
-        self.username = db_username
-        self.database = db_name
-        self.db_password = db_password
+    def __init__(self, config):
+        self.host = config.get("db_host", "localhost")
+        self.port = config.get("db_port", "18123")
+        self.username = config.get("db_username", "default")
+        self.database = config.get("db_name", "xapi")
+        self.event_sink_database = config.get("db_event_sink_name", "event_sink")
+        self.db_password = config.get("db_password")
+        self.s3_key = config.get("s3_key")
+        self.s3_secret = config.get("s3_secret")
 
-        self.event_raw_table_name = "xapi_events_all"
-        self.event_table_name = "xapi_events_all_parsed"
-        self.event_table_name_mv = "xapi_events_all_parsed_mv"
-        self.get_org_function_name = "get_org_from_course_url"
+        self.event_raw_table_name = config.get("event_raw_table_name", "xapi_events_all")
+        self.event_table_name = config.get("event_table_name", "xapi_events_all_parsed")
         self.set_client()
 
     def set_client(self):
@@ -76,141 +69,6 @@ class XAPILakeClickhouse:
         res = self.client.query(f"SELECT count(*) FROM {self.event_table_name}")
         print(res.result_set)
 
-    def create_db(self):
-        """
-        Create the destination database if it doesn't exist.
-        """
-        self.client.command(f"CREATE DATABASE IF NOT EXISTS {self.database}")
-
-    def drop_tables(self):
-        """
-        Drop existing table structures.
-        """
-        self.client.command(f"DROP TABLE IF EXISTS {self.event_raw_table_name}")
-        self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name}")
-        self.client.command(f"DROP FUNCTION IF EXISTS {self.get_org_function_name}")
-        self.client.command(f"DROP TABLE IF EXISTS {self.event_table_name_mv}")
-        print("Tables dropped")
-
-    def create_tables(self):
-        """
-        Create the base xAPI tables and top level materialized views.
-
-        In the future we should manage this through the scripts in tutor-contrib-aspects to keep the
-        table structures compatible.
-        """
-        sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.event_raw_table_name} (
-                event_id UUID NOT NULL,
-                emission_time DateTime64(6) NOT NULL,
-                event JSON NOT NULL,
-                event_str String NOT NULL,
-            )
-            ENGINE MergeTree ORDER BY (
-                emission_time,
-                event_id)
-            PRIMARY KEY (emission_time, event_id)
-        """
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = f"""
-        CREATE TABLE IF NOT EXISTS {self.event_table_name} (
-            event_id UUID NOT NULL,
-            verb_id String NOT NULL,
-            actor_id String NOT NULL,
-            object_id String NOT NULL,
-            org String NOT NULL,
-            course_id String NOT NULL,
-            emission_time DateTime64(6) NOT NULL,
-            event_str String NOT NULL
-        ) ENGINE MergeTree
-        ORDER BY (org, course_id, verb_id, actor_id, emission_time, event_id)
-        PRIMARY KEY (org, course_id, verb_id, actor_id, emission_time, event_id);
-        """
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = f"""
-        CREATE FUNCTION IF NOT EXISTS {self.get_org_function_name} AS (course_url) ->
-        nullIf(EXTRACT(course_url, 'course-v1:([a-zA-Z0-9]*)'), '')
-        ;"""
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = f"""
-            CREATE MATERIALIZED VIEW IF NOT EXISTS {self.event_table_name_mv}
-            TO {self.event_table_name} AS
-            SELECT
-            event_id as event_id,
-            JSON_VALUE(event_str, '$.verb.id') as verb_id,
-            JSON_VALUE(event_str, '$.actor.account.name') as actor_id,
-            JSON_VALUE(event_str, '$.object.id') as object_id,
-            -- If the contextActivities parent is a course, use that. Otherwise use the object id for the course id
-            if(
-                JSON_VALUE(
-                    event_str,
-                    '$.context.contextActivities.parent[0].definition.type')
-                        = 'http://adlnet.gov/expapi/activities/course',
-                    JSON_VALUE(event_str, '$.context.contextActivities.parent[0].id'),
-                    JSON_VALUE(event_str, '$.object.id')
-                ) as course_id,
-            {self.get_org_function_name}(course_id) as org,
-            emission_time as emission_time,
-            event_str as event_str
-            FROM {self.event_raw_table_name};
-        """
-        print(sql)
-        self.client.command(sql)
-
-        sql = """
-            CREATE TABLE IF NOT EXISTS event_sink.course_overviews
-            (
-                org              String,
-                course_key       String,
-                display_name     String,
-                course_start     String,
-                course_end       String,
-                enrollment_start String,
-                enrollment_end   String,
-                self_paced       Bool,
-                course_data_json String,
-                created          String,
-                modified         String,
-                dump_id          UUID,
-                time_last_dumped String
-            )
-                engine = MergeTree PRIMARY KEY (org, course_key, modified, time_last_dumped)
-                    ORDER BY (org, course_key, modified, time_last_dumped);
-        """
-
-        print(sql)
-        self.client.command(sql)
-
-        sql = """
-            CREATE TABLE IF NOT EXISTS event_sink.course_blocks
-            (
-                org              String,
-                course_key       String,
-                location         String,
-                display_name     String,
-                xblock_data_json String,
-                order            Int32 default 0,
-                edited_on        String,
-                dump_id          UUID,
-                time_last_dumped String
-            )
-                engine = MergeTree PRIMARY KEY (org, course_key, location, edited_on)
-                    ORDER BY (org, course_key, location, edited_on, order);
-        """
-        print(sql)
-        self.client.command(sql)
-
-        print("Tables created")
-
     def batch_insert(self, events):
         """
         Insert a batch of events to ClickHouse.
@@ -233,14 +91,8 @@ class XAPILakeClickhouse:
                 )
                 VALUES {vals}
             """
-        # Sometimes the connection randomly dies, this gives us a second shot in that case
-        try:
-            self.client.command(sql)
-        except clickhouse_connect.driver.exceptions.OperationalError:
-            print("ClickHouse OperationalError, trying to reconnect.")
-            self.set_client()
-            print("Retrying insert...")
-            self.client.command(sql)
+
+        self._insert_sql_with_retry(sql)
 
     def insert_event_sink_course_data(self, courses):
         """
@@ -275,31 +127,11 @@ class XAPILakeClickhouse:
                 raise
         vals = ",".join(out_data)
         sql = f"""
-                INSERT INTO event_sink.course_overviews (
-                    org,
-                    course_key,
-                    display_name,
-                    course_start,
-                    course_end,
-                    enrollment_start,
-                    enrollment_end,
-                    self_paced,
-                    course_data_json,
-                    created,
-                    modified,
-                    dump_id,
-                    time_last_dumped
-                )
+                INSERT INTO {self.event_sink_database}.course_overviews
                 VALUES {vals}
             """
-        # Sometimes the connection randomly dies, this gives us a second shot in that case
-        try:
-            self.client.command(sql)
-        except clickhouse_connect.driver.exceptions.OperationalError:
-            print("ClickHouse OperationalError, trying to reconnect.")
-            self.set_client()
-            print("Retrying insert...")
-            self.client.command(sql)
+
+        self._insert_sql_with_retry(sql)
 
     def insert_event_sink_block_data(self, courses):
         """
@@ -332,27 +164,124 @@ class XAPILakeClickhouse:
 
             vals = ",".join(out_data)
             sql = f"""
-                    INSERT INTO event_sink.course_blocks (
-                        org,
-                        course_key,
-                        location,
-                        display_name,
-                        xblock_data_json,
-                        order,
-                        edited_on,
-                        dump_id,
-                        time_last_dumped
-                    )
+                    INSERT INTO {self.event_sink_database}.course_blocks
                     VALUES {vals}
                 """
-            # Sometimes the connection randomly dies, this gives us a second shot in that case
-            try:
-                self.client.command(sql)
-            except clickhouse_connect.driver.exceptions.OperationalError:
-                print("ClickHouse OperationalError, trying to reconnect.")
-                self.set_client()
-                print("Retrying insert...")
-                self.client.command(sql)
+
+            self._insert_sql_with_retry(sql)
+
+    def insert_event_sink_actor_data(self, actors):
+        """
+        Insert the user_profile and external_id data to ClickHouse.
+
+        This allows us to test PII reports.
+        """
+        out_external_id = []
+        out_profile = []
+        for actor in actors:
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.utcnow()
+
+            id_row = f"""(
+                '{actor.id}',
+                'xapi',
+                '{actor.username}',
+                '{actor.user_id}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+            out_external_id.append(id_row)
+
+            # This first column is usually the MySQL row pk, we just
+            # user this for now to have a unique id.
+            profile_row = f"""(
+                '{actor.user_id}',
+                '{actor.user_id}',
+                '{actor.name}',
+                '{actor.meta}',
+                '{actor.courseware}',
+                '{actor.language}',
+                '{actor.location}',
+                '{actor.year_of_birth}',
+                '{actor.gender}',
+                '{actor.level_of_education}',
+                '{actor.mailing_address}',
+                '{actor.city}',
+                '{actor.country}',
+                '{actor.state}',
+                '{actor.goals}',
+                '{actor.bio}',
+                '{actor.profile_image_uploaded_at}',
+                '{actor.phone_number}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+
+            out_profile.append(profile_row)
+
+        # Now do the actual inserts...
+        vals = ",".join(out_external_id)
+        sql = f"""
+                INSERT INTO {self.event_sink_database}.external_id
+                VALUES {vals}
+            """
+        self._insert_sql_with_retry(sql)
+
+        vals = ",".join(out_profile)
+        sql = f"""
+                INSERT INTO {self.event_sink_database}.user_profile
+                VALUES {vals}
+            """
+        self._insert_sql_with_retry(sql)
+
+    def _insert_sql_with_retry(self, sql):
+        """
+        Wrap insert commands with a single retry.
+        """
+        # Sometimes the connection randomly dies, this gives us a second shot in that case
+        try:
+            self.client.command(sql)
+        except clickhouse_connect.driver.exceptions.OperationalError:
+            print("ClickHouse OperationalError, trying to reconnect.")
+            self.set_client()
+            print("Retrying insert...")
+            self.client.command(sql)
+        except clickhouse_connect.driver.exceptions.DatabaseError:
+            print("ClickHouse DatabaseError:")
+            print(sql)
+            raise
+
+    def load_from_s3(self, s3_location):
+        """
+        Load generated csv.gz files from S3.
+
+        This does a bulk file insert directly from S3 to ClickHouse, so files
+        never get downloaded directly to the local process.
+        """
+        loads = (
+            (f"{self.event_sink_database}.course_overviews", os.path.join(s3_location, "courses.csv.gz")),
+            (f"{self.event_sink_database}.course_blocks", os.path.join(s3_location, "blocks.csv.gz")),
+            (f"{self.event_sink_database}.external_id", os.path.join(s3_location, "external_ids.csv.gz")),
+            (f"{self.event_sink_database}.user_profile", os.path.join(s3_location, "user_profiles.csv.gz")),
+            (f"{self.database}.{self.event_raw_table_name}", os.path.join(s3_location, "xapi.csv.gz"))
+        )
+
+        for table_name, file_path in loads:
+            print(f"Inserting into {table_name}")
+
+            sql = f"""
+            INSERT INTO {table_name}
+               SELECT *
+               FROM s3('{file_path}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
+            """
+
+            self.client.command(sql)
+            self.print_db_time()
+
+    def finalize(self):
+        """
+        Nothing to finalize here.
+        """
 
     def _run_query_and_print(self, query_name, query):
         """
@@ -372,10 +301,10 @@ class XAPILakeClickhouse:
         Query data from the table and document how long the query runs (while the insert script is running).
         """
         # Get our randomly selected targets for this run
-        course = random.choice(event_generator.known_courses)
+        course = event_generator.get_course()
         course_url = course.course_url
-        org = random.choice(event_generator.known_orgs)
-        actor = random.choice(event_generator.known_actor_uuids)
+        org = event_generator.get_org()
+        actor = course.get_enrolled_actor().actor.id
 
         self._run_query_and_print(
             "Count of enrollment events for course {course_url}",
@@ -398,7 +327,7 @@ class XAPILakeClickhouse:
         )
 
         self._run_query_and_print(
-            "Count of enrollments for this learner",
+            "Count of enrollments for this actor",
             f"""
                 select count(*)
                 from {self.event_table_name}
@@ -457,100 +386,5 @@ class XAPILakeClickhouse:
                 from {self.event_table_name}
                 where verb_id = 'http://id.tincanapi.com/verb/unregistered'
                 and emission_time between date_sub(MINUTE, 5, now('UTC')) and now('UTC')) as b
-            """,
-        )
-
-    def do_distributions(self):
-        """
-        Execute and print the timing of distribution queries to enable comparisons across runs.
-        """
-        self._run_query_and_print(
-            "Count of courses",
-            f"""
-               select count(distinct course_id)
-               from {self.event_table_name}
-           """,
-        )
-
-        self._run_query_and_print(
-            "Count of learners",
-            f"""
-               select count(distinct actor_id)
-               from {self.event_table_name}
-           """,
-        )
-
-        self._run_query_and_print(
-            "Count of verbs",
-            f"""
-               select count(*), verb_id
-               from {self.event_table_name}
-               group by verb_id
-           """,
-        )
-
-        self._run_query_and_print(
-            "Count of orgs",
-            f"""
-               select count(*), org
-               from {self.event_table_name}
-               group by org
-           """,
-        )
-
-        self._run_query_and_print(
-            "Avg, min, max students per course",
-            f"""
-                select avg(a.num_students) as avg_students,
-                        min(a.num_students) as min_students,
-                        max(a.num_students) max_students
-                from (
-                    select count(distinct actor_id) as num_students
-                    from {self.event_table_name}
-                    group by course_id
-                ) a
-            """,
-        )
-
-        self._run_query_and_print(
-            "Avg, min, max problems per course",
-            f"""
-               select avg(a.num_problems) as avg_problems, min(a.num_problems) as min_problems,
-                    max(a.num_problems) max_problems
-                from (
-                    select count(distinct object_id) as num_problems
-                    from {self.event_table_name}
-                    where JSON_VALUE(event_str, '$.object.definition.type') =
-                    'http://adlnet.gov/expapi/activities/cmi.interaction'
-                    group by course_id
-                ) a
-           """,
-        )
-
-        self._run_query_and_print(
-            "Avg, min, max videos per course",
-            f"""
-               select avg(a.num_videos) as avg_videos, min(a.num_videos) as min_videos,
-               max(a.num_videos) max_videos
-               from (
-                   select count(distinct object_id) as num_videos
-                   from {self.event_table_name}
-                   where JSON_VALUE(event_str, '$.object.definition.type') =
-                    'https://w3id.org/xapi/video/activity-type/video'
-                   group by object_id
-               ) a
-           """,
-        )
-
-        self._run_query_and_print(
-            "Random event by id",
-            f"""
-                select *
-                from {self.event_table_name}
-                where event_id = (
-                    select event_id
-                    from {self.event_table_name}
-                    limit 1
-                )
             """,
         )

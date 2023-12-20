@@ -11,3 +11,5 @@ coverage.xml
 dist/
 .venv
 .dir-locals.el
+private_configs/
+logs/

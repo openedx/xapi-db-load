@@ -6,7 +6,34 @@ import logging
 import os
 from datetime import datetime
 
+from xapi_db_load.backends import clickhouse_lake as clickhouse
+from xapi_db_load.backends import csv
+from xapi_db_load.backends import ralph_lrs as ralph
+
 timing = logging.getLogger("timing")
+
+
+class ConfigurationError(Exception):
+    """
+    Exception raised by backends when a configuration file is invalid.
+    """
+
+
+def get_backend_from_config(config):
+    """
+    Return an instantiated backend from the given config dict.
+    """
+    backend = config["backend"]
+    if backend == "clickhouse":
+        lake = clickhouse.XAPILakeClickhouse(config)
+    elif backend == "ralph_clickhouse":
+        lake = ralph.XAPILRSRalphClickhouse(config)
+    elif backend == "csv_file":
+        lake = csv.XAPILakeCSV(config)
+    else:
+        raise NotImplementedError(f"Unknown backend {backend}.")
+
+    return lake
 
 
 def setup_timing(log_dir):

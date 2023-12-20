@@ -1,5 +1,5 @@
 """
-Fake xAPI statements for various hint and answer events.
+Fake xAPI statements for various forum events.
 """
 import json
 from uuid import uuid4
@@ -7,30 +7,27 @@ from uuid import uuid4
 from .xapi_common import XAPIBase
 
 
-class HintAnswerBase(XAPIBase):
+class BaseForum(XAPIBase):
     """
-    Base xAPI class for hint and answer events.
+    Base xAPI class for forum events.
     """
-
-    verb_display = "asked"
-    verb = "http://adlnet.gov/expapi/verbs/asked"
-
-    # Whether this is a hint or an answer, "hint" or "answer" are valid values
-    type = None
 
     def get_data(self):
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
+        # We generate registration events for every course and actor as part
+        # of startup, but also randomly through the events.
+
         event_id = str(uuid4())
         course = self.parent_load_generator.get_course()
         enrolled_actor = course.get_enrolled_actor()
         actor_id = enrolled_actor.actor.id
         emission_time = course.get_random_emission_time(enrolled_actor)
-        problem_id = course.get_problem_id()
+        post_id = course.get_random_forum_post_id()
 
         e = self.get_randomized_event(
-            event_id, actor_id, course, problem_id, emission_time
+            event_id, actor_id, course, post_id, emission_time
         )
 
         return {
@@ -43,33 +40,18 @@ class HintAnswerBase(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course, problem_id, create_time):
+    def get_randomized_event(self, event_id, account, course, post_id, create_time):
         """
         Given the inputs, return an xAPI statement.
+
+        Currently all forum events are treated the same, so we're just creating
+        new posts.
         """
-        hint_object = {
-            "object": {
-                "definition": {
-                    "type": "https://w3id.org/xapi/acrossx/extensions/supplemental-info"
-                },
-                "id": f"{problem_id}/hint/1",
-                "objectType": "Activity",
-            }
-        }
-
-        answer_object = {
-            "object": {
-                "definition": {"type": "http://id.tincanapi.com/activitytype/solution"},
-                "id": f"{problem_id}/answer",
-                "objectType": "Activity",
-            },
-        }
-
         event = {
             "id": event_id,
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": account},
                 "objectType": "Agent",
+                "account": {"homePage": "http://localhost:18000", "name": account},
             },
             "context": {
                 "contextActivities": {
@@ -86,25 +68,25 @@ class HintAnswerBase(XAPIBase):
                 },
                 "extensions": {
                     "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
-                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "054c9ddcb76d2096f862e66bda3bc308",
+                    "https://w3id.org/xapi/acrossx/extensions/type": "discussion"
                 }
+            },
+            "object": {
+                "definition": {
+                    "type": "http://id.tincanapi.com/activitytype/discussion"
+                },
+                "id": post_id,
+                "objectType": "Activity"
             },
             "timestamp": create_time.isoformat(),
             "verb": {"display": {"en": self.verb_display}, "id": self.verb},
             "version": "1.0.3",
         }
 
-        if self.type == "hint":
-            event.update(hint_object)
-        else:
-            event.update(answer_object)
-
         return json.dumps(event)
 
 
-class ShowHint(HintAnswerBase):
-    type = "hint"
-
-
-class ShowAnswer(HintAnswerBase):
-    type = "answer"
+class PostCreated(BaseForum):
+    verb = "https://w3id.org/xapi/acrossx/verbs/posted"
+    verb_display = "posted"

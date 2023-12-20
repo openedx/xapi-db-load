@@ -28,9 +28,10 @@ class BaseNavigation(XAPIBase):
         Generate and return the event dict, including xAPI statement as "event".
         """
         event_id = str(uuid4())
-        actor_id = self.parent_load_generator.get_actor()
         course = self.parent_load_generator.get_course()
-        emission_time = course.get_random_emission_time()
+        enrolled_actor = course.get_enrolled_actor()
+        actor_id = enrolled_actor.actor.id
+        emission_time = course.get_random_emission_time(enrolled_actor)
         from_loc = self.from_loc or course.get_random_nav_location()
         to_loc = self.to_loc or course.get_random_nav_location()
 
@@ -76,8 +77,9 @@ class BaseNavigation(XAPIBase):
                     ]
                 },
                 "extensions": {
-                    "https://github.com/openedx/event-routing-backends/blob/master/docs/xapi-extensions/eventVersion.rst": "1.0",  # pylint: disable=line-too-long
-                },
+                    "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
+                }
             },
             "timestamp": create_time.isoformat(),
             "verb": {"display": {"en": self.verb_display}, "id": self.verb},
