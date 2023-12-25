@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.33.12
+boto3==1.34.7
     # via smart-open
-botocore==1.33.12
+botocore==1.34.7
     # via
     #   boto3
     #   s3transfer
@@ -18,7 +18,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via -r requirements/base.in
-clickhouse-connect==0.6.22
+clickhouse-connect==0.6.23
     # via -r requirements/base.in
 idna==3.6
     # via requests
@@ -36,7 +36,7 @@ pyyaml==6.0.1
     # via -r requirements/base.in
 requests==2.31.0
     # via -r requirements/base.in
-s3transfer==0.8.2
+s3transfer==0.10.0
     # via boto3
 six==1.16.0
     # via python-dateutil
