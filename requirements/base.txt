@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.34.11
+boto3==1.34.14
     # via smart-open
-botocore==1.34.11
+botocore==1.34.14
     # via
     #   boto3
     #   s3transfer
@@ -26,7 +26,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-lz4==4.3.2
+lz4==4.3.3
     # via clickhouse-connect
 python-dateutil==2.8.2
     # via botocore

@@ -9,11 +9,11 @@ astroid==3.0.2
     #   -r requirements/quality.txt
     #   pylint
     #   pylint-celery
-boto3==1.34.11
+boto3==1.34.14
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.34.11
+botocore==1.34.14
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -146,7 +146,7 @@ keyring==24.3.0
     # via
     #   -r requirements/quality.txt
     #   twine
-lz4==4.3.2
+lz4==4.3.3
     # via
     #   -r requirements/quality.txt
     #   clickhouse-connect
