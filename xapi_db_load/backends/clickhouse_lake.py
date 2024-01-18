@@ -76,7 +76,7 @@ class XAPILakeClickhouse:
         out_data = []
         for v in events:
             try:
-                out = f"('{v['event_id']}', '{v['emission_time']}', '{v['event']}', '{v['event']}')"
+                out = f"('{v['event_id']}', '{v['emission_time']}', '{v['event']}')"
                 out_data.append(out)
             except Exception:
                 print(v)
@@ -86,8 +86,7 @@ class XAPILakeClickhouse:
                 INSERT INTO {self.event_raw_table_name} (
                     event_id,
                     emission_time,
-                    event,
-                    event_str
+                    event
                 )
                 VALUES {vals}
             """
