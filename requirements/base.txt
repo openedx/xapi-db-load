@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.34.23
+boto3==1.34.29
     # via smart-open
-botocore==1.34.23
+botocore==1.34.29
     # via
     #   boto3
     #   s3transfer
@@ -18,7 +18,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via -r requirements/base.in
-clickhouse-connect==0.6.23
+clickhouse-connect==0.7.0
     # via -r requirements/base.in
 idna==3.6
     # via requests
