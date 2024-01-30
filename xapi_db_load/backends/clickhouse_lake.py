@@ -197,6 +197,7 @@ class XAPILakeClickhouse:
                 '{actor.user_id}',
                 '{actor.user_id}',
                 '{actor.name}',
+                '{actor.username}@aspects.invalid'
                 '{actor.meta}',
                 '{actor.courseware}',
                 '{actor.language}',
