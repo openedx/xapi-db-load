@@ -35,7 +35,6 @@ class XAPILakeClickhouse:
         """
         client_options = {
             "date_time_input_format": "best_effort",  # Allows RFC dates
-            "allow_experimental_object_type": 1,  # Allows JSON data type
         }
 
         # For some reason get_client isn't automatically setting secure based on the port
