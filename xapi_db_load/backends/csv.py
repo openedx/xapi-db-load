@@ -67,7 +67,7 @@ class XAPILakeCSV:
         Write a batch of rows to the CSV.
         """
         for v in events:
-            out = (v["event_id"], v["emission_time"], '', str(v["event"]))
+            out = (v["event_id"], v["emission_time"], str(v["event"]))
             self.xapi_csv_writer.writerow(out)
         self.row_count += len(events)
 
@@ -139,6 +139,7 @@ class XAPILakeCSV:
                 actor.user_id,
                 actor.user_id,
                 actor.name,
+                f'{actor.username}@aspects.invalid',
                 actor.meta,
                 actor.courseware,
                 actor.language,
@@ -164,7 +165,8 @@ class XAPILakeCSV:
         """
         self.xapi_csv_handle.close()
         self.course_csv_handle.close()
-        self.blocks_csv_handle.close()
+        self.profile_csv_handle.close()
+        self.external_id_csv_handle.close()
 
     def do_queries(self, event_generator):
         """
