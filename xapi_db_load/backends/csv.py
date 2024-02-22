@@ -165,7 +165,8 @@ class XAPILakeCSV:
         """
         self.xapi_csv_handle.close()
         self.course_csv_handle.close()
-        self.blocks_csv_handle.close()
+        self.profile_csv_handle.close()
+        self.external_id_csv_handle.close()
 
     def do_queries(self, event_generator):
         """
