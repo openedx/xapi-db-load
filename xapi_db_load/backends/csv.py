@@ -67,7 +67,7 @@ class XAPILakeCSV:
         Write a batch of rows to the CSV.
         """
         for v in events:
-            out = (v["event_id"], v["emission_time"], '', str(v["event"]))
+            out = (v["event_id"], v["emission_time"], str(v["event"]))
             self.xapi_csv_writer.writerow(out)
         self.row_count += len(events)
 
