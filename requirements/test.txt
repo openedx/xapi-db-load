@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.34.44
+boto3==1.34.49
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.34.44
+botocore==1.34.49
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -26,7 +26,7 @@ click==8.1.7
     # via -r requirements/base.txt
 clickhouse-connect==0.7.0
     # via -r requirements/base.txt
-coverage[toml]==7.4.1
+coverage[toml]==7.4.3
     # via pytest-cov
 exceptiongroup==1.2.0
     # via pytest
@@ -49,7 +49,7 @@ packaging==23.2
     # via pytest
 pluggy==1.4.0
     # via pytest
-pytest==8.0.1
+pytest==8.0.2
     # via pytest-cov
 pytest-cov==4.1.0
     # via -r requirements/test.in
