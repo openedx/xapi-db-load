@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.34.74
+boto3==1.34.79
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.34.74
+botocore==1.34.79
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -24,7 +24,7 @@ charset-normalizer==3.3.2
     #   requests
 click==8.1.7
     # via -r requirements/base.txt
-clickhouse-connect==0.7.5
+clickhouse-connect==0.7.7
     # via -r requirements/base.txt
 coverage[toml]==7.4.4
     # via pytest-cov
