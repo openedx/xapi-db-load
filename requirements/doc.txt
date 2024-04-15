@@ -16,11 +16,11 @@ backports-tarfile==1.0.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.34.79
+boto3==1.34.84
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.34.79
+botocore==1.34.84
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -40,7 +40,7 @@ charset-normalizer==3.3.2
     #   requests
 click==8.1.7
     # via -r requirements/test.txt
-clickhouse-connect==0.7.7
+clickhouse-connect==0.7.8
     # via -r requirements/test.txt
 coverage[toml]==7.4.4
     # via
@@ -57,7 +57,7 @@ exceptiongroup==1.2.0
     # via
     #   -r requirements/test.txt
     #   pytest
-idna==3.6
+idna==3.7
     # via
     #   -r requirements/test.txt
     #   requests
