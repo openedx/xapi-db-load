@@ -12,22 +12,22 @@ babel==2.15.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
-backports-tarfile==1.1.1
+backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.34.113
+boto3==1.34.117
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.34.113
+botocore==1.34.117
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
 build==1.2.1
     # via -r requirements/doc.in
-certifi==2024.2.2
+certifi==2024.6.2
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -42,7 +42,7 @@ click==8.1.7
     # via -r requirements/test.txt
 clickhouse-connect==0.7.11
     # via -r requirements/test.txt
-coverage[toml]==7.5.2
+coverage[toml]==7.5.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -118,7 +118,7 @@ packaging==24.0
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pkginfo==1.10.0
+pkginfo==1.11.0
     # via twine
 pluggy==1.5.0
     # via
@@ -156,7 +156,7 @@ pyyaml==6.0.1
     # via -r requirements/test.txt
 readme-renderer==43.0
     # via twine
-requests==2.32.2
+requests==2.32.3
     # via
     #   -r requirements/test.txt
     #   requests-toolbelt
@@ -211,7 +211,7 @@ tomli==2.0.1
     #   pytest
 twine==5.1.0
     # via -r requirements/doc.in
-typing-extensions==4.12.0
+typing-extensions==4.12.1
     # via
     #   pydata-sphinx-theme
     #   rich
@@ -226,7 +226,7 @@ wrapt==1.16.0
     # via
     #   -r requirements/test.txt
     #   smart-open
-zipp==3.19.0
+zipp==3.19.1
     # via
     #   importlib-metadata
     #   importlib-resources
