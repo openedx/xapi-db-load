@@ -247,7 +247,7 @@ One Time Setup
 
   # Set up a virtualenv using virtualenvwrapper with the same name as the repo
   # and activate it
-  mkvirtualenv -p python3.8 xapi-db-load
+  mkvirtualenv -p python3.11 xapi-db-load
 
 
 Every time you develop something in this repo
