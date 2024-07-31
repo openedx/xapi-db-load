@@ -270,10 +270,13 @@ class XAPILakeClickhouse:
 
             sql = f"""
             INSERT INTO {table_name}
-               SELECT *
-               FROM s3('{file_path}', '{self.s3_key}', '{self.s3_secret}', 'CSV');
+                SELECT *
+                FROM s3('{file_path}', '{self.s3_key}', '{self.s3_secret}', 'CSV')
+            SETTINGS max_insert_threads = 1,
+                min_insert_block_size_rows = 524288,
+                min_insert_block_size_bytes = 134217728;
             """
-
+            print(sql)
             self.client.command(sql)
             self.print_db_time()
 
