@@ -8,7 +8,7 @@ accessible-pygments==0.0.5
     # via pydata-sphinx-theme
 alabaster==1.0.0
     # via sphinx
-babel==2.15.0
+babel==2.16.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.34.153
+boto3==1.34.158
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.34.153
+botocore==1.34.158
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -32,7 +32,7 @@ certifi==2024.7.4
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
-cffi==1.16.0
+cffi==1.17.0
     # via cryptography
 charset-normalizer==3.3.2
     # via
@@ -59,9 +59,8 @@ idna==3.7
     #   requests
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==6.11.0
+importlib-metadata==8.2.0
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   keyring
     #   twine
 iniconfig==2.0.0
@@ -97,7 +96,7 @@ markupsafe==2.1.5
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.3.0
+more-itertools==10.4.0
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -143,7 +142,7 @@ pytz==2024.1
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
-pyyaml==6.0.1
+pyyaml==6.0.2
     # via -r requirements/test.txt
 readme-renderer==44.0
     # via twine
@@ -209,7 +208,7 @@ wrapt==1.16.0
     # via
     #   -r requirements/test.txt
     #   smart-open
-zipp==3.19.2
+zipp==3.20.0
     # via importlib-metadata
 zstandard==0.23.0
     # via
