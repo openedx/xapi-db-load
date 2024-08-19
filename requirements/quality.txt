@@ -10,11 +10,11 @@ astroid==3.2.4
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.34.158
+boto3==1.35.0
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.34.158
+botocore==1.35.0
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -197,7 +197,7 @@ stevedore==5.2.0
     # via code-annotations
 text-unidecode==1.3
     # via python-slugify
-tomlkit==0.13.0
+tomlkit==0.13.2
     # via pylint
 twine==5.1.1
     # via -r requirements/quality.in
