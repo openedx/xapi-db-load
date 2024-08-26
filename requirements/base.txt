@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.35.0
+boto3==1.35.5
     # via smart-open
-botocore==1.35.0
+botocore==1.35.5
     # via
     #   boto3
     #   s3transfer
@@ -20,7 +20,7 @@ click==8.1.7
     # via -r requirements/base.in
 clickhouse-connect==0.6.23
     # via -r requirements/base.in
-idna==3.7
+idna==3.8
     # via requests
 jmespath==1.0.1
     # via
