@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.35.0
+boto3==1.35.5
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.35.0
+botocore==1.35.5
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -92,18 +92,18 @@ docutils==0.21.2
     # via
     #   -r requirements/quality.txt
     #   readme-renderer
-edx-lint==5.3.7
+edx-lint==5.4.0
     # via -r requirements/quality.txt
 filelock==3.15.4
     # via
     #   -r requirements/ci.txt
     #   tox
     #   virtualenv
-idna==3.7
+idna==3.8
     # via
     #   -r requirements/quality.txt
     #   requests
-importlib-metadata==8.2.0
+importlib-metadata==8.4.0
     # via
     #   -r requirements/quality.txt
     #   keyring
@@ -120,7 +120,7 @@ jaraco-classes==3.4.0
     # via
     #   -r requirements/quality.txt
     #   keyring
-jaraco-context==5.3.0
+jaraco-context==6.0.1
     # via
     #   -r requirements/quality.txt
     #   keyring
@@ -314,7 +314,7 @@ snowballstemmer==2.2.0
     # via
     #   -r requirements/quality.txt
     #   pydocstyle
-stevedore==5.2.0
+stevedore==5.3.0
     # via
     #   -r requirements/quality.txt
     #   code-annotations
