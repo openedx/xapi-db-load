@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.35.5
+boto3==1.35.10
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.35.5
+botocore==1.35.10
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -30,7 +30,7 @@ cachetools==5.5.0
     # via
     #   -r requirements/ci.txt
     #   tox
-certifi==2024.7.4
+certifi==2024.8.30
     # via
     #   -r requirements/quality.txt
     #   clickhouse-connect
@@ -185,7 +185,7 @@ packaging==24.1
     #   pyproject-api
     #   pytest
     #   tox
-pbr==6.0.0
+pbr==6.1.0
     # via
     #   -r requirements/quality.txt
     #   stevedore
@@ -223,7 +223,7 @@ pygments==2.18.0
     #   diff-cover
     #   readme-renderer
     #   rich
-pylint==3.2.6
+pylint==3.2.7
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -291,7 +291,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==13.7.1
+rich==13.8.0
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -349,7 +349,7 @@ wrapt==1.16.0
     # via
     #   -r requirements/quality.txt
     #   smart-open
-zipp==3.20.0
+zipp==3.20.1
     # via
     #   -r requirements/quality.txt
     #   importlib-metadata
