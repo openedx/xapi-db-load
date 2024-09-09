@@ -33,7 +33,7 @@ setup(
     description="Loads testing xAPI events into databases and LRSs",
     long_description=desc,
     long_description_content_type="text/x-rst",
-    python_requires=">=3.7",
+    python_requires=">=3.11",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
