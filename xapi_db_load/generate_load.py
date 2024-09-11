@@ -3,6 +3,7 @@ Generates batches of random xAPI events.
 """
 import datetime
 import pprint
+import random
 import uuid
 from random import choice, choices
 
@@ -106,20 +107,39 @@ class EventGenerator:
         """
         for course_config_name, num_courses in self.config["num_course_sizes"].items():
             print(f"Setting up {num_courses} {course_config_name} courses")
-            for _ in range(num_courses):
+
+            curr_num = 0
+            while curr_num < num_courses:
                 course_config_makeup = self.config["course_size_makeup"][course_config_name]
                 org = choice(self.orgs)
                 actors = choices(self.actors, k=course_config_makeup["actors"])
+                runs = random.randrange(1, 5)
+                course_id = str(uuid.uuid4())[:6]
 
-                self.courses.append(RandomCourse(
-                    org,
-                    self.start_date,
-                    self.end_date,
-                    self.config["course_length_days"],
-                    actors,
-                    course_config_name,
-                    course_config_makeup
-                ))
+                # Create 1-5 of the same course size / makeup / name
+                # but different course runs.
+                for run_id in range(runs):
+                    course = RandomCourse(
+                        org,
+                        course_id,
+                        run_id,
+                        self.start_date,
+                        self.end_date,
+                        self.config["course_length_days"],
+                        actors,
+                        course_config_name,
+                        course_config_makeup
+                    )
+
+                    self.courses.append(course)
+
+                    curr_num += 1
+
+                    # Don't let our number of runs overrun the total number
+                    # of this type of course
+                    if curr_num == num_courses:
+                        break
+
 
     def setup_actors(self):
         """

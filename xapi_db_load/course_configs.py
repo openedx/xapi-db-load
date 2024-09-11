@@ -73,6 +73,8 @@ class RandomCourse:
     def __init__(
         self,
         org,
+        course_uuid,
+        course_run,
         overall_start_date,
         overall_end_date,
         course_length,
@@ -80,10 +82,14 @@ class RandomCourse:
         course_config_name,
         course_size_makeup
     ):
-        self.course_uuid = str(uuid.uuid4())[:6]
+        self.course_uuid = course_uuid
+        self.course_run = course_run
+        # It's important that the course name stay the same between runs
+        # as Superset limitations have us filtering by course name and we want
+        # to be able to catch all course runs in those queries.
         self.course_name = f"{self.course_uuid} ({course_config_name})"
         self.org = org
-        self.course_id = f"course-v1:{org}+DemoX+{self.course_uuid}"
+        self.course_id = f"course-v1:{org}+{self.course_uuid}+{self.course_run}"
         self.course_url = f"http://localhost:18000/course/{self.course_id}"
 
         delta = datetime.timedelta(days=course_length)
