@@ -1,6 +1,7 @@
 """
 Configuration values for emulating courses of various sizes.
 """
+import copy
 import datetime
 import json
 import random
@@ -67,6 +68,7 @@ class RandomCourse:
     video_ids = []
     forum_post_ids = []
     actors = []
+    all_tags = []
     start_date = None
     end_date = None
 
@@ -80,7 +82,8 @@ class RandomCourse:
         course_length,
         actors,
         course_config_name,
-        course_size_makeup
+        course_size_makeup,
+        tags
     ):
         self.course_uuid = course_uuid
         self.course_run = course_run
@@ -103,6 +106,7 @@ class RandomCourse:
 
         self.course_config_name = course_config_name
         self.course_config = course_size_makeup
+        self.all_tags = tags
         self.configure()
 
     def __repr__(self):
@@ -176,7 +180,7 @@ class RandomCourse:
         If no end date is given, we end now.
         """
         if not end_datetime:
-            end_datetime = datetime.datetime.utcnow()
+            end_datetime = datetime.datetime.now(datetime.UTC)
         if not start_datetime:
             start_datetime = end_datetime - datetime.timedelta(days=365 * 5)
 
@@ -275,24 +279,12 @@ class RandomCourse:
 
     def serialize_block_data_for_event_sink(self):
         """
-        Return a list of dicts representing all blocks in this course.
+        Returns lists of dicts representing block and block tag data
 
-        The data format mirrors what is created by event-sink-clickhouse.
-
-        Block types we care about:
-        -- x course block
-        -- x video block
-        -- x vertical block
-        -- static_tab block
-        -- x sequential
-        -- x problem block
-        -- html block
-        -- discussion block
-        -- course_info
-        -- x chapter block
-        -- about block
+        The data formats mirror what is created by event-sink-clickhouse.
         """
         blocks = []
+        object_tags = []
         cnt = 1
 
         # Get all of our blocks in order
@@ -363,4 +355,12 @@ class RandomCourse:
 
             block["xblock_data_json"] = json.dumps(block["xblock_data_json"])
 
-        return course_structure
+            num_tags = randrange(0, 3)
+
+            for _ in range(num_tags):
+                tag = random.choice(self.all_tags)
+                object_tag = copy.deepcopy(tag)
+                object_tag["object_id"] = block["location"]
+                object_tags.append(object_tag)
+
+        return course_structure, object_tags

@@ -6,7 +6,7 @@ This can be used to generate a gzipped csv of events that can be loaded into any
 import csv
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 
 from smart_open import open as smart
 
@@ -78,7 +78,7 @@ class XAPILakeCSV:
         for course in courses:
             c = course.serialize_course_data_for_event_sink()
             dump_id = str(uuid.uuid4())
-            dump_time = datetime.utcnow()
+            dump_time = datetime.now(UTC)
             self.course_csv_writer.writerow((
                 c['org'],
                 c['course_key'],
@@ -100,9 +100,9 @@ class XAPILakeCSV:
         Write out the block data file.
         """
         for course in courses:
-            blocks = course.serialize_block_data_for_event_sink()
+            blocks, object_tags = course.serialize_block_data_for_event_sink()
             dump_id = str(uuid.uuid4())
-            dump_time = datetime.utcnow()
+            dump_time = datetime.now(UTC)
             for b in blocks:
                 self.blocks_csv_writer.writerow((
                     b['org'],
@@ -116,13 +116,18 @@ class XAPILakeCSV:
                     dump_time
                 ))
 
+    def insert_event_sink_taxonomies_tags(self, taxonomies):
+        """
+        Insert the taxonomies and tags into the event sink db.
+        """
+
     def insert_event_sink_actor_data(self, actors):
         """
         Write out the user profile data and external id files.
         """
         for actor in actors:
             dump_id = str(uuid.uuid4())
-            dump_time = datetime.utcnow()
+            dump_time = datetime.now(UTC)
 
             self.external_id_csv_writer.writerow((
                 actor.id,

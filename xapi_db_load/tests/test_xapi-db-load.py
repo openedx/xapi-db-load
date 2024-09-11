@@ -34,7 +34,7 @@ def override_config(config_path, tmpdir):
 
 
 def test_csv(tmpdir):
-    test_path = "tests/fixtures/small_config.yaml"
+    test_path = "xapi_db_load/tests/fixtures/small_config.yaml"
 
     with override_config(test_path, tmpdir) as test_config:
         runner = CliRunner()
@@ -75,7 +75,7 @@ def test_csv(tmpdir):
 
 @patch("xapi_db_load.backends.clickhouse_lake.clickhouse_connect")
 def test_clickhouse_lake(_, tmpdir):
-    test_path = "tests/fixtures/small_clickhouse_config.yaml"
+    test_path = "xapi_db_load/tests/fixtures/small_clickhouse_config.yaml"
 
     with override_config(test_path, tmpdir):
         runner = CliRunner()
@@ -94,7 +94,7 @@ def test_clickhouse_lake(_, tmpdir):
 @patch("xapi_db_load.backends.ralph_lrs.requests")
 @patch("xapi_db_load.backends.clickhouse_lake.clickhouse_connect")
 def test_ralph_clickhouse(mock_requests, _, tmpdir):
-    test_path = "tests/fixtures/small_ralph_config.yaml"
+    test_path = "xapi_db_load/tests/fixtures/small_ralph_config.yaml"
     runner = CliRunner()
 
     with override_config(test_path, tmpdir):

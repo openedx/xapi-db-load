@@ -1,22 +1,26 @@
 """
 Generates batches of random xAPI events.
 """
+import csv
 import datetime
+import json
+import os
 import pprint
 import random
 import uuid
+from datetime import UTC
 from random import choice, choices
 
+from xapi_db_load.course_configs import Actor, RandomCourse
+from xapi_db_load.fixtures.music_tags import MUSIC_TAGS
 from xapi_db_load.utils import LogTimer, setup_timing
-
-from .course_configs import Actor, RandomCourse
-from .xapi.xapi_forum import PostCreated
-from .xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed
-from .xapi.xapi_hint_answer import ShowAnswer, ShowHint
-from .xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
-from .xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
-from .xapi.xapi_registration import Registered, Unregistered
-from .xapi.xapi_video import (
+from xapi_db_load.xapi.xapi_forum import PostCreated
+from xapi_db_load.xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed
+from xapi_db_load.xapi.xapi_hint_answer import ShowAnswer, ShowHint
+from xapi_db_load.xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
+from xapi_db_load.xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
+from xapi_db_load.xapi.xapi_registration import Registered, Unregistered
+from xapi_db_load.xapi.xapi_video import (
     CompletedVideo,
     LoadedVideo,
     PausedVideo,
@@ -56,6 +60,7 @@ EVENT_LOAD = (
 
 EVENTS = [i[0] for i in EVENT_LOAD]
 EVENT_WEIGHTS = [i[1] for i in EVENT_LOAD]
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def _get_uuid():
@@ -70,6 +75,8 @@ class EventGenerator:
     actors = []
     courses = []
     orgs = []
+    taxonomies = {}
+    tags = []
 
     def __init__(self, config):
         self.config = config
@@ -77,6 +84,7 @@ class EventGenerator:
         self.end_date = config["end_date"]
         self._validate_config()
         self.setup_orgs()
+        self.setup_taxonomies_tags()
         self.setup_actors()
         self.setup_courses()
 
@@ -128,7 +136,8 @@ class EventGenerator:
                         self.config["course_length_days"],
                         actors,
                         course_config_name,
-                        course_config_makeup
+                        course_config_makeup,
+                        self.tags
                     )
 
                     self.courses.append(course)
@@ -140,7 +149,6 @@ class EventGenerator:
                     if curr_num == num_courses:
                         break
 
-
     def setup_actors(self):
         """
         Create all known actors.
@@ -148,6 +156,54 @@ class EventGenerator:
         Random samplings of these will be passed into courses.
         """
         self.actors = [Actor(i) for i in range(self.config["num_actors"])]
+
+    @staticmethod
+    def _get_hierarchy(tag_hierarchy, start_parent_id):
+        """
+        Return a list of all the parent values of the given parent_id
+
+        tag_hierarchy is a tuple of ("Tag name", "parent_id")
+        """
+        if not start_parent_id or not start_parent_id in tag_hierarchy:
+            return []
+
+        hierarchy = []
+        parent_id = start_parent_id
+        while parent_id:
+            hierarchy.append(tag_hierarchy[parent_id][0])
+            parent_id = tag_hierarchy[parent_id][1]
+
+        # Reverse the list to get the highest parent first, which is how Studio
+        # sends it
+        hierarchy.reverse()
+        return hierarchy
+
+    def setup_taxonomies_tags(self):
+        """
+        Load a sample set of tags and format them for use.
+        """
+        self.taxonomies["Music"] = [row for row in MUSIC_TAGS]
+
+        # tag_hierarchy holds all of the known tags and their parents. This
+        # works because the incoming CSV is sorted in a parent-first way. So
+        # it should be guaranteed that all parents already exist when we get to
+        # the child.
+        tag_hierarchy = {}
+        taxonomy_id = 0
+        for taxonomy in self.taxonomies.keys():
+            taxonomy_id += 1
+            tag_id = 0
+            for tag in self.taxonomies[taxonomy]:
+                tag_id += 1
+                tag["tag_id"] = tag_id
+                tag["taxonomy_id"] = taxonomy_id
+                tag["hierarchy"] = json.dumps(self._get_hierarchy(
+                    tag_hierarchy,
+                    tag["parent_id"]
+                ))
+
+                tag_hierarchy[tag["id"]] = (tag["value"], tag["parent_id"])
+                self.tags.append(tag)
 
     def get_batch_events(self):
         """
@@ -196,7 +252,7 @@ def generate_events(config, backend):
 
     print("Checking table existence and current row count in backend...")
     backend.print_row_counts()
-    start = datetime.datetime.utcnow()
+    start = datetime.datetime.now(UTC)
 
     with LogTimer("setup", "full_setup"):
         with LogTimer("setup", "event_generator"):
@@ -215,20 +271,28 @@ def generate_events(config, backend):
     with LogTimer("insert_metadata", "user_data"):
         backend.insert_event_sink_actor_data(event_generator.actors)
 
+    print("Inserting taxonomy data...")
+    with LogTimer("insert_metadata", "taxonomy"):
+        backend.insert_event_sink_taxonomies(event_generator.taxonomies)
+
+    print("Inserting tag data...")
+    with LogTimer("insert_metadata", "tag"):
+        backend.insert_event_sink_tag_data(event_generator.tags)
+
     insert_registrations(event_generator, backend)
     insert_batches(event_generator, config["num_batches"], backend)
 
     with LogTimer("batches", "total"):
         print(f"Done! Added {config['num_batches'] * config['batch_size']:,} rows!")
 
-    end = datetime.datetime.utcnow()
+    end = datetime.datetime.now(UTC)
     print("Batch insert time: " + str(end - start))
 
     backend.finalize()
     backend.print_db_time()
     backend.print_row_counts()
 
-    end = datetime.datetime.utcnow()
+    end = datetime.datetime.now(UTC)
     print("Total run time: " + str(end - start))
 
 
