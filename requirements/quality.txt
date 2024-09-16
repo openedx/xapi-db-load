@@ -10,11 +10,11 @@ astroid==3.2.4
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.35.14
+boto3==1.35.19
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.35.14
+botocore==1.35.19
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -54,11 +54,11 @@ docutils==0.21.2
     # via readme-renderer
 edx-lint==5.4.0
     # via -r requirements/quality.in
-idna==3.8
+idna==3.10
     # via
     #   -r requirements/test.txt
     #   requests
-importlib-metadata==8.4.0
+importlib-metadata==8.5.0
     # via
     #   keyring
     #   twine
@@ -115,7 +115,7 @@ pbr==6.1.0
     # via stevedore
 pkginfo==1.10.0
     # via twine
-platformdirs==4.3.2
+platformdirs==4.3.3
     # via pylint
 pluggy==1.5.0
     # via
@@ -145,7 +145,7 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.3.2
+pytest==8.3.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -157,7 +157,7 @@ python-dateutil==2.9.0.post0
     #   botocore
 python-slugify==8.0.4
     # via code-annotations
-pytz==2024.1
+pytz==2024.2
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -176,7 +176,7 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.8.0
+rich==13.8.1
     # via twine
 s3transfer==0.10.2
     # via
@@ -201,7 +201,7 @@ tomlkit==0.13.2
     # via pylint
 twine==5.1.1
     # via -r requirements/quality.in
-urllib3==2.2.2
+urllib3==2.2.3
     # via
     #   -r requirements/test.txt
     #   botocore
@@ -212,7 +212,7 @@ wrapt==1.16.0
     # via
     #   -r requirements/test.txt
     #   smart-open
-zipp==3.20.1
+zipp==3.20.2
     # via importlib-metadata
 zstandard==0.23.0
     # via
