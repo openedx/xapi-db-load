@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.35.14
+boto3==1.35.19
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.35.14
+botocore==1.35.19
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -99,11 +99,11 @@ filelock==3.16.0
     #   -r requirements/ci.txt
     #   tox
     #   virtualenv
-idna==3.8
+idna==3.10
     # via
     #   -r requirements/quality.txt
     #   requests
-importlib-metadata==8.4.0
+importlib-metadata==8.5.0
     # via
     #   -r requirements/quality.txt
     #   keyring
@@ -195,7 +195,7 @@ pkginfo==1.10.0
     # via
     #   -r requirements/quality.txt
     #   twine
-platformdirs==4.3.2
+platformdirs==4.3.3
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -252,7 +252,7 @@ pyproject-hooks==1.1.0
     #   -r requirements/pip-tools.txt
     #   build
     #   pip-tools
-pytest==8.3.2
+pytest==8.3.3
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
@@ -266,7 +266,7 @@ python-slugify==8.0.4
     # via
     #   -r requirements/quality.txt
     #   code-annotations
-pytz==2024.1
+pytz==2024.2
     # via
     #   -r requirements/quality.txt
     #   clickhouse-connect
@@ -291,7 +291,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==13.8.0
+rich==13.8.1
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -330,7 +330,7 @@ tox==4.18.1
     # via -r requirements/ci.txt
 twine==5.1.1
     # via -r requirements/quality.txt
-urllib3==2.2.2
+urllib3==2.2.3
     # via
     #   -r requirements/quality.txt
     #   botocore
@@ -349,7 +349,7 @@ wrapt==1.16.0
     # via
     #   -r requirements/quality.txt
     #   smart-open
-zipp==3.20.1
+zipp==3.20.2
     # via
     #   -r requirements/quality.txt
     #   importlib-metadata
