@@ -1,7 +1,6 @@
 """
 Generates batches of random xAPI events.
 """
-import csv
 import datetime
 import json
 import os
@@ -160,11 +159,11 @@ class EventGenerator:
     @staticmethod
     def _get_hierarchy(tag_hierarchy, start_parent_id):
         """
-        Return a list of all the parent values of the given parent_id
+        Return a list of all the parent values of the given parent_id.
 
         tag_hierarchy is a tuple of ("Tag name", "parent_id")
         """
-        if not start_parent_id or not start_parent_id in tag_hierarchy:
+        if not start_parent_id or start_parent_id not in tag_hierarchy:
             return []
 
         hierarchy = []
@@ -182,7 +181,7 @@ class EventGenerator:
         """
         Load a sample set of tags and format them for use.
         """
-        self.taxonomies["Music"] = [row for row in MUSIC_TAGS]
+        self.taxonomies["Music"] = list(MUSIC_TAGS)
 
         # tag_hierarchy holds all of the known tags and their parents. This
         # works because the incoming CSV is sorted in a parent-first way. So
@@ -190,7 +189,7 @@ class EventGenerator:
         # the child.
         tag_hierarchy = {}
         taxonomy_id = 0
-        for taxonomy in self.taxonomies.keys():
+        for taxonomy in self.taxonomies:  # pylint: disable=consider-using-dict-items
             taxonomy_id += 1
             tag_id = 0
             for tag in self.taxonomies[taxonomy]:

@@ -1,10 +1,9 @@
 """
 ClickHouse data lake implementation.
 """
-import json
 import os
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 import clickhouse_connect
 
@@ -26,7 +25,9 @@ class XAPILakeClickhouse:
         self.s3_key = config.get("s3_key")
         self.s3_secret = config.get("s3_secret")
 
-        self.event_raw_table_name = config.get("event_raw_table_name", "xapi_events_all")
+        self.event_raw_table_name = config.get(
+            "event_raw_table_name", "xapi_events_all"
+        )
         self.event_table_name = config.get("event_table_name", "xapi_events_all_parsed")
         self.set_client()
 
@@ -126,37 +127,6 @@ class XAPILakeClickhouse:
                 raise
 
         self._insert_list_sql_retry(out_data, "course_overviews")
-
-    def insert_event_sink_object_tag_data(self, object_tags):
-        """
-        Insert the object_tag data to ClickHouse.
-
-        Most of the work for this is done in insert_event_sink_block_data
-        """
-        dump_id = str(uuid.uuid4())
-        dump_time = datetime.now(UTC)
-        obj_tag_out_data = []
-
-        row_id = 0
-        for obj_tag in object_tags:
-            import logging
-            logging.warning(obj_tag)
-            row_id += 1
-            out_tag = f"""(
-            {row_id},
-            '{obj_tag["object_id"]}',
-            {obj_tag["taxonomy_id"]},
-            {obj_tag["tag_id"]},
-            '{obj_tag["value"]}',
-            'fake export id',
-            '{obj_tag["hierarchy"]}',
-            '{dump_id}',
-            '{dump_time}'
-            )"""
-
-            obj_tag_out_data.append(out_tag)
-
-        self._insert_list_sql_retry(obj_tag_out_data, "object_tag")
 
     def insert_event_sink_block_data(self, courses):
         """
@@ -286,14 +256,43 @@ class XAPILakeClickhouse:
                 '{dump_time}'
             )"""
 
-
             tag_out_data.append(out_tag)
 
         self._insert_list_sql_retry(tag_out_data, "tag")
 
+    def insert_event_sink_object_tag_data(self, object_tags):
+        """
+        Insert the object_tag data to ClickHouse.
+
+        Most of the work for this is done in insert_event_sink_block_data
+        """
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        obj_tag_out_data = []
+
+        row_id = 0
+        for obj_tag in object_tags:
+            row_id += 1
+
+            out_tag = f"""(
+            {row_id},
+            '{obj_tag["object_id"]}',
+            {obj_tag["taxonomy_id"]},
+            {obj_tag["tag_id"]},
+            '{obj_tag["value"]}',
+            'fake export id',
+            '{obj_tag["hierarchy"]}',
+            '{dump_id}',
+            '{dump_time}'
+            )"""
+
+            obj_tag_out_data.append(out_tag)
+
+        self._insert_list_sql_retry(obj_tag_out_data, "object_tag")
+
     def _insert_list_sql_retry(self, data_list, table, database=None):
         """
-        Wrap up inserts that join values to reduce some boilerplate
+        Wrap up inserts that join values to reduce some boilerplate.
         """
         if not database:
             database = self.event_sink_database
@@ -330,11 +329,40 @@ class XAPILakeClickhouse:
         never get downloaded directly to the local process.
         """
         loads = (
-            (f"{self.event_sink_database}.course_overviews", os.path.join(s3_location, "courses.csv.gz")),
-            (f"{self.event_sink_database}.course_blocks", os.path.join(s3_location, "blocks.csv.gz")),
-            (f"{self.event_sink_database}.external_id", os.path.join(s3_location, "external_ids.csv.gz")),
-            (f"{self.event_sink_database}.user_profile", os.path.join(s3_location, "user_profiles.csv.gz")),
-            (f"{self.database}.{self.event_raw_table_name}", os.path.join(s3_location, "xapi.csv.gz"))
+            (
+                f"{self.event_sink_database}.course_overviews",
+                os.path.join(s3_location, "courses.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.course_blocks",
+                os.path.join(s3_location, "blocks.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.external_id",
+                os.path.join(s3_location, "external_ids.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.user_profile",
+                os.path.join(s3_location, "user_profiles.csv.gz"),
+            ),
+
+            (
+                f"{self.event_sink_database}.taxonomy",
+                os.path.join(s3_location, "taxonomies.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.tag",
+                os.path.join(s3_location, "tags.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.object_tag",
+                os.path.join(s3_location, "object_tags.csv.gz"),
+            ),
+
+            (
+                f"{self.database}.{self.event_raw_table_name}",
+                os.path.join(s3_location, "xapi.csv.gz"),
+            ),
         )
 
         for table_name, file_path in loads:

@@ -279,7 +279,7 @@ class RandomCourse:
 
     def serialize_block_data_for_event_sink(self):
         """
-        Returns lists of dicts representing block and block tag data
+        Return lists of dicts representing block and block tag data.
 
         The data formats mirror what is created by event-sink-clickhouse.
         """
