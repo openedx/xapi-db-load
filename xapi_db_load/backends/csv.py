@@ -164,7 +164,7 @@ class XAPILakeCSV:
                 (
                     tag["tag_id"],
                     tag["taxonomy_id"],
-                    0,
+                    tag["parent_int_id"],
                     tag["value"],
                     tag["id"],
                     tag["hierarchy"],

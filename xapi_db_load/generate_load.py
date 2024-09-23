@@ -196,12 +196,13 @@ class EventGenerator:
                 tag_id += 1
                 tag["tag_id"] = tag_id
                 tag["taxonomy_id"] = taxonomy_id
+                tag["parent_int_id"] = tag_hierarchy[tag["parent_id"]][2] if tag["parent_id"] in tag_hierarchy else None
                 tag["hierarchy"] = json.dumps(self._get_hierarchy(
                     tag_hierarchy,
                     tag["parent_id"]
                 ))
 
-                tag_hierarchy[tag["id"]] = (tag["value"], tag["parent_id"])
+                tag_hierarchy[tag["id"]] = (tag["value"], tag["parent_id"], tag["tag_id"])
                 self.tags.append(tag)
 
     def get_batch_events(self):
