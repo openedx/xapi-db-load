@@ -40,7 +40,7 @@ class XAPILakeClickhouse:
         }
 
         # For some reason get_client isn't automatically setting secure based on the port
-        # so we have to do it ourselves. This is obviously limiting, but should be 9% correct
+        # so we have to do it ourselves. This is obviously limiting, but should be 90% correct
         # and keeps us from adding yet another command line option.
         secure = str(self.port).endswith("443") or str(self.port).endswith("440")
 
@@ -248,7 +248,7 @@ class XAPILakeClickhouse:
             out_tag = f"""(
                 {tag["tag_id"]},
                 {tag["taxonomy_id"]},
-                {tag["parent_int_id"] or 'NULL'},
+                {tag["parent_int_id"] or 0},
                 '{tag["value"]}',
                 '{tag["id"]}',
                 '{tag["hierarchy"]}',
