@@ -14,7 +14,7 @@ serve to show the default.
 import os
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, UTC
 from subprocess import check_call
 
 
@@ -88,7 +88,7 @@ top_level_doc = "index"
 
 # General information about the project.
 project = "xapi-db-load"
-current_year = datetime.utcnow().year
+current_year = datetime.now(UTC).year
 copyright = f"{current_year}, The Center for Reimagining Learning"  # pylint: disable=redefined-builtin
 author = "Open edX"
 project_title = "xapi-db-load"

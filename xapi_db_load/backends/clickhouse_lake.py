@@ -3,7 +3,7 @@ ClickHouse data lake implementation.
 """
 import os
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 import clickhouse_connect
 
@@ -25,7 +25,9 @@ class XAPILakeClickhouse:
         self.s3_key = config.get("s3_key")
         self.s3_secret = config.get("s3_secret")
 
-        self.event_raw_table_name = config.get("event_raw_table_name", "xapi_events_all")
+        self.event_raw_table_name = config.get(
+            "event_raw_table_name", "xapi_events_all"
+        )
         self.event_table_name = config.get("event_table_name", "xapi_events_all_parsed")
         self.set_client()
 
@@ -102,7 +104,7 @@ class XAPILakeClickhouse:
         for course in courses:
             c = course.serialize_course_data_for_event_sink()
             dump_id = str(uuid.uuid4())
-            dump_time = datetime.utcnow()
+            dump_time = datetime.now(UTC)
             try:
                 out = f"""(
                     '{c['org']}',
@@ -123,13 +125,8 @@ class XAPILakeClickhouse:
             except Exception:
                 print(c)
                 raise
-        vals = ",".join(out_data)
-        sql = f"""
-                INSERT INTO {self.event_sink_database}.course_overviews
-                VALUES {vals}
-            """
 
-        self._insert_sql_with_retry(sql)
+        self._insert_list_sql_retry(out_data, "course_overviews")
 
     def insert_event_sink_block_data(self, courses):
         """
@@ -139,9 +136,9 @@ class XAPILakeClickhouse:
         """
         for course in courses:
             out_data = []
-            blocks = course.serialize_block_data_for_event_sink()
+            blocks, object_tags = course.serialize_block_data_for_event_sink()
             dump_id = str(uuid.uuid4())
-            dump_time = datetime.utcnow()
+            dump_time = datetime.now(UTC)
             for b in blocks:
                 try:
                     out = f"""(
@@ -160,13 +157,10 @@ class XAPILakeClickhouse:
                     print(b)
                     raise
 
-            vals = ",".join(out_data)
-            sql = f"""
-                    INSERT INTO {self.event_sink_database}.course_blocks
-                    VALUES {vals}
-                """
+            self._insert_list_sql_retry(out_data, "course_blocks")
 
-            self._insert_sql_with_retry(sql)
+            # Now insert all the "object tags" for these blocks
+            self.insert_event_sink_object_tag_data(object_tags)
 
     def insert_event_sink_actor_data(self, actors):
         """
@@ -178,7 +172,7 @@ class XAPILakeClickhouse:
         out_profile = []
         for actor in actors:
             dump_id = str(uuid.uuid4())
-            dump_time = datetime.utcnow()
+            dump_time = datetime.now(UTC)
 
             id_row = f"""(
                 '{actor.id}',
@@ -218,19 +212,96 @@ class XAPILakeClickhouse:
 
             out_profile.append(profile_row)
 
-        # Now do the actual inserts...
-        vals = ",".join(out_external_id)
-        sql = f"""
-                INSERT INTO {self.event_sink_database}.external_id
-                VALUES {vals}
-            """
-        self._insert_sql_with_retry(sql)
+        self._insert_list_sql_retry(out_external_id, "external_id")
+        self._insert_list_sql_retry(out_profile, "user_profile")
 
-        vals = ",".join(out_profile)
-        sql = f"""
-                INSERT INTO {self.event_sink_database}.user_profile
-                VALUES {vals}
+    def insert_event_sink_taxonomies(self, taxonomies):
+        """
+        Insert the taxonomies into the event sink db.
+        """
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        i = 1
+        out_data = []
+        for taxonomy in taxonomies.keys():
+            out = f"""(
+                {i},
+                '{taxonomy}',
+                '{dump_id}',
+                '{dump_time}'
+            )
             """
+            out_data.append(out)
+            i += 1
+
+        self._insert_list_sql_retry(out_data, "taxonomy")
+
+    def insert_event_sink_tag_data(self, tags):
+        """
+        Insert the tags into the event sink db.
+        """
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+
+        tag_out_data = []
+        for tag in tags:
+            out_tag = f"""(
+                {tag["tag_id"]},
+                {tag["taxonomy_id"]},
+                {tag["parent_int_id"] or 0},
+                '{tag["value"]}',
+                '{tag["id"]}',
+                '{tag["hierarchy"]}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+
+            tag_out_data.append(out_tag)
+
+        self._insert_list_sql_retry(tag_out_data, "tag")
+
+    def insert_event_sink_object_tag_data(self, object_tags):
+        """
+        Insert the object_tag data to ClickHouse.
+
+        Most of the work for this is done in insert_event_sink_block_data
+        """
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        obj_tag_out_data = []
+
+        row_id = 0
+        for obj_tag in object_tags:
+            row_id += 1
+
+            out_tag = f"""(
+            {row_id},
+            '{obj_tag["object_id"]}',
+            {obj_tag["taxonomy_id"]},
+            {obj_tag["tag_id"]},
+            '{obj_tag["value"]}',
+            'fake export id',
+            '{obj_tag["hierarchy"]}',
+            '{dump_id}',
+            '{dump_time}'
+            )"""
+
+            obj_tag_out_data.append(out_tag)
+
+        self._insert_list_sql_retry(obj_tag_out_data, "object_tag")
+
+    def _insert_list_sql_retry(self, data_list, table, database=None):
+        """
+        Wrap up inserts that join values to reduce some boilerplate.
+        """
+        if not database:
+            database = self.event_sink_database
+
+        sql = f"""
+                INSERT INTO {database}.{table}
+                VALUES {",".join(data_list)}
+        """
+
         self._insert_sql_with_retry(sql)
 
     def _insert_sql_with_retry(self, sql):
@@ -258,11 +329,40 @@ class XAPILakeClickhouse:
         never get downloaded directly to the local process.
         """
         loads = (
-            (f"{self.event_sink_database}.course_overviews", os.path.join(s3_location, "courses.csv.gz")),
-            (f"{self.event_sink_database}.course_blocks", os.path.join(s3_location, "blocks.csv.gz")),
-            (f"{self.event_sink_database}.external_id", os.path.join(s3_location, "external_ids.csv.gz")),
-            (f"{self.event_sink_database}.user_profile", os.path.join(s3_location, "user_profiles.csv.gz")),
-            (f"{self.database}.{self.event_raw_table_name}", os.path.join(s3_location, "xapi.csv.gz"))
+            (
+                f"{self.event_sink_database}.course_overviews",
+                os.path.join(s3_location, "courses.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.course_blocks",
+                os.path.join(s3_location, "blocks.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.external_id",
+                os.path.join(s3_location, "external_ids.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.user_profile",
+                os.path.join(s3_location, "user_profiles.csv.gz"),
+            ),
+
+            (
+                f"{self.event_sink_database}.taxonomy",
+                os.path.join(s3_location, "taxonomies.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.tag",
+                os.path.join(s3_location, "tags.csv.gz"),
+            ),
+            (
+                f"{self.event_sink_database}.object_tag",
+                os.path.join(s3_location, "object_tags.csv.gz"),
+            ),
+
+            (
+                f"{self.database}.{self.event_raw_table_name}",
+                os.path.join(s3_location, "xapi.csv.gz"),
+            ),
         )
 
         for table_name, file_path in loads:
@@ -287,9 +387,9 @@ class XAPILakeClickhouse:
         Execute a ClickHouse query and print the elapsed client time.
         """
         print(query_name)
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         result = self.client.query(query)
-        end_time = datetime.utcnow()
+        end_time = datetime.now(UTC)
         print(result.summary)
         print(result.result_set[:10])
         print("Completed in: " + str((end_time - start_time).total_seconds()))
