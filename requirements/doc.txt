@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.35.24
+boto3==1.35.29
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.35.24
+botocore==1.35.29
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -71,7 +71,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.0.1
     # via keyring
-jaraco-functools==4.0.2
+jaraco-functools==4.1.0
     # via keyring
 jeepney==0.8.0
     # via
@@ -126,7 +126,7 @@ pygments==2.18.0
     #   readme-renderer
     #   rich
     #   sphinx
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via build
 pytest==8.3.3
     # via
