@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.35.34
+boto3==1.35.39
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.35.34
+botocore==1.35.39
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -18,7 +18,7 @@ certifi==2024.8.30
     #   -r requirements/base.txt
     #   clickhouse-connect
     #   requests
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via
     #   -r requirements/base.txt
     #   requests
@@ -26,7 +26,7 @@ click==8.1.7
     # via -r requirements/base.txt
 clickhouse-connect==0.6.23
     # via -r requirements/base.txt
-coverage[toml]==7.6.1
+coverage[toml]==7.6.3
     # via pytest-cov
 idna==3.10
     # via
@@ -63,7 +63,7 @@ pyyaml==6.0.2
     # via -r requirements/base.txt
 requests==2.32.3
     # via -r requirements/base.txt
-s3transfer==0.10.2
+s3transfer==0.10.3
     # via
     #   -r requirements/base.txt
     #   boto3

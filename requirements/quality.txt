@@ -10,11 +10,11 @@ astroid==3.3.5
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.35.34
+boto3==1.35.39
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.35.34
+botocore==1.35.39
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -26,7 +26,7 @@ certifi==2024.8.30
     #   requests
 cffi==1.17.1
     # via cryptography
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via
     #   -r requirements/test.txt
     #   requests
@@ -42,7 +42,7 @@ clickhouse-connect==0.6.23
     # via -r requirements/test.txt
 code-annotations==1.8.0
     # via edx-lint
-coverage[toml]==7.6.1
+coverage[toml]==7.6.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -95,7 +95,7 @@ lz4==4.3.3
     #   clickhouse-connect
 markdown-it-py==3.0.0
     # via rich
-markupsafe==2.1.5
+markupsafe==3.0.1
     # via jinja2
 mccabe==0.7.0
     # via pylint
@@ -139,7 +139,7 @@ pylint==3.3.1
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via edx-lint
-pylint-django==2.5.5
+pylint-django==2.6.1
     # via edx-lint
 pylint-plugin-utils==0.8.2
     # via
@@ -178,7 +178,7 @@ rfc3986==2.0.0
     # via twine
 rich==13.9.2
     # via twine
-s3transfer==0.10.2
+s3transfer==0.10.3
     # via
     #   -r requirements/test.txt
     #   boto3

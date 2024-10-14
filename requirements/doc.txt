@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.35.34
+boto3==1.35.39
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.35.34
+botocore==1.35.39
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -34,7 +34,7 @@ certifi==2024.8.30
     #   requests
 cffi==1.17.1
     # via cryptography
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via
     #   -r requirements/test.txt
     #   requests
@@ -42,7 +42,7 @@ click==8.1.7
     # via -r requirements/test.txt
 clickhouse-connect==0.6.23
     # via -r requirements/test.txt
-coverage[toml]==7.6.1
+coverage[toml]==7.6.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -92,7 +92,7 @@ lz4==4.3.3
     #   clickhouse-connect
 markdown-it-py==3.0.0
     # via rich
-markupsafe==2.1.5
+markupsafe==3.0.1
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
@@ -158,7 +158,7 @@ rfc3986==2.0.0
     # via twine
 rich==13.9.2
     # via twine
-s3transfer==0.10.2
+s3transfer==0.10.3
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -174,7 +174,7 @@ snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.6
     # via beautifulsoup4
-sphinx==8.0.2
+sphinx==8.1.3
     # via
     #   -r requirements/doc.in
     #   pydata-sphinx-theme
