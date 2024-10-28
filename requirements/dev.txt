@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.35.44
+boto3==1.35.49
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.35.44
+botocore==1.35.49
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -143,7 +143,7 @@ jmespath==1.0.1
     #   -r requirements/quality.txt
     #   boto3
     #   botocore
-keyring==25.4.1
+keyring==25.5.0
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -291,7 +291,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==13.9.2
+rich==13.9.3
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -326,7 +326,7 @@ tomlkit==0.13.2
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.23.0
+tox==4.23.2
     # via -r requirements/ci.txt
 twine==5.1.1
     # via -r requirements/quality.txt
