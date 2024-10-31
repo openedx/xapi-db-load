@@ -237,6 +237,7 @@ class XAPILakeCSV:
                     actor.user_id,
                     actor.user_id,
                     actor.name,
+                    actor.username,
                     f"{actor.username}@aspects.invalid",
                     actor.meta,
                     actor.courseware,
