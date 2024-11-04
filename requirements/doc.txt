@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.35.49
+boto3==1.35.54
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.35.49
+botocore==1.35.54
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -131,7 +131,7 @@ pytest==8.3.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-pytest-cov==5.0.0
+pytest-cov==6.0.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -155,7 +155,7 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.9.3
+rich==13.9.4
     # via twine
 s3transfer==0.10.3
     # via
