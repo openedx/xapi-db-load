@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.35.54
+boto3==1.35.57
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.35.54
+botocore==1.35.57
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -32,8 +32,6 @@ certifi==2024.8.30
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
-cffi==1.17.1
-    # via cryptography
 charset-normalizer==3.4.0
     # via
     #   -r requirements/test.txt
@@ -46,8 +44,6 @@ coverage[toml]==7.6.4
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==43.0.3
-    # via secretstorage
 docutils==0.21.2
     # via
     #   pydata-sphinx-theme
@@ -73,10 +69,6 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
-jeepney==0.8.0
-    # via
-    #   keyring
-    #   secretstorage
 jinja2==3.1.4
     # via sphinx
 jmespath==1.0.1
@@ -102,7 +94,7 @@ more-itertools==10.5.0
     #   jaraco-functools
 nh3==0.2.18
     # via readme-renderer
-packaging==24.1
+packaging==24.2
     # via
     #   -r requirements/test.txt
     #   build
@@ -114,8 +106,6 @@ pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
-pycparser==2.22
-    # via cffi
 pydata-sphinx-theme==0.16.0
     # via sphinx-book-theme
 pygments==2.18.0
@@ -161,8 +151,6 @@ s3transfer==0.10.3
     # via
     #   -r requirements/test.txt
     #   boto3
-secretstorage==3.3.3
-    # via keyring
 six==1.16.0
     # via
     #   -r requirements/test.txt
@@ -207,7 +195,7 @@ wrapt==1.16.0
     # via
     #   -r requirements/test.txt
     #   smart-open
-zipp==3.20.2
+zipp==3.21.0
     # via importlib-metadata
 zstandard==0.23.0
     # via

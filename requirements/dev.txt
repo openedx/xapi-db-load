@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.35.54
+boto3==1.35.57
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.35.54
+botocore==1.35.57
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -35,10 +35,6 @@ certifi==2024.8.30
     #   -r requirements/quality.txt
     #   clickhouse-connect
     #   requests
-cffi==1.17.1
-    # via
-    #   -r requirements/quality.txt
-    #   cryptography
 chardet==5.2.0
     # via
     #   -r requirements/ci.txt
@@ -74,10 +70,6 @@ coverage[toml]==7.6.4
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==43.0.3
-    # via
-    #   -r requirements/quality.txt
-    #   secretstorage
 diff-cover==9.2.0
     # via -r requirements/dev.in
 dill==0.3.9
@@ -128,11 +120,6 @@ jaraco-functools==4.1.0
     # via
     #   -r requirements/quality.txt
     #   keyring
-jeepney==0.8.0
-    # via
-    #   -r requirements/quality.txt
-    #   keyring
-    #   secretstorage
 jinja2==3.1.4
     # via
     #   -r requirements/quality.txt
@@ -176,7 +163,7 @@ nh3==0.2.18
     # via
     #   -r requirements/quality.txt
     #   readme-renderer
-packaging==24.1
+packaging==24.2
     # via
     #   -r requirements/ci.txt
     #   -r requirements/pip-tools.txt
@@ -211,10 +198,6 @@ pluggy==1.5.0
     #   tox
 pycodestyle==2.12.1
     # via -r requirements/quality.txt
-pycparser==2.22
-    # via
-    #   -r requirements/quality.txt
-    #   cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.txt
 pygments==2.18.0
@@ -299,10 +282,6 @@ s3transfer==0.10.3
     # via
     #   -r requirements/quality.txt
     #   boto3
-secretstorage==3.3.3
-    # via
-    #   -r requirements/quality.txt
-    #   keyring
 six==1.16.0
     # via
     #   -r requirements/quality.txt
@@ -341,7 +320,7 @@ virtualenv==20.27.1
     # via
     #   -r requirements/ci.txt
     #   tox
-wheel==0.44.0
+wheel==0.45.0
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools
@@ -349,7 +328,7 @@ wrapt==1.16.0
     # via
     #   -r requirements/quality.txt
     #   smart-open
-zipp==3.20.2
+zipp==3.21.0
     # via
     #   -r requirements/quality.txt
     #   importlib-metadata
