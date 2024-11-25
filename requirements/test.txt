@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.35.63
+boto3==1.35.68
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   smart-open
-botocore==1.35.63
+botocore==1.35.68
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   boto3
@@ -26,7 +26,7 @@ click==8.1.7
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
 clickhouse-connect==0.6.23
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
-coverage[toml]==7.6.7
+coverage[toml]==7.6.8
     # via pytest-cov
 idna==3.10
     # via
@@ -63,7 +63,7 @@ pyyaml==6.0.2
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
 requests==2.32.3
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
-s3transfer==0.10.3
+s3transfer==0.10.4
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   boto3
@@ -79,7 +79,7 @@ urllib3==2.2.3
     #   botocore
     #   clickhouse-connect
     #   requests
-wrapt==1.16.0
+wrapt==1.17.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   smart-open
