@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.35.68
+boto3==1.35.71
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   smart-open
-botocore==1.35.68
+botocore==1.35.71
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   boto3
@@ -47,7 +47,7 @@ packaging==24.2
     # via pytest
 pluggy==1.5.0
     # via pytest
-pytest==8.3.3
+pytest==8.3.4
     # via pytest-cov
 pytest-cov==6.0.0
     # via -r requirements/test.in
