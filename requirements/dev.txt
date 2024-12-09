@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-astroid==3.3.5
+astroid==3.3.6
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   pylint
@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   jaraco-context
-boto3==1.35.71
+boto3==1.35.76
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   smart-open
-botocore==1.35.71
+botocore==1.35.76
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   boto3
@@ -70,7 +70,7 @@ colorama==0.4.6
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
     #   tox
-coverage[toml]==7.6.8
+coverage[toml]==7.6.9
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   pytest-cov
@@ -191,7 +191,7 @@ pbr==6.1.0
     #   stevedore
 pip-tools==7.4.1
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
-pkginfo==1.11.2
+pkginfo==1.12.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   twine
@@ -303,7 +303,7 @@ secretstorage==3.3.3
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   keyring
-six==1.16.0
+six==1.17.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   edx-lint
