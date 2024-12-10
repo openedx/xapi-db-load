@@ -27,10 +27,19 @@ course_length_days: 120
 num_organizations: 3
 num_actors: 10
 
+# This replicates users updating their profiles several times, creating
+# more rows
+num_actor_profile_changes: 5
+
 # How many of each size course to create. The sum of these is the total number
 # of courses created for the test.
 num_course_sizes:
   small: 1
+
+# How many times each course will be "published", this creates a more realistic
+# distribution of course blocks where each course can be published dozens or
+# hundreds of times while it is being developed.
+num_course_publishes: 10
 
 course_size_makeup:
   small:

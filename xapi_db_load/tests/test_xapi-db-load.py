@@ -52,8 +52,9 @@ def test_csv(tmpdir):
 
         expected_enrollments = test_config["num_course_sizes"]["small"] * makeup["actors"]
         expected_statements = test_config["num_batches"] * test_config["batch_size"] + expected_enrollments
-        expected_actors = test_config["num_actors"]
-        expected_courses = test_config["num_course_sizes"]["small"]
+        expected_profiles = test_config["num_actors"] * test_config["num_actor_profile_changes"]
+        expected_external_ids = test_config["num_actors"]
+        expected_courses = test_config["num_course_sizes"]["small"] * test_config["num_course_publishes"]
 
         # We want all the configured block types, which are currently everything in
         # the config except the actor and forum post count
@@ -66,8 +67,8 @@ def test_csv(tmpdir):
             ("xapi", expected_statements),
             ("courses", expected_courses),
             ("blocks", expected_blocks),
-            ("external_ids", expected_actors),
-            ("user_profiles", expected_actors)
+            ("external_ids", expected_external_ids),
+            ("user_profiles", expected_profiles)
         ):
             with gzip.open(os.path.join(test_config["log_dir"], f"{prefix}.csv.gz"), "r") as csv:
                 assert len(csv.readlines()) == expected, f"Bad row count in csv file {prefix}.csv.gz."

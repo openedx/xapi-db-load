@@ -60,7 +60,7 @@ class XAPILakeClickhouse:
         """
         res = self.client.query("SELECT timezone(), now()")
         # Always flush our output on these so we can follow the logs.
-        print(res.result_set, flush=True)
+        print(f"   Finished at {res.result_set[0][1].isoformat()}({res.result_set[0][0]})", flush=True)
 
     def print_row_counts(self):
         """
@@ -94,86 +94,88 @@ class XAPILakeClickhouse:
 
         self._insert_sql_with_retry(sql)
 
-    def insert_event_sink_course_data(self, courses):
+    def insert_event_sink_course_data(self, courses, num_course_publishes):
         """
         Insert the course overview data to ClickHouse.
 
         This allows us to test join performance to get course and block names.
         """
-        out_data = []
-        for course in courses:
-            c = course.serialize_course_data_for_event_sink()
-            dump_id = str(uuid.uuid4())
-            dump_time = datetime.now(UTC)
-            try:
-                out = f"""(
-                    '{c['org']}',
-                    '{c['course_key']}',
-                    '{c['display_name']}',
-                    '{c['course_start']}',
-                    '{c['course_end']}',
-                    '{c['enrollment_start']}',
-                    '{c['enrollment_end']}',
-                    '{c['self_paced']}',
-                    '{c['course_data_json']}',
-                    '{c['created']}',
-                    '{c['modified']}',
-                    '{dump_id}',
-                    '{dump_time}'
-                )"""
-                out_data.append(out)
-            except Exception:
-                print(c)
-                raise
-
-        self._insert_list_sql_retry(out_data, "course_overviews")
-
-    def insert_event_sink_block_data(self, courses):
-        """
-        Insert the block data to ClickHouse.
-
-        This allows us to test join performance to get course and block names.
-        """
-        for course in courses:
+        for i in range(num_course_publishes):
+            print(f"   Publish {i} - {datetime.now().isoformat()}")
             out_data = []
-            blocks, object_tags = course.serialize_block_data_for_event_sink()
-            dump_id = str(uuid.uuid4())
-            dump_time = datetime.now(UTC)
-            for b in blocks:
+            for course in courses:
+                c = course.serialize_course_data_for_event_sink()
+                dump_id = str(uuid.uuid4())
+                dump_time = datetime.now(UTC)
                 try:
                     out = f"""(
-                        '{b['org']}',
-                        '{b['course_key']}',
-                        '{b['location']}',
-                        '{b['display_name']}',
-                        '{b['xblock_data_json']}',
-                        '{b['order']}',
-                        '{b['edited_on']}',
+                        '{c['org']}',
+                        '{c['course_key']}',
+                        '{c['display_name']}',
+                        '{c['course_start']}',
+                        '{c['course_end']}',
+                        '{c['enrollment_start']}',
+                        '{c['enrollment_end']}',
+                        '{c['self_paced']}',
+                        '{c['course_data_json']}',
+                        '{c['created']}',
+                        '{c['modified']}',
                         '{dump_id}',
                         '{dump_time}'
                     )"""
                     out_data.append(out)
                 except Exception:
-                    print(b)
+                    print(c)
                     raise
 
-            self._insert_list_sql_retry(out_data, "course_blocks")
+            self._insert_list_sql_retry(out_data, "course_overviews")
 
-            # Now insert all the "object tags" for these blocks
-            self.insert_event_sink_object_tag_data(object_tags)
+    def insert_event_sink_block_data(self, courses, num_course_publishes):
+        """
+        Insert the block data to ClickHouse.
 
-    def insert_event_sink_actor_data(self, actors):
+        This allows us to test join performance to get course and block names.
+        """
+        for i in range(num_course_publishes):
+            print(f"   Publish {i} - {datetime.now().isoformat()}")
+            for course in courses:
+                out_data = []
+                blocks, object_tags = course.serialize_block_data_for_event_sink()
+                dump_id = str(uuid.uuid4())
+                dump_time = datetime.now(UTC)
+                for b in blocks:
+                    try:
+                        out = f"""(
+                            '{b['org']}',
+                            '{b['course_key']}',
+                            '{b['location']}',
+                            '{b['display_name']}',
+                            '{b['xblock_data_json']}',
+                            '{b['order']}',
+                            '{b['edited_on']}',
+                            '{dump_id}',
+                            '{dump_time}'
+                        )"""
+                        out_data.append(out)
+                    except Exception:
+                        print(b)
+                        raise
+
+                self._insert_list_sql_retry(out_data, "course_blocks")
+
+                # Now insert all the "object tags" for these blocks
+                self.insert_event_sink_object_tag_data(object_tags)
+
+    def insert_event_sink_actor_data(self, actors, num_actor_profile_changes):
         """
         Insert the user_profile and external_id data to ClickHouse.
 
         This allows us to test PII reports.
         """
         out_external_id = []
-        out_profile = []
         for actor in actors:
             dump_id = str(uuid.uuid4())
             dump_time = datetime.now(UTC)
-
             id_row = f"""(
                 '{actor.id}',
                 'xapi',
@@ -184,37 +186,46 @@ class XAPILakeClickhouse:
             )"""
             out_external_id.append(id_row)
 
-            # This first column is usually the MySQL row pk, we just
-            # user this for now to have a unique id.
-            profile_row = f"""(
-                '{actor.user_id}',
-                '{actor.user_id}',
-                '{actor.name}',
-                '{actor.username}',
-                '{actor.username}@aspects.invalid',
-                '{actor.meta}',
-                '{actor.courseware}',
-                '{actor.language}',
-                '{actor.location}',
-                '{actor.year_of_birth}',
-                '{actor.gender}',
-                '{actor.level_of_education}',
-                '{actor.mailing_address}',
-                '{actor.city}',
-                '{actor.country}',
-                '{actor.state}',
-                '{actor.goals}',
-                '{actor.bio}',
-                '{actor.profile_image_uploaded_at}',
-                '{actor.phone_number}',
-                '{dump_id}',
-                '{dump_time}'
-            )"""
-
-            out_profile.append(profile_row)
-
         self._insert_list_sql_retry(out_external_id, "external_id")
-        self._insert_list_sql_retry(out_profile, "user_profile")
+
+        out_profile = []
+        for i in range(num_actor_profile_changes):
+            print(f"   Actor save round {i} - {datetime.now().isoformat()}")
+
+            for actor in actors:
+                dump_id = str(uuid.uuid4())
+                dump_time = datetime.now(UTC)
+
+                # This first column is usually the MySQL row pk, we just
+                # user this for now to have a unique id.
+                profile_row = f"""(
+                    '{actor.user_id}',
+                    '{actor.user_id}',
+                    '{actor.name}',
+                    '{actor.username}',
+                    '{actor.username}@aspects.invalid',
+                    '{actor.meta}',
+                    '{actor.courseware}',
+                    '{actor.language}',
+                    '{actor.location}',
+                    '{actor.year_of_birth}',
+                    '{actor.gender}',
+                    '{actor.level_of_education}',
+                    '{actor.mailing_address}',
+                    '{actor.city}',
+                    '{actor.country}',
+                    '{actor.state}',
+                    '{actor.goals}',
+                    '{actor.bio}',
+                    '{actor.profile_image_uploaded_at}',
+                    '{actor.phone_number}',
+                    '{dump_id}',
+                    '{dump_time}'
+                )"""
+
+                out_profile.append(profile_row)
+
+            self._insert_list_sql_retry(out_profile, "user_profile")
 
     def insert_event_sink_taxonomies(self, taxonomies):
         """
