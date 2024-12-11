@@ -46,15 +46,15 @@ def load_db(config_file):
     backend = get_backend_from_config(config)
     generate_events(config, backend)
 
-    try_s3_load = "csv_load_from_s3_after" in config and config["csv_load_from_s3_after"]
+    try_s3_load = config.get("csv_load_from_s3_after")
 
-    if config["backend"] == "csv_file" and try_s3_load:
+    if try_s3_load:
         print("Attempting to load to ClickHouse from S3...")
+        # No matter what the configured backend is for event generation we need to
+        # use the clickhouse config for the load.
         config["backend"] = "clickhouse"
         ch_backend = get_backend_from_config(config)
         ch_backend.load_from_s3(config["s3_source_location"])
-    elif try_s3_load:
-        print("Backend is not 'csv_file', skipping load from S3.")
 
     print("Done.")
 
@@ -78,9 +78,8 @@ def load_db_from_s3(config_file):
     """
     config = get_config(config_file)
 
-    if "clickhouse" not in config["backend"]:
-        raise click.BadParameter("You must use a ClickHouse based backend to load from S3.")
-
+    # When loading from S3 we always need the clickhouse backend.
+    config["backend"] = "clickhouse"
     backend = get_backend_from_config(config)
     backend.load_from_s3(config["s3_source_location"])
 
