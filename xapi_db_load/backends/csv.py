@@ -24,6 +24,10 @@ class XAPILakeCSV:
             "xapi", self.output_destination
         )
 
+        self.object_tag_csv_handle, self.object_tag_csv_writer = self._get_csv_handle(
+            "object_tags", self.output_destination
+        )
+
         self.row_count = 0
 
     def _get_csv_handle(self, file_type, output_destination):
@@ -112,11 +116,10 @@ class XAPILakeCSV:
             "blocks", self.output_destination
         )
 
-        for i in range(num_course_publishes):
-            print(f"   Publish {i} - {datetime.now().isoformat()}")
+        for course in courses:
+            blocks, object_tags = course.serialize_block_data_for_event_sink()
 
-            for course in courses:
-                blocks, object_tags = course.serialize_block_data_for_event_sink()
+            for i in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for b in blocks:
@@ -184,10 +187,10 @@ class XAPILakeCSV:
     def insert_event_sink_object_tag_data(self, object_tags):
         """
         Write the object_tag data.
+
+        Don't open and close the file handle here as we don't want
+        to overwrite the file every time this gets called!
         """
-        object_tag_csv_handle, object_tag_csv_writer = self._get_csv_handle(
-            "object_tags", self.output_destination
-        )
         dump_id = str(uuid.uuid4())
         dump_time = datetime.now(UTC)
 
@@ -195,7 +198,7 @@ class XAPILakeCSV:
 
         for obj_tag in object_tags:
             row_id += 1
-            object_tag_csv_writer.writerow(
+            self.object_tag_csv_writer.writerow(
                 (
                     row_id,
                     obj_tag["object_id"],
@@ -208,8 +211,6 @@ class XAPILakeCSV:
                     dump_time,
                 )
             )
-
-        object_tag_csv_handle.close()
 
     def insert_event_sink_actor_data(self, actors, num_actor_profile_changes):
         """
@@ -281,6 +282,7 @@ class XAPILakeCSV:
         Close file handles so that they can be readable on import.
         """
         self.xapi_csv_handle.close()
+        self.object_tag_csv_handle.close()
 
     def do_queries(self, event_generator):
         """

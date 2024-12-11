@@ -136,11 +136,11 @@ class XAPILakeClickhouse:
 
         This allows us to test join performance to get course and block names.
         """
-        for i in range(num_course_publishes):
-            print(f"   Publish {i} - {datetime.now().isoformat()}")
-            for course in courses:
-                out_data = []
-                blocks, object_tags = course.serialize_block_data_for_event_sink()
+        for course in courses:
+            out_data = []
+            blocks, object_tags = course.serialize_block_data_for_event_sink()
+
+            for i in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for b in blocks:
@@ -162,8 +162,6 @@ class XAPILakeClickhouse:
                         raise
 
                 self._insert_list_sql_retry(out_data, "course_blocks")
-
-                # Now insert all the "object tags" for these blocks
                 self.insert_event_sink_object_tag_data(object_tags)
 
     def insert_event_sink_actor_data(self, actors, num_actor_profile_changes):
