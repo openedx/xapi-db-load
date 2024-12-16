@@ -10,16 +10,16 @@ astroid==3.3.6
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.35.76
+boto3==1.35.81
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   smart-open
-botocore==1.35.76
+botocore==1.35.81
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   boto3
     #   s3transfer
-certifi==2024.8.30
+certifi==2024.12.14
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   clickhouse-connect
@@ -40,7 +40,7 @@ click-log==0.4.0
     # via edx-lint
 clickhouse-connect==0.6.23
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
-code-annotations==2.0.0
+code-annotations==2.1.0
     # via edx-lint
 coverage[toml]==7.6.9
     # via

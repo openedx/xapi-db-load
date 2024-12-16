@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   jaraco-context
-boto3==1.35.76
+boto3==1.35.81
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   smart-open
-botocore==1.35.76
+botocore==1.35.81
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   boto3
@@ -30,7 +30,7 @@ cachetools==5.5.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
     #   tox
-certifi==2024.8.30
+certifi==2024.12.14
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   clickhouse-connect
@@ -62,7 +62,7 @@ click-log==0.4.0
     #   edx-lint
 clickhouse-connect==0.6.23
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-code-annotations==2.0.0
+code-annotations==2.1.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   edx-lint
@@ -78,7 +78,7 @@ cryptography==44.0.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   secretstorage
-diff-cover==9.2.0
+diff-cover==9.2.1
     # via -r requirements/dev.in
 dill==0.3.9
     # via
