@@ -34,27 +34,27 @@ from xapi_db_load.xapi.xapi_video import (
 # events that should be generated for each. Should total roughly 100 to keep
 # percentages simple.
 EVENT_LOAD = (
-    (Registered, 1.138),
-    (Unregistered, 0.146),
-    (CompletedVideo, 5.124),
+    (CourseGradeCalculated, 20.0),
+    (PlayedVideo, 14.019),
+    (NextNavigation, 12.467),
+    (BrowserProblemCheck, 9.9),
+    (ServerProblemCheck, 9.5),
+    (PausedVideo, 8.912),
     (LoadedVideo, 7.125),
-    (PlayedVideo, 24.019),
-    (PausedVideo, 14.912),
+    (CompletedVideo, 5.124),
+    (PositionChangedVideo, 5.105),
     (StoppedVideo, 3.671),
-    (PositionChangedVideo, 12.105),
-    (BrowserProblemCheck, 8.226),
-    (ServerProblemCheck, 8.593),
-    (NextNavigation, 6.05),
-    (PreviousNavigation, 0.811),
-    (TabSelectedNavigation, 0.001),
-    (LinkClicked, 0.001),
-    (FirstTimePassed, 0.031),
-    (ShowHint, 0.076),
     (ShowAnswer, 1.373),
+    (Registered, 1.138),
+    (PreviousNavigation, 0.811),
+    (PostCreated, 0.5),
+    (Unregistered, 0.146),
+    (ShowHint, 0.076),
     (TranscriptEnabled, 0.05),
     (TranscriptDisabled, 0.05),
-    (CourseGradeCalculated, 1.5),
-    (PostCreated, 0.5),
+    (FirstTimePassed, 0.031),
+    (TabSelectedNavigation, 0.001),
+    (LinkClicked, 0.001),
 )
 
 EVENTS = [i[0] for i in EVENT_LOAD]
@@ -257,19 +257,18 @@ def generate_events(config, backend):
     with LogTimer("setup", "full_setup"):
         with LogTimer("setup", "event_generator"):
             event_generator = EventGenerator(config)
-            event_generator.dump_courses()
 
     print("Inserting course metadata...")
     with LogTimer("insert_metadata", "course"):
-        backend.insert_event_sink_course_data(event_generator.courses)
+        backend.insert_event_sink_course_data(event_generator.courses, config["num_course_publishes"])
 
     print("Inserting block metadata...")
     with LogTimer("insert_metadata", "blocks"):
-        backend.insert_event_sink_block_data(event_generator.courses)
+        backend.insert_event_sink_block_data(event_generator.courses, config["num_course_publishes"])
 
     print("Inserting user data...")
     with LogTimer("insert_metadata", "user_data"):
-        backend.insert_event_sink_actor_data(event_generator.actors)
+        backend.insert_event_sink_actor_data(event_generator.actors, config["num_actor_profile_changes"])
 
     print("Inserting taxonomy data...")
     with LogTimer("insert_metadata", "taxonomy"):

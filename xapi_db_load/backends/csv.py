@@ -24,6 +24,10 @@ class XAPILakeCSV:
             "xapi", self.output_destination
         )
 
+        self.object_tag_csv_handle, self.object_tag_csv_writer = self._get_csv_handle(
+            "object_tags", self.output_destination
+        )
+
         self.row_count = 0
 
     def _get_csv_handle(self, file_type, output_destination):
@@ -69,7 +73,7 @@ class XAPILakeCSV:
             self.xapi_csv_writer.writerow(out)
         self.row_count += len(events)
 
-    def insert_event_sink_course_data(self, courses):
+    def insert_event_sink_course_data(self, courses, num_course_publishes):
         """
         Write the course overview data.
         """
@@ -77,31 +81,34 @@ class XAPILakeCSV:
             "courses", self.output_destination
         )
 
-        for course in courses:
-            c = course.serialize_course_data_for_event_sink()
-            dump_id = str(uuid.uuid4())
-            dump_time = datetime.now(UTC)
-            course_csv_writer.writerow(
-                (
-                    c["org"],
-                    c["course_key"],
-                    c["display_name"],
-                    c["course_start"],
-                    c["course_end"],
-                    c["enrollment_start"],
-                    c["enrollment_end"],
-                    c["self_paced"],
-                    c["course_data_json"],
-                    c["created"],
-                    c["modified"],
-                    dump_id,
-                    dump_time,
+        for i in range(num_course_publishes):
+            print(f"   Publish {i} - {datetime.now().isoformat()}")
+
+            for course in courses:
+                c = course.serialize_course_data_for_event_sink()
+                dump_id = str(uuid.uuid4())
+                dump_time = datetime.now(UTC)
+                course_csv_writer.writerow(
+                    (
+                        c["org"],
+                        c["course_key"],
+                        c["display_name"],
+                        c["course_start"],
+                        c["course_end"],
+                        c["enrollment_start"],
+                        c["enrollment_end"],
+                        c["self_paced"],
+                        c["course_data_json"],
+                        c["created"],
+                        c["modified"],
+                        dump_id,
+                        dump_time,
+                    )
                 )
-            )
 
         course_csv_handle.close()
 
-    def insert_event_sink_block_data(self, courses):
+    def insert_event_sink_block_data(self, courses, num_course_publishes):
         """
         Write out the block data file.
         """
@@ -111,25 +118,27 @@ class XAPILakeCSV:
 
         for course in courses:
             blocks, object_tags = course.serialize_block_data_for_event_sink()
-            dump_id = str(uuid.uuid4())
-            dump_time = datetime.now(UTC)
-            for b in blocks:
-                blocks_csv_writer.writerow(
-                    (
-                        b["org"],
-                        b["course_key"],
-                        b["location"],
-                        b["display_name"],
-                        b["xblock_data_json"],
-                        b["order"],
-                        b["edited_on"],
-                        dump_id,
-                        dump_time,
-                    )
-                )
 
-            # Now insert all the "object tags" for these blocks
-            self.insert_event_sink_object_tag_data(object_tags)
+            for i in range(num_course_publishes):
+                dump_id = str(uuid.uuid4())
+                dump_time = datetime.now(UTC)
+                for b in blocks:
+                    blocks_csv_writer.writerow(
+                        (
+                            b["org"],
+                            b["course_key"],
+                            b["location"],
+                            b["display_name"],
+                            b["xblock_data_json"],
+                            b["order"],
+                            b["edited_on"],
+                            dump_id,
+                            dump_time,
+                        )
+                    )
+
+                # Now insert all the "object tags" for these blocks
+                self.insert_event_sink_object_tag_data(object_tags)
 
         blocks_csv_handle.close()
 
@@ -178,10 +187,10 @@ class XAPILakeCSV:
     def insert_event_sink_object_tag_data(self, object_tags):
         """
         Write the object_tag data.
+
+        Don't open and close the file handle here as we don't want
+        to overwrite the file every time this gets called!
         """
-        object_tag_csv_handle, object_tag_csv_writer = self._get_csv_handle(
-            "object_tags", self.output_destination
-        )
         dump_id = str(uuid.uuid4())
         dump_time = datetime.now(UTC)
 
@@ -189,7 +198,7 @@ class XAPILakeCSV:
 
         for obj_tag in object_tags:
             row_id += 1
-            object_tag_csv_writer.writerow(
+            self.object_tag_csv_writer.writerow(
                 (
                     row_id,
                     obj_tag["object_id"],
@@ -203,18 +212,14 @@ class XAPILakeCSV:
                 )
             )
 
-        object_tag_csv_handle.close()
-
-    def insert_event_sink_actor_data(self, actors):
+    def insert_event_sink_actor_data(self, actors, num_actor_profile_changes):
         """
         Write out the user profile data and external id files.
         """
-        profile_csv_handle, profile_csv_writer = self._get_csv_handle(
-            "user_profiles", self.output_destination
-        )
         external_id_csv_handle, external_id_csv_writer = self._get_csv_handle(
             "external_ids", self.output_destination
         )
+
         for actor in actors:
             dump_id = str(uuid.uuid4())
             dump_time = datetime.now(UTC)
@@ -230,43 +235,54 @@ class XAPILakeCSV:
                 )
             )
 
-            profile_csv_writer.writerow(
-                (
-                    # This first column is usually the MySQL row pk, we just
-                    # user this for now to have a unique id.
-                    actor.user_id,
-                    actor.user_id,
-                    actor.name,
-                    actor.username,
-                    f"{actor.username}@aspects.invalid",
-                    actor.meta,
-                    actor.courseware,
-                    actor.language,
-                    actor.location,
-                    actor.year_of_birth,
-                    actor.gender,
-                    actor.level_of_education,
-                    actor.mailing_address,
-                    actor.city,
-                    actor.country,
-                    actor.state,
-                    actor.goals,
-                    actor.bio,
-                    actor.profile_image_uploaded_at,
-                    actor.phone_number,
-                    dump_id,
-                    dump_time,
+        external_id_csv_handle.close()
+
+        profile_csv_handle, profile_csv_writer = self._get_csv_handle(
+            "user_profiles", self.output_destination
+        )
+        for i in range(num_actor_profile_changes):
+            print(f"   Actor save round {i} - {datetime.now().isoformat()}")
+            for actor in actors:
+                dump_id = str(uuid.uuid4())
+                dump_time = datetime.now(UTC)
+
+                profile_csv_writer.writerow(
+                    (
+                        # This first column is usually the MySQL row pk, we just
+                        # user this for now to have a unique id.
+                        actor.user_id,
+                        actor.user_id,
+                        actor.name,
+                        actor.username,
+                        f"{actor.username}@aspects.invalid",
+                        actor.meta,
+                        actor.courseware,
+                        actor.language,
+                        actor.location,
+                        actor.year_of_birth,
+                        actor.gender,
+                        actor.level_of_education,
+                        actor.mailing_address,
+                        actor.city,
+                        actor.country,
+                        actor.state,
+                        actor.goals,
+                        actor.bio,
+                        actor.profile_image_uploaded_at,
+                        actor.phone_number,
+                        dump_id,
+                        dump_time,
+                    )
                 )
-            )
 
         profile_csv_handle.close()
-        external_id_csv_handle.close()
 
     def finalize(self):
         """
         Close file handles so that they can be readable on import.
         """
         self.xapi_csv_handle.close()
+        self.object_tag_csv_handle.close()
 
     def do_queries(self, event_generator):
         """
