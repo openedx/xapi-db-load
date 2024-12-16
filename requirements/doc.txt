@@ -16,18 +16,18 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.35.76
+boto3==1.35.81
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   smart-open
-botocore==1.35.76
+botocore==1.35.81
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   boto3
     #   s3transfer
 build==1.2.2.post1
     # via -r requirements/doc.in
-certifi==2024.8.30
+certifi==2024.12.14
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   clickhouse-connect
