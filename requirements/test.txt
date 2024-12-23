@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.35.81
+boto3==1.35.86
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   smart-open
-botocore==1.35.81
+botocore==1.35.86
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   boto3
@@ -22,7 +22,7 @@ charset-normalizer==3.4.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   requests
-click==8.1.7
+click==8.1.8
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
 clickhouse-connect==0.6.23
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
@@ -71,9 +71,9 @@ six==1.17.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   python-dateutil
-smart-open[s3]==7.0.5
+smart-open[s3]==7.1.0
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
-urllib3==2.2.3
+urllib3==2.3.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   botocore

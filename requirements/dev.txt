@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-astroid==3.3.6
+astroid==3.3.7
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   pylint
@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   jaraco-context
-boto3==1.35.81
+boto3==1.35.86
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   smart-open
-botocore==1.35.81
+botocore==1.35.86
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   boto3
@@ -48,7 +48,7 @@ charset-normalizer==3.4.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   requests
-click==8.1.7
+click==8.1.8
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
@@ -132,7 +132,7 @@ jeepney==0.8.0
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   keyring
     #   secretstorage
-jinja2==3.1.4
+jinja2==3.1.5
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   code-annotations
@@ -171,7 +171,7 @@ more-itertools==10.5.0
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.2.19
+nh3==0.2.20
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   readme-renderer
@@ -308,7 +308,7 @@ six==1.17.0
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   edx-lint
     #   python-dateutil
-smart-open[s3]==7.0.5
+smart-open[s3]==7.1.0
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
 snowballstemmer==2.2.0
     # via
@@ -330,7 +330,7 @@ tox==4.23.2
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
 twine==6.0.1
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-urllib3==2.2.3
+urllib3==2.3.0
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
     #   botocore
