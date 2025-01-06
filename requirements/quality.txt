@@ -10,11 +10,11 @@ astroid==3.3.8
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.35.90
+boto3==1.35.92
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   smart-open
-botocore==1.35.90
+botocore==1.35.92
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   boto3
@@ -126,7 +126,7 @@ pycparser==2.22
     # via cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
-pygments==2.18.0
+pygments==2.19.0
     # via
     #   readme-renderer
     #   rich
