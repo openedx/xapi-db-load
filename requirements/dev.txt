@@ -6,180 +6,167 @@
 #
 astroid==3.3.8
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pylint
     #   pylint-celery
 backports-tarfile==1.2.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.35.92
+boto3==1.35.97
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   smart-open
-botocore==1.35.92
+botocore==1.35.97
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   boto3
     #   s3transfer
 build==1.2.2.post1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
+    #   -r requirements/pip-tools.txt
     #   pip-tools
 cachetools==5.5.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    #   -r requirements/ci.txt
     #   tox
 certifi==2024.12.14
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   clickhouse-connect
     #   requests
-cffi==1.17.1
-    # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-    #   cryptography
 chardet==5.2.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    #   -r requirements/ci.txt
     #   diff-cover
     #   tox
 charset-normalizer==3.4.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   requests
 click==8.1.8
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/pip-tools.txt
+    #   -r requirements/quality.txt
     #   click-log
     #   code-annotations
     #   edx-lint
     #   pip-tools
 click-log==0.4.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   edx-lint
 clickhouse-connect==0.6.23
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    # via -r requirements/quality.txt
 code-annotations==2.1.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   edx-lint
 colorama==0.4.6
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    #   -r requirements/ci.txt
     #   tox
 coverage[toml]==7.6.10
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==44.0.0
-    # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-    #   secretstorage
 diff-cover==9.2.1
     # via -r requirements/dev.in
 dill==0.3.9
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pylint
 distlib==0.3.9
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    #   -r requirements/ci.txt
     #   virtualenv
 docutils==0.21.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   readme-renderer
 edx-lint==5.4.1
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    # via -r requirements/quality.txt
 filelock==3.16.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    #   -r requirements/ci.txt
     #   tox
     #   virtualenv
 idna==3.10
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   requests
 importlib-metadata==8.5.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   keyring
 iniconfig==2.0.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pytest
 isort==5.13.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pylint
 jaraco-classes==3.4.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   keyring
 jaraco-context==6.0.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   keyring
 jaraco-functools==4.1.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   keyring
-jeepney==0.8.0
-    # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-    #   keyring
-    #   secretstorage
 jinja2==3.1.5
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   code-annotations
     #   diff-cover
 jmespath==1.0.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   boto3
     #   botocore
 keyring==25.6.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   twine
 lz4==4.3.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   clickhouse-connect
 markdown-it-py==3.0.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   rich
 markupsafe==3.0.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   jinja2
 mccabe==0.7.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pylint
 mdurl==0.1.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   markdown-it-py
 more-itertools==10.5.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   jaraco-classes
     #   jaraco-functools
 nh3==0.2.20
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   readme-renderer
 packaging==24.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/ci.txt
+    #   -r requirements/pip-tools.txt
+    #   -r requirements/quality.txt
     #   build
     #   pyproject-api
     #   pytest
@@ -187,175 +174,168 @@ packaging==24.2
     #   twine
 pbr==6.1.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   stevedore
 pip-tools==7.4.1
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
+    # via -r requirements/pip-tools.txt
 pkginfo==1.12.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   twine
 platformdirs==4.3.6
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/ci.txt
+    #   -r requirements/quality.txt
     #   pylint
     #   tox
     #   virtualenv
 pluggy==1.5.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/ci.txt
+    #   -r requirements/quality.txt
     #   diff-cover
     #   pytest
     #   tox
 pycodestyle==2.12.1
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-pycparser==2.22
-    # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-    #   cffi
+    # via -r requirements/quality.txt
 pydocstyle==6.3.0
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-pygments==2.19.0
+    # via -r requirements/quality.txt
+pygments==2.19.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   diff-cover
     #   readme-renderer
     #   rich
 pylint==3.3.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   edx-lint
     #   pylint-celery
     #   pylint-django
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   edx-lint
 pylint-django==2.6.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   edx-lint
 pylint-plugin-utils==0.8.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pylint-celery
     #   pylint-django
 pyproject-api==1.8.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    #   -r requirements/ci.txt
     #   tox
 pyproject-hooks==1.2.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
+    #   -r requirements/pip-tools.txt
     #   build
     #   pip-tools
 pytest==8.3.4
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pytest-cov
 pytest-cov==6.0.0
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    # via -r requirements/quality.txt
 python-dateutil==2.9.0.post0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   botocore
 python-slugify==8.0.4
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   code-annotations
 pytz==2024.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   clickhouse-connect
 pyyaml==6.0.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   code-annotations
 readme-renderer==44.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   twine
 requests==2.32.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   twine
 rfc3986==2.0.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   twine
 rich==13.9.4
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   twine
 s3transfer==0.10.4
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   boto3
-secretstorage==3.3.3
-    # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-    #   keyring
 six==1.17.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   edx-lint
     #   python-dateutil
 smart-open[s3]==7.1.0
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    # via -r requirements/quality.txt
 snowballstemmer==2.2.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pydocstyle
 stevedore==5.4.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   code-annotations
 text-unidecode==1.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   python-slugify
 tomlkit==0.13.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   pylint
 tox==4.23.2
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    # via -r requirements/ci.txt
 twine==6.0.1
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
-urllib3==2.3.0
+    # via -r requirements/quality.txt
+urllib3==2.2.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   -r requirements/quality.txt
     #   botocore
     #   clickhouse-connect
     #   requests
     #   twine
 virtualenv==20.28.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/ci.txt
+    #   -r requirements/ci.txt
     #   tox
 wheel==0.45.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/pip-tools.txt
+    #   -r requirements/pip-tools.txt
     #   pip-tools
-wrapt==1.17.0
+wrapt==1.17.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   smart-open
 zipp==3.21.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   importlib-metadata
 zstandard==0.23.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/quality.txt
+    #   -r requirements/quality.txt
     #   clickhouse-connect
 
 # The following packages are considered to be unsafe in a requirements file:
