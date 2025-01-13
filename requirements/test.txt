@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.35.92
+boto3==1.35.97
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   smart-open
-botocore==1.35.92
+botocore==1.35.97
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   boto3
@@ -73,13 +73,14 @@ six==1.17.0
     #   python-dateutil
 smart-open[s3]==7.1.0
     # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
-urllib3==2.3.0
+urllib3==2.2.3
     # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   botocore
     #   clickhouse-connect
     #   requests
-wrapt==1.17.0
+wrapt==1.17.1
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
     #   smart-open

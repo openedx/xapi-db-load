@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.35.92
+boto3==1.35.97
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   smart-open
-botocore==1.35.92
+botocore==1.35.97
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   boto3
@@ -117,7 +117,7 @@ pycparser==2.22
     # via cffi
 pydata-sphinx-theme==0.16.1
     # via sphinx-book-theme
-pygments==2.19.0
+pygments==2.19.1
     # via
     #   accessible-pygments
     #   pydata-sphinx-theme
@@ -195,14 +195,15 @@ twine==6.0.1
     # via -r requirements/doc.in
 typing-extensions==4.12.2
     # via pydata-sphinx-theme
-urllib3==2.3.0
+urllib3==2.2.3
     # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   botocore
     #   clickhouse-connect
     #   requests
     #   twine
-wrapt==1.17.0
+wrapt==1.17.1
     # via
     #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
     #   smart-open
