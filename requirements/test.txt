@@ -6,42 +6,42 @@
 #
 boto3==1.35.97
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   smart-open
 botocore==1.35.97
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   boto3
     #   s3transfer
 certifi==2024.12.14
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   clickhouse-connect
     #   requests
 charset-normalizer==3.4.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   requests
 click==8.1.8
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    # via -r requirements/base.txt
 clickhouse-connect==0.6.23
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    # via -r requirements/base.txt
 coverage[toml]==7.6.10
     # via pytest-cov
 idna==3.10
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   requests
 iniconfig==2.0.0
     # via pytest
 jmespath==1.0.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   boto3
     #   botocore
 lz4==4.3.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   clickhouse-connect
 packaging==24.2
     # via pytest
@@ -53,38 +53,38 @@ pytest-cov==6.0.0
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   botocore
 pytz==2024.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   clickhouse-connect
 pyyaml==6.0.2
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    # via -r requirements/base.txt
 requests==2.32.3
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    # via -r requirements/base.txt
 s3transfer==0.10.4
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   boto3
 six==1.17.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   python-dateutil
 smart-open[s3]==7.1.0
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    # via -r requirements/base.txt
 urllib3==2.2.3
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   botocore
     #   clickhouse-connect
     #   requests
 wrapt==1.17.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   smart-open
 zstandard==0.23.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/base.txt
+    #   -r requirements/base.txt
     #   clickhouse-connect
