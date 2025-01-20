@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.35.97
+boto3==1.36.2
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.35.97
+botocore==1.36.2
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -86,7 +86,7 @@ markupsafe==3.0.2
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.5.0
+more-itertools==10.6.0
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -146,7 +146,7 @@ rfc3986==2.0.0
     # via twine
 rich==13.9.4
     # via twine
-s3transfer==0.10.4
+s3transfer==0.11.1
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -191,7 +191,7 @@ urllib3==2.2.3
     #   clickhouse-connect
     #   requests
     #   twine
-wrapt==1.17.1
+wrapt==1.17.2
     # via
     #   -r requirements/test.txt
     #   smart-open
