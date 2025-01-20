@@ -12,42 +12,38 @@ backports-tarfile==1.2.0
     # via jaraco-context
 boto3==1.36.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   smart-open
 botocore==1.36.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   boto3
     #   s3transfer
 certifi==2024.12.14
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
-cffi==1.17.1
-    # via cryptography
 charset-normalizer==3.4.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   requests
 click==8.1.8
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   click-log
     #   code-annotations
     #   edx-lint
 click-log==0.4.0
     # via edx-lint
 clickhouse-connect==0.6.23
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    # via -r requirements/test.txt
 code-annotations==2.2.0
     # via edx-lint
 coverage[toml]==7.6.10
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   pytest-cov
-cryptography==44.0.0
-    # via secretstorage
 dill==0.3.9
     # via pylint
 docutils==0.21.2
@@ -56,13 +52,13 @@ edx-lint==5.4.1
     # via -r requirements/quality.in
 idna==3.10
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   requests
 importlib-metadata==8.5.0
     # via keyring
 iniconfig==2.0.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   pytest
 isort==5.13.2
     # via
@@ -74,22 +70,18 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
-jeepney==0.8.0
-    # via
-    #   keyring
-    #   secretstorage
 jinja2==3.1.5
     # via code-annotations
 jmespath==1.0.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   boto3
     #   botocore
 keyring==25.6.0
     # via twine
 lz4==4.3.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   clickhouse-connect
 markdown-it-py==3.0.0
     # via rich
@@ -107,7 +99,7 @@ nh3==0.2.20
     # via readme-renderer
 packaging==24.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   pytest
     #   twine
 pbr==6.1.0
@@ -118,12 +110,10 @@ platformdirs==4.3.6
     # via pylint
 pluggy==1.5.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   pytest
 pycodestyle==2.12.1
     # via -r requirements/quality.in
-pycparser==2.22
-    # via cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
 pygments==2.19.1
@@ -146,29 +136,29 @@ pylint-plugin-utils==0.8.2
     #   pylint-django
 pytest==8.3.4
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   pytest-cov
 pytest-cov==6.0.0
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   botocore
 python-slugify==8.0.4
     # via code-annotations
 pytz==2024.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   clickhouse-connect
 pyyaml==6.0.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   code-annotations
 readme-renderer==44.0
     # via twine
 requests==2.32.3
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0
@@ -179,17 +169,15 @@ rich==13.9.4
     # via twine
 s3transfer==0.11.1
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   boto3
-secretstorage==3.3.3
-    # via keyring
 six==1.17.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   edx-lint
     #   python-dateutil
 smart-open[s3]==7.1.0
-    # via -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    # via -r requirements/test.txt
 snowballstemmer==2.2.0
     # via pydocstyle
 stevedore==5.4.0
@@ -203,18 +191,18 @@ twine==6.0.1
 urllib3==2.2.3
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   botocore
     #   clickhouse-connect
     #   requests
     #   twine
 wrapt==1.17.2
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   smart-open
 zipp==3.21.0
     # via importlib-metadata
 zstandard==0.23.0
     # via
-    #   -r /home/runner/work/xapi-db-load/xapi-db-load/requirements/test.txt
+    #   -r requirements/test.txt
     #   clickhouse-connect
