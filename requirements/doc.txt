@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-boto3==1.36.2
+boto3==1.36.6
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.36.2
+botocore==1.36.6
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -32,6 +32,8 @@ certifi==2024.12.14
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
+cffi==1.17.1
+    # via cryptography
 charset-normalizer==3.4.1
     # via
     #   -r requirements/test.txt
@@ -44,18 +46,22 @@ coverage[toml]==7.6.10
     # via
     #   -r requirements/test.txt
     #   pytest-cov
+cryptography==44.0.0
+    # via secretstorage
 docutils==0.21.2
     # via
     #   pydata-sphinx-theme
     #   readme-renderer
     #   sphinx
+id==1.5.0
+    # via twine
 idna==3.10
     # via
     #   -r requirements/test.txt
     #   requests
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==8.5.0
+importlib-metadata==8.6.1
     # via keyring
 iniconfig==2.0.0
     # via
@@ -67,6 +73,10 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
+jeepney==0.8.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.1.5
     # via sphinx
 jmespath==1.0.1
@@ -76,7 +86,7 @@ jmespath==1.0.1
     #   botocore
 keyring==25.6.0
     # via twine
-lz4==4.3.3
+lz4==4.4.3
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -99,12 +109,12 @@ packaging==24.2
     #   pytest
     #   sphinx
     #   twine
-pkginfo==1.12.0
-    # via twine
 pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
+pycparser==2.22
+    # via cffi
 pydata-sphinx-theme==0.16.1
     # via sphinx-book-theme
 pygments==2.19.1
@@ -137,6 +147,7 @@ readme-renderer==44.0
 requests==2.32.3
     # via
     #   -r requirements/test.txt
+    #   id
     #   requests-toolbelt
     #   sphinx
     #   twine
@@ -146,10 +157,12 @@ rfc3986==2.0.0
     # via twine
 rich==13.9.4
     # via twine
-s3transfer==0.11.1
+s3transfer==0.11.2
     # via
     #   -r requirements/test.txt
     #   boto3
+secretstorage==3.3.3
+    # via keyring
 six==1.17.0
     # via
     #   -r requirements/test.txt
@@ -179,7 +192,7 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-twine==6.0.1
+twine==6.1.0
     # via -r requirements/doc.in
 typing-extensions==4.12.2
     # via pydata-sphinx-theme

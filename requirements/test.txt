@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.36.2
+boto3==1.36.6
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.36.2
+botocore==1.36.6
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -39,7 +39,7 @@ jmespath==1.0.1
     #   -r requirements/base.txt
     #   boto3
     #   botocore
-lz4==4.3.3
+lz4==4.4.3
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
@@ -63,7 +63,7 @@ pyyaml==6.0.2
     # via -r requirements/base.txt
 requests==2.32.3
     # via -r requirements/base.txt
-s3transfer==0.11.1
+s3transfer==0.11.2
     # via
     #   -r requirements/base.txt
     #   boto3
