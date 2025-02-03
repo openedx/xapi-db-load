@@ -4,16 +4,16 @@
 #
 #    make upgrade
 #
-boto3==1.36.6
+boto3==1.36.11
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.36.6
+botocore==1.36.11
     # via
     #   -r requirements/base.txt
     #   boto3
     #   s3transfer
-certifi==2024.12.14
+certifi==2025.1.31
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
@@ -55,7 +55,7 @@ python-dateutil==2.9.0.post0
     # via
     #   -r requirements/base.txt
     #   botocore
-pytz==2024.2
+pytz==2025.1
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect

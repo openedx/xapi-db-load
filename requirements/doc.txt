@@ -8,26 +8,26 @@ accessible-pygments==0.0.5
     # via pydata-sphinx-theme
 alabaster==1.0.0
     # via sphinx
-babel==2.16.0
+babel==2.17.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
 backports-tarfile==1.2.0
     # via jaraco-context
-beautifulsoup4==4.12.3
+beautifulsoup4==4.13.0
     # via pydata-sphinx-theme
-boto3==1.36.6
+boto3==1.36.11
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.36.6
+botocore==1.36.11
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
 build==1.2.2.post1
     # via -r requirements/doc.in
-certifi==2024.12.14
+certifi==2025.1.31
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -136,7 +136,7 @@ python-dateutil==2.9.0.post0
     # via
     #   -r requirements/test.txt
     #   botocore
-pytz==2024.2
+pytz==2025.1
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -195,7 +195,9 @@ sphinxcontrib-serializinghtml==2.0.0
 twine==6.1.0
     # via -r requirements/doc.in
 typing-extensions==4.12.2
-    # via pydata-sphinx-theme
+    # via
+    #   beautifulsoup4
+    #   pydata-sphinx-theme
 urllib3==2.2.3
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
