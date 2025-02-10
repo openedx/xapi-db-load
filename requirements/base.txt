@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.36.11
+boto3==1.36.16
     # via smart-open
-botocore==1.36.11
+botocore==1.36.16
     # via
     #   boto3
     #   s3transfer
