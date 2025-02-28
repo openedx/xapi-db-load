@@ -117,8 +117,13 @@ class XAPILakeCSV:
             "blocks", self.output_destination
         )
 
+        course_idx = 0
         for course in courses:
+            course_idx += 1
             blocks, object_tags = course.serialize_block_data_for_event_sink()
+
+            if course_idx % 500 == 0:
+                print(f"   At course {course_idx} - {datetime.now().isoformat()}")
 
             for i in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
