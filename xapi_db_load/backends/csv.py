@@ -32,7 +32,8 @@ class XAPILakeCSV:
 
     def _get_csv_handle(self, file_type, output_destination):
         out_filepath = os.path.join(output_destination, f"{file_type}.csv.gz")
-        os.makedirs(output_destination, exist_ok=True)
+        if not output_destination.startswith("s3://"):
+            os.makedirs(output_destination, exist_ok=True)
         file_handle = smart(out_filepath, "w", compression=".gz")
         return file_handle, csv.writer(file_handle)
 
