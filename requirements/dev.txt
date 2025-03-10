@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-astroid==3.3.8
+astroid==3.3.9
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.37.4
+boto3==1.37.9
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.37.4
+botocore==1.37.9
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -78,7 +78,7 @@ cryptography==44.0.2
     # via
     #   -r requirements/quality.txt
     #   secretstorage
-diff-cover==9.2.3
+diff-cover==9.2.4
     # via -r requirements/dev.in
 dill==0.3.9
     # via
@@ -136,7 +136,7 @@ jeepney==0.9.0
     #   -r requirements/quality.txt
     #   keyring
     #   secretstorage
-jinja2==3.1.5
+jinja2==3.1.6
     # via
     #   -r requirements/quality.txt
     #   code-annotations
@@ -223,7 +223,7 @@ pygments==2.19.1
     #   diff-cover
     #   readme-renderer
     #   rich
-pylint==3.3.4
+pylint==3.3.5
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -296,7 +296,7 @@ rich==13.9.4
     # via
     #   -r requirements/quality.txt
     #   twine
-s3transfer==0.11.3
+s3transfer==0.11.4
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -327,7 +327,7 @@ tomlkit==0.13.2
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.24.1
+tox==4.24.2
     # via -r requirements/ci.txt
 twine==6.1.0
     # via -r requirements/quality.txt
@@ -339,7 +339,7 @@ urllib3==2.2.3
     #   clickhouse-connect
     #   requests
     #   twine
-virtualenv==20.29.2
+virtualenv==20.29.3
     # via
     #   -r requirements/ci.txt
     #   tox
