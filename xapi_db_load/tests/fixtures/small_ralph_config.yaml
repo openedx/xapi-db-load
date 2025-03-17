@@ -1,8 +1,8 @@
 # Test configuration for Ralph / ClickHouse
 # #########################################
-backend: ralph_clickhouse
+backend: ralph
 db_host: localhost
-db_port: null
+db_port: 8123
 db_name: xapi
 db_username: ch_admin
 db_password: foo
@@ -12,8 +12,13 @@ lrs_password: foo
 
 # Run options
 log_dir: logs
-num_batches: 3
+num_xapi_batches: 3
 batch_size: 100
+
+# This number is used for each QueueBackend that use workers, so the number of threads if
+# multiplicative. Generally this performs best less than 10, as more threads will cost more
+# in context switching than they save.
+num_workers: 4
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01

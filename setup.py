@@ -1,6 +1,7 @@
 """
 Setup for xapi-db-load.
 """
+
 from setuptools import find_packages, setup
 
 from xapi_db_load import __version__
@@ -19,9 +20,12 @@ setup(
     """,
     install_requires=[
         "click",
-        "clickhouse-connect >= 0.5, < 0.7",
+        "clickhouse-connect",
         "requests",
         "smart_open[s3]",
+        "uvloop",
+        "urwid",
+        "chdb"
     ],
     url="https://github.com/openedx/xapi-db-load",
     project_urls={

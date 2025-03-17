@@ -1,21 +1,29 @@
 """
 Top level script to generate random xAPI events against various backends.
 """
+
+import asyncio
+import datetime
+import os
+
 import click
+import uvloop
 import yaml
 
-from xapi_db_load.generate_load import generate_events
-from xapi_db_load.utils import get_backend_from_config
+from xapi_db_load.ui.text_ui import TextUI
 
 
-def get_config(config_file):
+def get_config(config_file: str) -> dict:
     """
     Wrap around config loading.
 
     We override this in tests so that we can use temp dirs for logs etc.
     """
-    with open(config_file, 'r') as y:
-        return yaml.safe_load(y)
+    with open(config_file, "r") as y:
+        conf = yaml.safe_load(y)
+
+    conf["config_file"] = config_file
+    return conf
 
 
 @click.group()
@@ -31,32 +39,19 @@ def cli():
     help="Configuration file.",
     required=True,
     default="default_config.yaml",
-    type=click.Path(
-        exists=True,
-        dir_okay=False,
-        file_okay=True,
-        writable=False
-    )
+    type=click.Path(exists=True, dir_okay=False, file_okay=True, writable=False),
 )
-def load_db(config_file):
+def ui(config_file: str):
     """
     Execute a database load by performing inserts.
     """
     config = get_config(config_file)
-    backend = get_backend_from_config(config)
-    generate_events(config, backend)
-
-    try_s3_load = config.get("csv_load_from_s3_after")
-
-    if try_s3_load:
-        print("Attempting to load to ClickHouse from S3...")
-        # No matter what the configured backend is for event generation we need to
-        # use the clickhouse config for the load.
-        config["backend"] = "clickhouse"
-        ch_backend = get_backend_from_config(config)
-        ch_backend.load_from_s3(config["s3_source_location"])
-
-    print("Done.")
+    try:
+        TextUI(config)
+    finally:
+        # Clean up the terminal settings when we exit, otherwise there will be artifacts
+        # such as mouse handling being broken.
+        os.system("stty ixon")
 
 
 @click.command()
@@ -65,27 +60,34 @@ def load_db(config_file):
     help="Configuration file.",
     required=True,
     default="default_config.yaml",
-    type=click.Path(
-        exists=True,
-        dir_okay=False,
-        file_okay=True,
-        writable=False
-    )
+    type=click.Path(exists=True, dir_okay=False, file_okay=True, writable=False),
 )
-def load_db_from_s3(config_file):
+@click.option(
+    "--load_db_only",
+    help="If this option is passed we will try to load from the configured block storage, no new data will be generated.",
+    is_flag=True,
+)
+def load_db(config_file: str, load_db_only: bool):
     """
-    Execute the database by importing existing files from S3.
+    Execute a database load by performing inserts.
     """
-    config = get_config(config_file)
+    # Import here to avoid circular imports in the UI path.
+    from xapi_db_load.async_app import App
 
-    # When loading from S3 we always need the clickhouse backend.
-    config["backend"] = "clickhouse"
-    backend = get_backend_from_config(config)
-    backend.load_from_s3(config["s3_source_location"])
+    # Use UVLoop to speed up asyncio operations
+    # https://uvloop.readthedocs.io/
+    # We can't currently use this in the UI mode as it throws BlockingIOError on startup
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    start = datetime.datetime.now()
+    config = get_config(config_file)
+    app = App(config)
+    asyncio.run(app.runner.run(load_db_only))
+    print(f"Total duration: {datetime.datetime.now() - start}")
+    exit(0)
 
 
 cli.add_command(load_db)
-cli.add_command(load_db_from_s3)
+cli.add_command(ui)
 
 if __name__ == "__main__":
     cli()

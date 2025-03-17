@@ -1,11 +1,11 @@
 # CSV backend configuration
 # #########################
-backend: csv_file
+backend: csv
 csv_output_destination: logs
 
 # Run options
 log_dir: logs
-num_batches: 3
+num_xapi_batches: 3
 batch_size: 100
 
 # Overall start and end date for the entire run

@@ -1,6 +1,6 @@
 # CSV backend configuration
 # #########################
-backend: csv_file
+backend: csv
 # This can be anything smart_open can handle, a local directory or
 # an S3 bucket, etc., but importing to ClickHouse only supports S3 right now
 # https://pypi.org/project/smart-open/
@@ -24,7 +24,7 @@ s3_secret: ...
 
 # Run options
 log_dir: logs
-num_batches: 3
+num_xapi_batches: 3
 batch_size: 100
 
 # Overall start and end date for the entire run

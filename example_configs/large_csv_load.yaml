@@ -6,7 +6,7 @@
 # 1200 courses
 # 10 orgs
 
-backend: csv_file
+backend: csv
 # The next two lines point to the same place, but each needs a different URL
 # format.
 csv_output_destination: s3://openedx-aspects-loadtest/logs/large_test/
@@ -24,7 +24,7 @@ s3_secret: ...
 
 # Run options
 log_dir: logs
-num_batches: 100000
+num_xapi_batches: 100000
 batch_size: 10000
 
 # Overall start and end date for the entire run

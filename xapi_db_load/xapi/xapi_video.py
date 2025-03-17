@@ -1,6 +1,7 @@
 """
 Fake xAPI statements for various video events.
 """
+
 import json
 from random import randrange
 from uuid import uuid4
@@ -49,6 +50,7 @@ class BaseVideo(XAPIBase):
         Given the inputs, return an xAPI statement.
         """
         video_length = 195.0
+        video_event_time = video_event_time_to = video_event_time_from = None
 
         if self.has_event_time:
             video_event_time = float(randrange(0, 195))
@@ -88,23 +90,29 @@ class BaseVideo(XAPIBase):
                 "id": video_id,
                 "objectType": "Activity",
             },
-            "result": {
-                "extensions": {}
-            },
+            "result": {"extensions": {}},
             "timestamp": create_time.isoformat(),
             "verb": {"display": {"en": self.verb_display}, "id": self.verb},
             "version": "1.0.3",
         }
 
         if self.has_event_time:
-            event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/time"] = video_event_time
+            event["result"]["extensions"][
+                "https://w3id.org/xapi/video/extensions/time"
+            ] = video_event_time
 
         if self.has_time_from_to:
-            event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/time-from"] = video_event_time_from
-            event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/time-to"] = video_event_time_to
+            event["result"]["extensions"][
+                "https://w3id.org/xapi/video/extensions/time-from"
+            ] = video_event_time_from
+            event["result"]["extensions"][
+                "https://w3id.org/xapi/video/extensions/time-to"
+            ] = video_event_time_to
 
         if self.caption:
-            event["result"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-enabled"] = self.enabled
+            event["result"]["extensions"][
+                "https://w3id.org/xapi/video/extensions/cc-enabled"
+            ] = self.enabled
 
         return json.dumps(event)
 

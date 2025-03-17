@@ -87,9 +87,9 @@ test::
     log_dir: logs
 
     # xAPI statements will be generated in batches, the total number of
-    # statements is ``num_batches * batch_size``. The batch size is the number
+    # statements is ``num_xapi_batches * batch_size``. The batch size is the number
     # of statements sent to the backend (Ralph POST, ClickHouse insert, etc.)
-    num_batches: 3
+    num_xapi_batches: 3
     batch_size: 100
 
     # Overall start and end date for the entire run. All xAPI statements

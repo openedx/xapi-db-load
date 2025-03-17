@@ -1,6 +1,6 @@
 # CSV backend configuration
 # #########################
-backend: csv_file
+backend: csv
 # This can be anything smart_open can handle, a local directory or
 # an S3 bucket, etc., but importing to ClickHouse only supports S3 right now
 # https://pypi.org/project/smart-open/
@@ -37,8 +37,13 @@ csv_load_from_s3_after: false
 
 # Run options
 log_dir: logs
-num_batches: 3
-batch_size: 100
+num_xapi_batches: 300
+batch_size: 1000
+
+# This number is used for each QueueBackend that use workers, so the number of threads if
+# multiplicative. Generally this performs best less than 10, as more threads will cost more
+# in context switching than they save.
+num_workers: 4
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01

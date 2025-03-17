@@ -1,15 +1,14 @@
 """
 Configuration values for emulating courses of various sizes.
 """
+
 import copy
 import datetime
 import json
 import random
 import uuid
-from collections import namedtuple
 from random import choice, randrange
-
-EnrolledActor = namedtuple("Actor", ["actor", "enroll_datetime"])
+from typing import Dict, List, NamedTuple
 
 
 class Actor:
@@ -22,7 +21,7 @@ class Actor:
     the capability to fill them in various ways.
     """
 
-    def __init__(self, user_id):
+    def __init__(self, user_id: int):
         # Integer user id, just the counter from actor population
         self.user_id = user_id
 
@@ -55,36 +54,41 @@ class Actor:
         self.phone_number = ""
 
 
+class EnrolledActor(NamedTuple):
+    actor: Actor
+    enroll_datetime: datetime.datetime
+
+
 class RandomCourse:
     """
     Holds "known objects" and configuration values for a fake course.
     """
 
     items_in_course = 0
-    chapter_ids = []
-    sequential_ids = []
-    vertical_ids = []
-    problem_ids = []
-    video_ids = []
-    forum_post_ids = []
-    actors = []
-    all_tags = []
-    start_date = None
-    end_date = None
+    chapter_ids: List[str] = []
+    sequential_ids: List[str] = []
+    vertical_ids: List[str] = []
+    problem_ids: List[str] = []
+    video_ids: List[str] = []
+    forum_post_ids: List[str] = []
+    actors: list[EnrolledActor] = []
+    all_tags: list = []
+    start_date: datetime.datetime | None = None
+    end_date: datetime.datetime | None = None
 
-    def __init__(
+    async def populate(
         self,
-        org,
-        course_uuid,
-        course_run,
-        overall_start_date,
-        overall_end_date,
-        course_length,
-        actors,
-        course_config_name,
-        course_size_makeup,
-        tags
-    ):
+        org: str,
+        course_uuid: str,
+        course_run: int,
+        overall_start_date: datetime.datetime,
+        overall_end_date: datetime.datetime,
+        course_length: int,
+        actors: list[Actor],
+        course_config_name: str,
+        course_size_makeup: dict,
+        tags: list[str],
+    ) -> "RandomCourse":
         self.course_uuid = course_uuid
         self.course_run = course_run
         # It's important that the course name stay the same between runs
@@ -96,8 +100,12 @@ class RandomCourse:
         self.course_url = f"http://localhost:18000/course/{self.course_id}"
 
         delta = datetime.timedelta(days=course_length)
-        self.start_date = self._random_datetime(overall_start_date, overall_end_date - delta)
+        self.start_date = self._random_datetime(
+            overall_start_date, overall_end_date - delta
+        )
         self.end_date = self.start_date + delta
+        assert self.start_date
+        assert self.end_date
 
         self.actors = [
             EnrolledActor(a, self._random_datetime(self.start_date, self.end_date))
@@ -109,7 +117,9 @@ class RandomCourse:
         self.all_tags = tags
         self.configure()
 
-    def __repr__(self):
+        return self
+
+    def __repr__(self) -> str:
         return f"""{self.course_name}:
         {self.start_date} - {self.end_date}
         {self.course_config}
@@ -149,7 +159,14 @@ class RandomCourse:
             for _ in range(self.course_config["forum_posts"])
         ]
 
-        for config in ("videos", "problems", "verticals", "sequences", "chapters", "forum_posts"):
+        for config in (
+            "videos",
+            "problems",
+            "verticals",
+            "sequences",
+            "chapters",
+            "forum_posts",
+        ):
             self.items_in_course += self.course_config[config]
 
     def get_random_emission_time(self, actor=None):
@@ -161,18 +178,24 @@ class RandomCourse:
         else:
             start = self.start_date
 
+        assert start
+        assert self.end_date
+
         # Make sure we're passing in a datetime, not a date
         start = datetime.datetime.combine(start, datetime.time())
 
         # time() is midnight, so make sure we get that last day in there
-        end = datetime.datetime.combine(self.end_date, datetime.time()) + datetime.timedelta(days=1)
+        end = datetime.datetime.combine(
+            self.end_date, datetime.time()
+        ) + datetime.timedelta(days=1)
 
-        return self._random_datetime(
-            start_datetime=start, end_datetime=end
-        )
+        return self._random_datetime(start_datetime=start, end_datetime=end)
 
     @staticmethod
-    def _random_datetime(start_datetime=None, end_datetime=None):
+    def _random_datetime(
+        start_datetime: datetime.datetime | None = None,
+        end_datetime: datetime.datetime | None = None,
+    ) -> datetime.datetime:
         """
         Create a random datetime within the given boundaries.
 
@@ -189,51 +212,51 @@ class RandomCourse:
         random_second = randrange(int_delta)
         return start_datetime + datetime.timedelta(seconds=random_second)
 
-    def get_enrolled_actor(self):
+    def get_enrolled_actor(self) -> EnrolledActor:
         """
         Return an actor from those known in this course.
         """
         return choice(self.actors)
 
-    def get_video_id(self):
+    def get_video_id(self) -> str:
         """
         Return a video id from our list of known video ids.
         """
         return choice(self.video_ids)
 
-    def _generate_random_block_type_id(self, block_type):
+    def _generate_random_block_type_id(self, block_type: str) -> str:
         block_uuid = str(uuid.uuid4())[:8]
         return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@{block_type}+block@{block_uuid}"
 
-    def get_problem_id(self):
+    def get_problem_id(self) -> str:
         """
         Return a problem id from our list of known problem ids.
         """
         return choice(self.problem_ids)
 
-    def get_random_sequential_id(self):
+    def get_random_sequential_id(self) -> str:
         """
         Return a sequential id from our list of known sequential ids.
         """
         return choice(self.sequential_ids)
 
-    def get_random_forum_post_id(self):
+    def get_random_forum_post_id(self) -> str:
         """
         Return a sequential id from our list of known sequential ids.
         """
         return choice(self.forum_post_ids)
 
-    def _generate_random_forum_post_id(self):
+    def _generate_random_forum_post_id(self) -> str:
         thread_id = str(uuid.uuid4())[:8]
         return f"http://localhost:18000/api/discussion/v1/threads/{thread_id}"
 
-    def get_random_nav_location(self):
+    def get_random_nav_location(self) -> str:
         """
         Return a navigation location from our list of known ids.
         """
         return str(randrange(1, self.items_in_course))
 
-    def serialize_course_data_for_event_sink(self):
+    def serialize_course_data_for_event_sink(self) -> Dict:
         """
         Return a dict representing the course data from event-sink-clickhouse.
         """
@@ -249,10 +272,10 @@ class RandomCourse:
             # This is a catchall field, we don't currently use it
             "course_data_json": "{}",
             "created": self.start_date,
-            "modified": self.end_date
+            "modified": self.end_date,
         }
 
-    def _serialize_block(self, block_type, block_id, cnt):
+    def _serialize_block(self, block_type, block_id, cnt) -> Dict:
         return {
             "org": self.org,
             "course_key": self.course_id,
@@ -261,30 +284,29 @@ class RandomCourse:
             # This gets appended with location data below
             "xblock_data_json": {"block_type": block_type},
             "order": cnt,
-            "edited_on": self.end_date
+            "edited_on": self.end_date,
         }
 
-    def _serialize_course_block(self):
+    def _serialize_course_block(self) -> Dict:
         location_course_id = self.course_id.replace("course-v1:", "")
         return {
             "org": self.org,
             "course_key": self.course_id,
             "location": f"block-v1:{location_course_id}+type@course+block@course",
-            "display_name": f"Course {self.course_uuid[:5]}",
+            "display_name": f"Course {str(self.course_uuid)[:5]}",
             # This gets appended with location data below
             "xblock_data_json": {"block_type": "course"},
             "order": 1,
-            "edited_on": self.end_date
+            "edited_on": self.end_date,
         }
 
-    def serialize_block_data_for_event_sink(self):
+    def serialize_block_data_for_event_sink(self) -> List[Dict]:
         """
         Return lists of dicts representing block and block tag data.
 
         The data formats mirror what is created by event-sink-clickhouse.
         """
         blocks = []
-        object_tags = []
         cnt = 1
 
         # Get all of our blocks in order
@@ -307,7 +329,7 @@ class RandomCourse:
                 # Start at 2 here to make sure it's after the course and first
                 # chapter block
                 random.randint(2, len(course_structure)),
-                self._serialize_block("sequential", s, cnt)
+                self._serialize_block("sequential", s, cnt),
             )
             cnt += 1
 
@@ -317,7 +339,7 @@ class RandomCourse:
                 # Start at 3 here to make sure it's after the course and first
                 # chapter block and first sequential block
                 random.randint(2, len(course_structure)),
-                self._serialize_block("vertical", v, cnt)
+                self._serialize_block("vertical", v, cnt),
             )
             cnt += 1
 
@@ -325,10 +347,7 @@ class RandomCourse:
         # course, first chapter, first sequential, and first vertical. After
         # that they'll all be mixed together, but this will do for now.
         for b in blocks:
-            course_structure.insert(
-                random.randint(4, len(course_structure)),
-                b
-            )
+            course_structure.insert(random.randint(4, len(course_structure)), b)
 
         # Now actually set up the locations. These are important and used to
         # generate block display names in the database
@@ -347,20 +366,44 @@ class RandomCourse:
             elif block["display_name"].startswith("Vertical"):
                 unit_idx += 1
 
-            block["xblock_data_json"].update({
-                "section": section_idx,
-                "subsection": subsection_idx,
-                "unit": unit_idx,
-            })
+            block["xblock_data_json"].update(
+                {
+                    "section": section_idx,
+                    "subsection": subsection_idx,
+                    "unit": unit_idx,
+                }
+            )
 
             block["xblock_data_json"] = json.dumps(block["xblock_data_json"])
 
-            num_tags = randrange(0, 3)
+        return course_structure
 
-            for _ in range(num_tags):
-                tag = random.choice(self.all_tags)
-                object_tag = copy.deepcopy(tag)
-                object_tag["object_id"] = block["location"]
-                object_tags.append(object_tag)
+    def serialize_object_tag_data_for_event_sink(self) -> List[Dict]:
+        object_tags = []
+        cnt = 0
+        for block_type in (
+            "video",
+            "problem",
+            "chapter",
+            "sequential",
+            "vertical",
+            "course",
+        ):
+            block_type_attr = (
+                "course_id" if block_type == "course" else f"{block_type}_ids"
+            )
+            for block in getattr(self, block_type_attr):
+                cnt += 1
+                num_tags = randrange(0, 3)
 
-        return course_structure, object_tags
+                for _ in range(num_tags):
+                    tag = random.choice(self.all_tags)
+                    object_tag = copy.deepcopy(tag)
+                    # TODO: Need to break this call out to only return what we need, or refactor
+                    # storing the object id so we don't have to do this twice
+                    object_tag["object_id"] = self._serialize_block(
+                        block_type, block, cnt
+                    )["location"]
+                    object_tags.append(object_tag)
+
+        return object_tags
