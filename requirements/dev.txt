@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.37.28
+boto3==1.37.33
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.37.28
+botocore==1.37.33
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -62,7 +62,7 @@ click-log==0.4.0
     #   edx-lint
 clickhouse-connect==0.6.23
     # via -r requirements/quality.txt
-code-annotations==2.2.0
+code-annotations==2.3.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint

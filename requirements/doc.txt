@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.13.3
     # via pydata-sphinx-theme
-boto3==1.37.28
+boto3==1.37.33
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.37.28
+botocore==1.37.33
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -197,7 +197,7 @@ sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
 twine==6.1.0
     # via -r requirements/doc.in
-typing-extensions==4.13.1
+typing-extensions==4.13.2
     # via
     #   beautifulsoup4
     #   pydata-sphinx-theme
