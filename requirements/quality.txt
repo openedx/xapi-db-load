@@ -10,11 +10,11 @@ astroid==3.3.9
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.37.33
+boto3==1.37.37
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.37.33
+botocore==1.37.37
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -48,7 +48,7 @@ coverage[toml]==7.8.0
     #   pytest-cov
 cryptography==44.0.2
     # via secretstorage
-dill==0.3.9
+dill==0.4.0
     # via pylint
 docutils==0.21.2
     # via readme-renderer
@@ -107,7 +107,7 @@ more-itertools==10.6.0
     #   jaraco-functools
 nh3==0.2.21
     # via readme-renderer
-packaging==24.2
+packaging==25.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -178,7 +178,7 @@ rfc3986==2.0.0
     # via twine
 rich==14.0.0
     # via twine
-s3transfer==0.11.4
+s3transfer==0.11.5
     # via
     #   -r requirements/test.txt
     #   boto3
