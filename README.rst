@@ -12,37 +12,61 @@ datasets:
 
 The xAPI events generated match the current specifications of the Open edX
 event-routing-backends package, but are not yet maintained to advance alongside
-them so may be expected to fall out of sync over time. Almost all current
-statements are simulated, but statements that not yet used in Aspects reporting
-have been skipped.
+them so may be expected to fall out of sync over time. Almost all statements
+supported by event-routing-backends are supported, except those not yet used in
+Aspects reporting.
 
 Features
 ========
-Once an appropriate database has been created using Aspects, data can be
-generated in the following ways:
+New! UI mode is available for early testing using:
 
-Ralph to ClickHouse
--------------------
-Useful for testing configuration, integration, and permissions, this uses batch
-POSTs to Ralph for xAPI statements, but still writes directly to ClickHouse for
-course and actor data. This is the slowest method, but exercises the largest
-surface area of the project.
+``xapi-db-load ui --config_file ...``.
 
-Direct to ClickHouse
---------------------
-Useful for getting a medium to large amount of data into the database to test
-configuration and view reports. xAPI statements are batched, other data is
-currently inserted one row at a time.
+Please add any issues you find here: https://github.com/openedx/xapi-db-load/issues
 
-CSV files
----------
+Data can be generated using the following backends:
+
+clickhouse
+----------
+This backend issues batched insert statements directly against the configured
+ClickHouse database. It is useful for getting a small to medium amount of data
+(up 10s of thousands of xAPI events) into the database to test configuration and
+view populated reports.
+
+
+ralph
+-----
+This backend uses the configured Ralph Learning Record Store to handle the
+inserting of xAPI events into ClickHouse. All other data is handled using the
+clickhouse backend. It is useful for testing Ralph configuration, integration,
+and permissions. This is the slowest method, but exercises the largest
+surface area of the Aspects project.
+
+csv
+---
+This backend generates a single gzipped CSV file for each type of data and
+can save the files to local or various cloud storages. When saved to S3 it can
+also load the files to ClickHouse immediately after creation, or at a later
+time using the ``--load_db_only`` option.
+
 Useful for creating datasets that can be reused for checking performance
-changes with the exact same data, and for extremely large tests. The files can
-be generated locally or on any service supported by smart_open. They can then
-optionally be imported to ClickHouse if written locally or to S3. They can also
-be directly imported from S3 to ClickHouse at any time using the
-``load-db-from-s3`` subcommand. This is by far the fastest method for large
-scale tests.
+changes with the exact same data, and for large scale tests. This is the
+fastest method for medium to large scale tests (10K - 100M xAPI statements),
+but can encounter "too many parts" errors when executing very large loads
+(hundreds of millions
+of xAPI statements) or loads that cover a period over 9 years between the
+configured `start_date` and `end_date`.
+
+chdb
+----
+This backend generates lz4 compressed ClickHouse Native files in S3 using the
+CHDB in-process ClickHouse engine and can optionally load the files to
+a ClickHouse service directly after creation or at a later time using the
+``--load_db_only`` option. The generated files are partitioned differently per data
+type to parallelize data writing and loading. This is the fastest engine for
+very large scale tests and should be able to generate several billions of rows
+of data across any length of time without error.
+
 
 
 Getting Started
@@ -64,12 +88,19 @@ To specify a config file:
 
     ❯ xapi-db-load load-db --config_file private_configs/my_huge_test.yaml
 
-There is also a sub-command for just performing a load of previously generated
-CSV data from S3:
+There is also an option for just performing a load of previously generated
+CSV data:
 
 ::
 
-    ❯ xapi-db-load load-db-from-s3 --config_file private_configs/my_s3_test.yaml
+    ❯ xapi-db-load load-db --load_db_only --config_file private_configs/my_s3_test.yaml
+
+To try out the new UI mode:
+
+::
+
+    ❯ xapi-db-load ui --config_file private_configs/my_huge_test.yaml
+
 
 
 Configuration Format
@@ -88,7 +119,10 @@ test::
 
     # xAPI statements will be generated in batches, the total number of
     # statements is ``num_xapi_batches * batch_size``. The batch size is the number
-    # of statements sent to the backend (Ralph POST, ClickHouse insert, etc.)
+    # of xAPI statements sent to the backend (Ralph POST, ClickHouse insert, etc.)
+    #
+    # In the chdb backend "batch_size" is also used for any non-xAPI data that
+    # uses batching inserts.
     num_xapi_batches: 3
     batch_size: 100
 
@@ -141,6 +175,47 @@ test::
         forum_posts: 40
       ...
 
+ClickHouse Backend
+^^^^^^^^^^^^^^^^^^
+Backend is only necessary if you are writing directly to ClickHouse, for
+integrations with Ralph or CSV, use their backend instead::
+
+    backend: clickhouse
+
+Variables necessary to connect to ClickHouse, whether directly, through Ralph, or
+as part of loading CSV files::
+
+    # ClickHouse connection variables
+    db_host: localhost
+    # db_port is also used to determine the "secure" parameter. If the port
+    # ends in 443 or 440, the "secure" flag will be set on the connection.
+    db_port: 8443
+    db_username: ch_admin
+    db_password: secret
+
+    # Schema name for the xAPI schema
+    db_name: xapi
+
+    # Schema name for the event sink schema
+    db_event_sink_name: event_sink
+
+    # These S3 settings are shared with the CSV backend, but passed to
+    # ClickHouse when loading files from S3
+    s3_key: <...>
+    s3_secret: <...>
+
+Ralph / ClickHouse Backend
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Variables necessary to send xAPI statements via Ralph::
+
+    backend: ralph_clickhouse
+    lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
+    lrs_username: ralph
+    lrs_password: secret
+
+    # This also requires all of the ClickHouse backend variables!
+
+
 CSV Backend, Local Files
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Generates gzipped CSV files to a local directory::
@@ -181,57 +256,43 @@ them to ClickHouse::
     # this must point to the same location as csv_output_destination.
     s3_source_location: https://openedx-aspects-loadtest.s3.amazonaws.com/logs/large_test/
 
-    # This also requires all of the ClickHouse backend variables!
+    # This also requires all of the ClickHouse backend variables above!
 
-ClickHouse Backend
-^^^^^^^^^^^^^^^^^^
-Backend is only necessary if you are writing directly to ClickHouse, for
-integrations with Ralph or CSV, use their ``backend`` instead::
+CHDB Backend, S3 Compatible Destination
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Generates lz4 compressed ClickHouse Native formatted files on S3::
 
-    backend: clickhouse
+    backend: chdb
 
-Variables necessary to connect to ClickHouse, whether directly, through Ralph, or
-as part of loading CSV files::
+    # This S3 configuration would upload files to s3://foo/logs/async_test using
+    # the provided S3 key and secret
+    s3_bucket: foo
+    s3_prefix: logs/large_test/
+    s3_key: ...
+    s3_secret: ...
 
-    # ClickHouse connection variables
-    db_host: localhost
-    # db_port is also used to determine the "secure" parameter. If the port
-    # ends in 443 or 440, the "secure" flag will be set on the connection.
-    db_port: 8443
-    db_username: ch_admin
-    db_password: secret
 
-    # Schema name for the xAPI schema
-    db_name: xapi
+CHDB Backend, S3 Compatible Destination, Load to ClickHouse
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Generates lz4 compressed ClickHouse Native formatted files on S3, then
+automatically load them to ClickHouse::
 
-    # Schema name for the event sink schema
-    db_event_sink_name: event_sink
+    backend: chdb
 
-    # These S3 settings are shared with the CSV backend, but passed to
-    # ClickHouse when loading files from S3
-    s3_key: <...>
-    s3_secret: <...>
+    # This S3 configuration would upload files to s3://foo/logs/async_test using
+    # the provided S3 key and secret
+    s3_bucket: foo
+    s3_prefix: logs/large_test/
+    s3_key: ...
+    s3_secret: ...
 
-Ralph / ClickHouse Backend
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-Variables necessary to send xAPI statements via Ralph::
+    # After generating the files, load them from S3. With this backend, files
+    # are loaded concurrently in the background while others are still being
+    # generated.
+    load_from_s3_after: true
 
-    backend: ralph_clickhouse
-    lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
-    lrs_username: ralph
-    lrs_password: secret
+    # This also requires all of the ClickHouse backend variables above!
 
-    # This also requires all of the ClickHouse backend variables!
-
-Load from S3 configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-Variables necessary to run ``xapi-db-load load-db-from-s3``, which skips the
-event generation process and just loads pre-existing CSV files from S3::
-
-    # Note that this must be an https link, s3:// links will not work
-    s3_source_location: https://openedx-aspects-loadtest.s3.amazonaws.com/logs/large_test/
-
-    # This also requires all of the ClickHouse backend variables!
 
 Developing
 ----------

@@ -1,3 +1,5 @@
+# This default configuration should generally work as long as the logs director is writable.
+
 # CSV backend configuration
 # #########################
 backend: csv
@@ -6,34 +8,6 @@ backend: csv
 # https://pypi.org/project/smart-open/
 csv_output_destination: logs/ # s3://openedx-aspects-loadtest/logs/large_test/
 csv_load_from_s3_after: false
-
-# ClickHouse Backend configuration
-# ################################
-# backend: clickhouse
-# db_host: localhost
-# db_port: 8443
-# db_name: xapi_lt
-# db_event_sink_name: event_sink
-# db_username: ch_admin
-# db_password:
-# s3_key:
-# s3_secret:
-
-# Ralph / ClickHouse backend configuration
-# ########################################
-# backend: ralph_clickhouse
-# db_host: localhost
-# db_port: null
-# db_name: xapi
-# db_username: ch_admin
-# db_password: 7NRe69D4zWWT0rf2G7gWa7RB
-# lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
-# lrs_username: ralph
-# lrs_password: sdtiqjqwixhzcboqzbiryrulzcpvfmsfvqqw
-
-# Load from S3 configuration
-# ##########################
-# s3_source_location: https://openedx-aspects-loadtest.s3.amazonaws.com/logs/large_test/
 
 # Run options
 log_dir: logs
@@ -72,7 +46,7 @@ num_course_sizes:
 # How many times each course will be "published", this creates a more realistic
 # distribution of course blocks where each course can be published dozens or
 # hundreds of times while it is being developed.
-num_course_publishes: 100
+num_course_publishes: 50
 
 # Course size configurations, how many of each type of object are created for
 # each course of this size. "actors" must be less than or equal to "num_actors".
