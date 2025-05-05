@@ -1,6 +1,6 @@
 # Ralph / ClickHouse backend configuration
 # ########################################
-backend: ralph_clickhouse
+backend: ralph
 db_host: localhost
 db_port: null
 db_name: xapi
@@ -12,7 +12,7 @@ lrs_password: test
 
 # Run options
 log_dir: logs
-num_batches: 3
+num_xapi_batches: 3
 batch_size: 100
 
 # Overall start and end date for the entire run

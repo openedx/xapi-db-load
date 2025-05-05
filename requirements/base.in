@@ -1,8 +1,11 @@
 # Core requirements for using this application
 -c constraints.txt
 
-click
-clickhouse-connect>=0.5,<0.7
-pyyaml
-requests
-smart_open[s3]
+chdb                   # Embedded ClickHouse client
+click                  # Command line interface library
+clickhouse-connect     # ClickHouse client
+pyyaml                 # YAML parser
+requests               # HTTP library
+smart_open[s3]         # Consistent file handing between local and object storage
+urwid                  # Console UI library
+uvloop                 # Improved performance with asyncio
