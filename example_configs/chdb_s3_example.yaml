@@ -1,48 +1,64 @@
-# ClickHouse Backend configuration
-# ################################
-backend: clickhouse
+# Write a large amount of data to S3 using CHDB to write the ClickHouse native format
+# (lz4 compressed), then load from S3 to ClickHouse
+
+backend: chdb
+
 db_host: localhost
-db_port: 8443
-db_name: xapi_lt
+db_port: 8123
+db_name: xapi
 db_event_sink_name: event_sink
 db_username: ch_admin
-db_password: test
+db_password: ...
+
+load_from_s3_after: true
+
+# CHDB_S3 backend configuration
+# #############################
+#chdb_s3_output_destination: logs/async_test/
+#chdb_s3_load_from_s3_after: true
+# This number is used for each process that use workers, currently xAPI file generation,
+#initial enrollment file generation, and db loading from S3. So if this value is 30, then the
+# total number of workers will be 30 * 3 = 90
+num_workers: 4
+
+# Load from S3 configuration
+# ##########################
+s3_bucket: ...
+s3_prefix: logs/async_test/
 s3_key: ...
 s3_secret: ...
 
-# Run options
 log_dir: logs
-num_xapi_batches: 3
-batch_size: 100
+num_xapi_batches: 5 # 600
+batch_size: 10000
 
-# Overall start and end date for the entire run
-start_date: 2014-01-01
-end_date: 2023-11-27
+# All courses and events will fall between these dates
+start_date: 2020-01-01
+end_date: 2024-04-01
 
 # All courses will be this long, and be fit into the start / end dates
 # This must be less than end_date - start_date days.
 course_length_days: 120
 
 # The size of the test
-num_organizations: 3
-num_actors: 10
+num_organizations: 5
+num_actors: 2000000
 
 # This replicates users updating their profiles several times, creating
 # more rows
-num_actor_profile_changes: 5
+num_actor_profile_changes: 2
 
-# How many of each size course to create. The sum of these is the total number
-# of courses created for the test.
+# The sum of these is the total number of courses created for the test
 num_course_sizes:
-  small: 1
-  medium: 1
-  large: 1
-  huge: 1
+  small: 200
+  medium: 400
+  large: 480
+  huge: 120
 
 # How many times each course will be "published", this creates a more realistic
 # distribution of course blocks where each course can be published dozens or
 # hundreds of times while it is being developed.
-num_course_publishes: 100
+num_course_publishes: 10
 
 # Course size configurations, how many of each type of object are created for
 # each course of this size. "actors" must be less than or equal to "num_actors".
@@ -50,7 +66,7 @@ num_course_publishes: 100
 # "num_course_sizes".
 course_size_makeup:
   small:
-    actors: 5
+    actors: 100
     problems: 20
     videos: 10
     chapters: 3
@@ -58,7 +74,7 @@ course_size_makeup:
     verticals: 20
     forum_posts: 20
   medium:
-    actors: 7
+    actors: 1000
     problems: 40
     videos: 20
     chapters: 4
@@ -66,7 +82,7 @@ course_size_makeup:
     verticals: 30
     forum_posts: 40
   large:
-    actors: 10
+    actors: 2000
     problems: 80
     videos: 30
     chapters: 5
@@ -74,7 +90,7 @@ course_size_makeup:
     verticals: 80
     forum_posts: 200
   huge:
-    actors: 10
+    actors: 3000
     problems: 160
     videos: 40
     chapters: 10

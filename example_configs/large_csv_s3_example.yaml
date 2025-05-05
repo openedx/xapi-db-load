@@ -1,16 +1,34 @@
-# CSV backend configuration
-# #########################
+# Load a large amount of data using the CSV backend to save data as files to S3, then load the
+# files to ClickHouse. These files can be loaded again later for repeated testing against the same
+# data.
+
 backend: csv
-# This can be anything smart_open can handle, a local directory or
-# an S3 bucket, etc., but importing to ClickHouse only supports S3 right now
-# https://pypi.org/project/smart-open/
-csv_output_destination: s3://openedx-aspects-loadtest/logs/large_test/
-csv_load_from_s3_after: false
+# The next two lines point to the same place, but each needs a different URL
+# format.
+csv_output_destination: s3://.../logs/large_test/
+s3_source_location: https://....s3.amazonaws.com/logs/large_test/
+
+# Once the CSVs are saved to S3, have ClickHouse load them
+csv_load_from_s3_after: true
+
+db_host: localhost
+db_port: 8443
+db_name: xapi
+db_event_sink_name: event_sink
+db_username: ch_admin
+db_password: ...
+s3_key: ...
+s3_secret: ...
 
 # Run options
 log_dir: logs
-num_xapi_batches: 3
-batch_size: 100
+num_xapi_batches: 100000
+batch_size: 10000
+
+# This number is used for each QueueBackend that use workers, so the number of threads if
+# multiplicative. Generally this performs best less than 10, as more threads will cost more
+# in context switching than they save.
+num_workers: 4
 
 # Overall start and end date for the entire run
 start_date: 2014-01-01
@@ -21,33 +39,28 @@ end_date: 2023-11-27
 course_length_days: 120
 
 # The size of the test
-num_organizations: 3
-num_actors: 10
+num_organizations: 10
+num_actors: 2000000
 
 # This replicates users updating their profiles several times, creating
 # more rows
 num_actor_profile_changes: 5
 
-# How many of each size course to create. The sum of these is the total number
-# of courses created for the test.
+# The sum of these is the total number of courses created for the test
 num_course_sizes:
-  small: 1
-  medium: 1
-  large: 1
-  huge: 1
+  small: 100
+  medium: 400
+  large: 480
+  huge: 120
 
 # How many times each course will be "published", this creates a more realistic
 # distribution of course blocks where each course can be published dozens or
 # hundreds of times while it is being developed.
 num_course_publishes: 100
 
-# Course size configurations, how many of each type of object are created for
-# each course of this size. "actors" must be less than or equal to "num_actors".
-# For a course of this size to be created it needs to exist both here and in
-# "num_course_sizes".
 course_size_makeup:
   small:
-    actors: 5
+    actors: 30
     problems: 20
     videos: 10
     chapters: 3
@@ -55,7 +68,7 @@ course_size_makeup:
     verticals: 20
     forum_posts: 20
   medium:
-    actors: 7
+    actors: 500
     problems: 40
     videos: 20
     chapters: 4
@@ -63,7 +76,7 @@ course_size_makeup:
     verticals: 30
     forum_posts: 40
   large:
-    actors: 10
+    actors: 5000
     problems: 80
     videos: 30
     chapters: 5
@@ -71,7 +84,7 @@ course_size_makeup:
     verticals: 80
     forum_posts: 200
   huge:
-    actors: 10
+    actors: 20000
     problems: 160
     videos: 40
     chapters: 10
