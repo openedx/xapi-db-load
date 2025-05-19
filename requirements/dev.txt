@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.38.13
+boto3==1.38.18
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.38.13
+botocore==1.38.18
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -76,7 +76,7 @@ coverage[toml]==7.8.0
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==44.0.3
+cryptography==45.0.2
     # via
     #   -r requirements/quality.txt
     #   secretstorage
@@ -181,7 +181,7 @@ nh3==0.2.21
     # via
     #   -r requirements/quality.txt
     #   readme-renderer
-numpy==2.2.5
+numpy==2.2.6
     # via
     #   -r requirements/quality.txt
     #   pandas
@@ -212,7 +212,7 @@ platformdirs==4.3.8
     #   pylint
     #   tox
     #   virtualenv
-pluggy==1.5.0
+pluggy==1.6.0
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -257,7 +257,7 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/quality.txt
     #   pylint-celery
     #   pylint-django
-pyproject-api==1.9.0
+pyproject-api==1.9.1
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -346,7 +346,7 @@ tomlkit==0.13.2
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.25.0
+tox==4.26.0
     # via -r requirements/ci.txt
 twine==6.1.0
     # via -r requirements/quality.txt
