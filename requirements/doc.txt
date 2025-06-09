@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.13.4
     # via pydata-sphinx-theme
-boto3==1.38.27
+boto3==1.38.32
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.38.27
+botocore==1.38.32
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -38,7 +38,7 @@ charset-normalizer==3.4.2
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==3.2.0
+chdb==3.3.0
     # via -r requirements/test.txt
 click==8.2.1
     # via -r requirements/test.txt
@@ -104,7 +104,7 @@ more-itertools==10.7.0
     #   jaraco-functools
 nh3==0.2.21
     # via readme-renderer
-numpy==2.2.6
+numpy==2.3.0
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -116,7 +116,7 @@ packaging==25.0
     #   pytest
     #   sphinx
     #   twine
-pandas==2.2.3
+pandas==2.3.0
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -134,14 +134,16 @@ pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
 pygments==2.19.1
     # via
+    #   -r requirements/test.txt
     #   accessible-pygments
     #   pydata-sphinx-theme
+    #   pytest
     #   readme-renderer
     #   rich
     #   sphinx
 pyproject-hooks==1.2.0
     # via build
-pytest==8.3.5
+pytest==8.4.0
     # via
     #   -r requirements/test.txt
     #   pytest-asyncio
@@ -216,7 +218,7 @@ sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
 twine==6.1.0
     # via -r requirements/doc.in
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via
     #   beautifulsoup4
     #   pydata-sphinx-theme
@@ -244,7 +246,7 @@ wrapt==1.17.2
     # via
     #   -r requirements/test.txt
     #   smart-open
-zipp==3.22.0
+zipp==3.23.0
     # via importlib-metadata
 zstandard==0.23.0
     # via
