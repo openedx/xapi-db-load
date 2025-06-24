@@ -10,11 +10,11 @@ astroid==3.3.10
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.38.36
+boto3==1.38.42
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.38.36
+botocore==1.38.42
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -76,7 +76,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.0.1
     # via keyring
-jaraco-functools==4.1.0
+jaraco-functools==4.2.1
     # via keyring
 jeepney==0.9.0
     # via
@@ -109,7 +109,7 @@ more-itertools==10.7.0
     #   jaraco-functools
 nh3==0.2.21
     # via readme-renderer
-numpy==2.3.0
+numpy==2.3.1
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -135,13 +135,13 @@ pyarrow==20.0.0
     # via
     #   -r requirements/test.txt
     #   chdb
-pycodestyle==2.13.0
+pycodestyle==2.14.0
     # via -r requirements/quality.in
 pycparser==2.22
     # via cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
-pygments==2.19.1
+pygments==2.19.2
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -157,11 +157,11 @@ pylint-celery==0.3
     # via edx-lint
 pylint-django==2.6.1
     # via edx-lint
-pylint-plugin-utils==0.8.2
+pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.4.0
+pytest==8.4.1
     # via
     #   -r requirements/test.txt
     #   pytest-asyncio
