@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.38.46
+boto3==1.39.3
     # via smart-open
-botocore==1.38.46
+botocore==1.39.3
     # via
     #   boto3
     #   s3transfer
@@ -52,7 +52,7 @@ s3transfer==0.13.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-smart-open[s3]==7.1.0
+smart-open[s3]==7.3.0.post1
     # via -r requirements/base.in
 tzdata==2025.2
     # via pandas
