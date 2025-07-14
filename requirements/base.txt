@@ -4,19 +4,19 @@
 #
 #    make upgrade
 #
-boto3==1.39.3
+boto3==1.39.4
     # via smart-open
-botocore==1.39.3
+botocore==1.39.4
     # via
     #   boto3
     #   s3transfer
-certifi==2025.6.15
+certifi==2025.7.9
     # via
     #   clickhouse-connect
     #   requests
 charset-normalizer==3.4.2
     # via requests
-chdb==3.4.0
+chdb==3.4.1
     # via -r requirements/base.in
 click==8.2.1
     # via -r requirements/base.in
@@ -32,7 +32,7 @@ lz4==4.4.4
     # via clickhouse-connect
 numpy==2.3.1
     # via pandas
-pandas==2.3.0
+pandas==2.3.1
     # via chdb
 pyarrow==20.0.0
     # via chdb
