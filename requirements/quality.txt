@@ -4,22 +4,22 @@
 #
 #    make upgrade
 #
-astroid==3.3.10
+astroid==3.3.11
     # via
     #   pylint
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.39.3
+boto3==1.39.4
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.39.3
+botocore==1.39.4
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
-certifi==2025.6.15
+certifi==2025.7.9
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -30,7 +30,7 @@ charset-normalizer==3.4.2
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==3.4.0
+chdb==3.4.1
     # via -r requirements/test.txt
 click==8.2.1
     # via
@@ -118,7 +118,7 @@ packaging==25.0
     #   -r requirements/test.txt
     #   pytest
     #   twine
-pandas==2.3.0
+pandas==2.3.1
     # via
     #   -r requirements/test.txt
     #   chdb
