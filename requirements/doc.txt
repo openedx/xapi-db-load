@@ -16,18 +16,18 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.13.4
     # via pydata-sphinx-theme
-boto3==1.39.4
+boto3==1.39.9
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.39.4
+botocore==1.39.9
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
 build==1.2.2.post1
     # via -r requirements/doc.in
-certifi==2025.7.9
+certifi==2025.7.14
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -102,7 +102,7 @@ more-itertools==10.7.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.2.21
+nh3==0.3.0
     # via readme-renderer
 numpy==2.3.1
     # via
@@ -125,7 +125,7 @@ pluggy==1.6.0
     #   -r requirements/test.txt
     #   pytest
     #   pytest-cov
-pyarrow==20.0.0
+pyarrow==21.0.0
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -149,7 +149,7 @@ pytest==8.4.1
     #   -r requirements/test.txt
     #   pytest-asyncio
     #   pytest-cov
-pytest-asyncio==1.0.0
+pytest-asyncio==1.1.0
     # via -r requirements/test.txt
 pytest-cov==6.2.1
     # via -r requirements/test.txt
@@ -182,7 +182,7 @@ rich==14.0.0
     # via twine
 roman-numerals-py==3.1.0
     # via sphinx
-s3transfer==0.13.0
+s3transfer==0.13.1
     # via
     #   -r requirements/test.txt
     #   boto3
