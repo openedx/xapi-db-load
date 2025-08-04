@@ -10,16 +10,16 @@ astroid==3.3.11
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.39.14
+boto3==1.40.1
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.39.14
+botocore==1.40.1
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
-certifi==2025.7.14
+certifi==2025.8.3
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -30,7 +30,7 @@ charset-normalizer==3.4.2
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==3.4.1
+chdb==3.5.0
     # via -r requirements/test.txt
 click==8.2.1
     # via
@@ -52,7 +52,7 @@ cryptography==45.0.5
     # via secretstorage
 dill==0.4.0
     # via pylint
-docutils==0.21.2
+docutils==0.22
     # via readme-renderer
 edx-lint==5.6.0
     # via -r requirements/quality.in
@@ -227,9 +227,8 @@ tzdata==2025.2
     # via
     #   -r requirements/test.txt
     #   pandas
-urllib3==2.2.3
+urllib3==2.5.0
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   botocore
     #   clickhouse-connect

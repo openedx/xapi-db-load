@@ -4,19 +4,19 @@
 #
 #    make upgrade
 #
-boto3==1.39.14
+boto3==1.40.1
     # via smart-open
-botocore==1.39.14
+botocore==1.40.1
     # via
     #   boto3
     #   s3transfer
-certifi==2025.7.14
+certifi==2025.8.3
     # via
     #   clickhouse-connect
     #   requests
 charset-normalizer==3.4.2
     # via requests
-chdb==3.4.1
+chdb==3.5.0
     # via -r requirements/base.in
 click==8.2.1
     # via -r requirements/base.in
@@ -56,9 +56,8 @@ smart-open[s3]==7.3.0.post1
     # via -r requirements/base.in
 tzdata==2025.2
     # via pandas
-urllib3==2.2.3
+urllib3==2.5.0
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   botocore
     #   clickhouse-connect
     #   requests
