@@ -10,11 +10,11 @@ astroid==3.3.11
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.40.1
+boto3==1.40.6
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.40.1
+botocore==1.40.6
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -26,7 +26,7 @@ certifi==2025.8.3
     #   requests
 cffi==1.17.1
     # via cryptography
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via
     #   -r requirements/test.txt
     #   requests
@@ -44,11 +44,11 @@ clickhouse-connect==0.8.18
     # via -r requirements/test.txt
 code-annotations==2.3.0
     # via edx-lint
-coverage[toml]==7.10.1
+coverage[toml]==7.10.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==45.0.5
+cryptography==45.0.6
     # via secretstorage
 dill==0.4.0
     # via pylint
@@ -147,7 +147,7 @@ pygments==2.19.2
     #   pytest
     #   readme-renderer
     #   rich
-pylint==3.3.7
+pylint==3.3.8
     # via
     #   edx-lint
     #   pylint-celery

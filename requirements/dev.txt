@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.40.1
+boto3==1.40.6
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.40.1
+botocore==1.40.6
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -44,7 +44,7 @@ chardet==5.2.0
     #   -r requirements/ci.txt
     #   diff-cover
     #   tox
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via
     #   -r requirements/quality.txt
     #   requests
@@ -72,11 +72,11 @@ colorama==0.4.6
     # via
     #   -r requirements/ci.txt
     #   tox
-coverage[toml]==7.10.1
+coverage[toml]==7.10.3
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==45.0.5
+cryptography==45.0.6
     # via
     #   -r requirements/quality.txt
     #   secretstorage
@@ -239,7 +239,7 @@ pygments==2.19.2
     #   pytest
     #   readme-renderer
     #   rich
-pylint==3.3.7
+pylint==3.3.8
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -367,7 +367,7 @@ urwid==3.0.2
     # via -r requirements/quality.txt
 uvloop==0.21.0
     # via -r requirements/quality.txt
-virtualenv==20.33.0
+virtualenv==20.33.1
     # via
     #   -r requirements/ci.txt
     #   tox
