@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.40.11
+boto3==1.40.16
     # via smart-open
-botocore==1.40.11
+botocore==1.40.16
     # via
     #   boto3
     #   s3transfer
@@ -32,7 +32,7 @@ lz4==4.4.4
     # via clickhouse-connect
 numpy==2.3.2
     # via pandas
-pandas==2.3.1
+pandas==2.3.2
     # via chdb
 pyarrow==21.0.0
     # via chdb
@@ -46,7 +46,7 @@ pytz==2025.2
     #   pandas
 pyyaml==6.0.2
     # via -r requirements/base.in
-requests==2.32.4
+requests==2.32.5
     # via -r requirements/base.in
 s3transfer==0.13.1
     # via boto3

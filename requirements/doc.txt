@@ -14,13 +14,13 @@ babel==2.17.0
     #   sphinx
 backports-tarfile==1.2.0
     # via jaraco-context
-beautifulsoup4==4.13.4
+beautifulsoup4==4.13.5
     # via pydata-sphinx-theme
-boto3==1.40.11
+boto3==1.40.16
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.40.11
+botocore==1.40.16
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -44,7 +44,7 @@ click==8.2.1
     # via -r requirements/test.txt
 clickhouse-connect==0.8.18
     # via -r requirements/test.txt
-coverage[toml]==7.10.4
+coverage[toml]==7.10.5
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -73,7 +73,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.0.1
     # via keyring
-jaraco-functools==4.2.1
+jaraco-functools==4.3.0
     # via keyring
 jeepney==0.9.0
     # via
@@ -116,7 +116,7 @@ packaging==25.0
     #   pytest
     #   sphinx
     #   twine
-pandas==2.3.1
+pandas==2.3.2
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -167,7 +167,7 @@ pyyaml==6.0.2
     # via -r requirements/test.txt
 readme-renderer==44.0
     # via twine
-requests==2.32.4
+requests==2.32.5
     # via
     #   -r requirements/test.txt
     #   id
