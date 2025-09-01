@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.13.5
     # via pydata-sphinx-theme
-boto3==1.40.16
+boto3==1.40.21
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.40.16
+botocore==1.40.21
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -44,7 +44,7 @@ click==8.2.1
     # via -r requirements/test.txt
 clickhouse-connect==0.8.18
     # via -r requirements/test.txt
-coverage[toml]==7.10.5
+coverage[toml]==7.10.6
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -196,7 +196,7 @@ smart-open[s3]==7.3.0.post1
     # via -r requirements/test.txt
 snowballstemmer==3.0.1
     # via sphinx
-soupsieve==2.7
+soupsieve==2.8
     # via beautifulsoup4
 sphinx==8.2.3
     # via
@@ -219,7 +219,7 @@ sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
 twine==6.1.0
     # via -r requirements/doc.in
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via
     #   beautifulsoup4
     #   pydata-sphinx-theme
