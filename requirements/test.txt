@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.40.21
+boto3==1.40.25
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.40.21
+botocore==1.40.25
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -65,13 +65,13 @@ pyarrow==21.0.0
     #   chdb
 pygments==2.19.2
     # via pytest
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   pytest-asyncio
     #   pytest-cov
 pytest-asyncio==1.1.0
     # via -r requirements/test.in
-pytest-cov==6.2.1
+pytest-cov==6.3.0
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via

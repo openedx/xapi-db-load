@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.40.21
+boto3==1.40.25
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.40.21
+botocore==1.40.25
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -76,7 +76,7 @@ coverage[toml]==7.10.6
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==45.0.6
+cryptography==45.0.7
     # via
     #   -r requirements/quality.txt
     #   secretstorage
@@ -172,7 +172,7 @@ mdurl==0.1.2
     # via
     #   -r requirements/quality.txt
     #   markdown-it-py
-more-itertools==10.7.0
+more-itertools==10.8.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-classes
@@ -264,14 +264,14 @@ pyproject-hooks==1.2.0
     #   -r requirements/pip-tools.txt
     #   build
     #   pip-tools
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   -r requirements/quality.txt
     #   pytest-asyncio
     #   pytest-cov
 pytest-asyncio==1.1.0
     # via -r requirements/quality.txt
-pytest-cov==6.2.1
+pytest-cov==6.3.0
     # via -r requirements/quality.txt
 python-dateutil==2.9.0.post0
     # via
@@ -344,9 +344,9 @@ tomlkit==0.13.3
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.29.0
+tox==4.30.2
     # via -r requirements/ci.txt
-twine==6.1.0
+twine==6.2.0
     # via -r requirements/quality.txt
 tzdata==2025.2
     # via
