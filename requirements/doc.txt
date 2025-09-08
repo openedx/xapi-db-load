@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.13.5
     # via pydata-sphinx-theme
-boto3==1.40.21
+boto3==1.40.25
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.40.21
+botocore==1.40.25
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -48,7 +48,7 @@ coverage[toml]==7.10.6
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==45.0.6
+cryptography==45.0.7
     # via secretstorage
 docutils==0.21.2
     # via
@@ -98,7 +98,7 @@ markupsafe==3.0.2
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.7.0
+more-itertools==10.8.0
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -144,14 +144,14 @@ pygments==2.19.2
     #   sphinx
 pyproject-hooks==1.2.0
     # via build
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   -r requirements/test.txt
     #   pytest-asyncio
     #   pytest-cov
 pytest-asyncio==1.1.0
     # via -r requirements/test.txt
-pytest-cov==6.2.1
+pytest-cov==6.3.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -217,7 +217,7 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-twine==6.1.0
+twine==6.2.0
     # via -r requirements/doc.in
 typing-extensions==4.15.0
     # via

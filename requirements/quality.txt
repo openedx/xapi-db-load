@@ -10,11 +10,11 @@ astroid==3.3.11
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.40.21
+boto3==1.40.25
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.40.21
+botocore==1.40.25
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -48,7 +48,7 @@ coverage[toml]==7.10.6
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==45.0.6
+cryptography==45.0.7
     # via secretstorage
 dill==0.4.0
     # via pylint
@@ -103,7 +103,7 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.7.0
+more-itertools==10.8.0
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -159,14 +159,14 @@ pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   -r requirements/test.txt
     #   pytest-asyncio
     #   pytest-cov
 pytest-asyncio==1.1.0
     # via -r requirements/test.txt
-pytest-cov==6.2.1
+pytest-cov==6.3.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -219,7 +219,7 @@ text-unidecode==1.3
     # via python-slugify
 tomlkit==0.13.3
     # via pylint
-twine==6.1.0
+twine==6.2.0
     # via -r requirements/quality.in
 tzdata==2025.2
     # via
