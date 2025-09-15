@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.13.5
     # via pydata-sphinx-theme
-boto3==1.40.25
+boto3==1.40.30
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.40.25
+botocore==1.40.30
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -32,13 +32,13 @@ certifi==2025.8.3
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
-cffi==1.17.1
+cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.3
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==3.5.0
+chdb==3.6.0
     # via -r requirements/test.txt
 click==8.2.1
     # via -r requirements/test.txt
@@ -104,7 +104,7 @@ more-itertools==10.8.0
     #   jaraco-functools
 nh3==0.3.0
     # via readme-renderer
-numpy==2.3.2
+numpy==2.3.3
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -129,7 +129,7 @@ pyarrow==21.0.0
     # via
     #   -r requirements/test.txt
     #   chdb
-pycparser==2.22
+pycparser==2.23
     # via cffi
 pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
@@ -149,9 +149,9 @@ pytest==8.4.2
     #   -r requirements/test.txt
     #   pytest-asyncio
     #   pytest-cov
-pytest-asyncio==1.1.0
+pytest-asyncio==1.2.0
     # via -r requirements/test.txt
-pytest-cov==6.3.0
+pytest-cov==7.0.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -182,17 +182,17 @@ rich==14.1.0
     # via twine
 roman-numerals-py==3.1.0
     # via sphinx
-s3transfer==0.13.1
+s3transfer==0.14.0
     # via
     #   -r requirements/test.txt
     #   boto3
-secretstorage==3.3.3
+secretstorage==3.4.0
     # via keyring
 six==1.17.0
     # via
     #   -r requirements/test.txt
     #   python-dateutil
-smart-open[s3]==7.3.0.post1
+smart-open[s3]==7.3.1
     # via -r requirements/test.txt
 snowballstemmer==3.0.1
     # via sphinx
@@ -221,8 +221,10 @@ twine==6.2.0
     # via -r requirements/doc.in
 typing-extensions==4.15.0
     # via
+    #   -r requirements/test.txt
     #   beautifulsoup4
     #   pydata-sphinx-theme
+    #   pytest-asyncio
 tzdata==2025.2
     # via
     #   -r requirements/test.txt
@@ -248,7 +250,7 @@ wrapt==1.17.3
     #   smart-open
 zipp==3.23.0
     # via importlib-metadata
-zstandard==0.24.0
+zstandard==0.25.0
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
