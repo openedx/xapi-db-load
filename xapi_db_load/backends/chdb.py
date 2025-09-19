@@ -177,7 +177,7 @@ class XAPILakeCHDBAsync(QueueBackend):
         )
         start_after = ""
         s3_paginator = session.client("s3").get_paginator("list_objects_v2")
-
+        total_files = 0
         # Get the total number of files that match our prefix in S3 first, this is slow but probably
         # not as slow as building up a huge list in memory then looping through that.
         for page in s3_paginator.paginate(
@@ -187,7 +187,15 @@ class XAPILakeCHDBAsync(QueueBackend):
         ):
             for content in page.get("Contents", ()):
                 # Keep track of how many tasks we will need to run
-                self.update_total_task_count(increment_by=1)
+                total_files += 1
+
+        if not total_files:
+            self.logger.warning(
+                f"No files found for {self.s3_prefix}{self.s3_load_prefix}* . Skipping load."
+            )
+            return
+
+        self.update_total_task_count(increment_by=1)
 
         # Now actually loop through the files using a paginator, otherwise S3 may not return all of
         # the files.
@@ -304,7 +312,6 @@ class WriteXAPIEvents(XAPILakeCHDBAsync):
     ):
         super().__init__(config, logger, event_generator, db_loader)
         self.num_xapi_batches = config["num_xapi_batches"]
-        self.update_total_task_count(event_generator.get_random_event_count())
 
     async def _get_batch_sql(self) -> List[str]:
         """
@@ -328,6 +335,8 @@ class WriteXAPIEvents(XAPILakeCHDBAsync):
         The queue for this task is just integers representing the batch IDs. The process task
         actually generates the events and writes them to S3.
         """
+        self.update_total_task_count(self.event_generator.get_random_event_count())
+
         for i in range(self.num_xapi_batches):
             if i % 10 == 0:
                 self.logger.info(f"   {self.task_name} enqueuing xAPI batch {i}")
@@ -365,6 +374,8 @@ class WriteXAPIEvents(XAPILakeCHDBAsync):
             out_data,
             f"xapi_{{_partition_id}}_{batch}",
         )
+
+        self.update_completed_task_count(increment_by=1)
         self.logger.debug(f"   {self.task_name} worker inserted batch {batch}")
 
 
