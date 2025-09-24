@@ -66,10 +66,12 @@ class Runner:
         # or just loading existing data. Either way, we block this thread here until all tasks are
         # complete.
         if load_db_only:
+            self.logger.debug("Runner: Running tasks for load_db_only")
             results = await asyncio.gather(
                 *[task.run_db_load_task() for task in self.test_data_tasks]
             )
         else:
+            self.logger.debug("Runner: Running tasks")
             results = await asyncio.gather(
                 *[task.run_task() for task in self.test_data_tasks]
             )

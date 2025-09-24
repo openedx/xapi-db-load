@@ -35,7 +35,7 @@ class LoadData(urwid.WidgetWrap):
             """.format(**s)
         )
         self.go_button = urwid.Button(GO_TEXT, self.go_pressed)
-        self.load_button = urwid.Button(LOAD_TEXT, self.go_pressed)
+        self.load_button = urwid.Button(LOAD_TEXT, self.load_pressed)
         self.all_widgets = [
             urwid.Padding(self.title, width="clip", align="center"),
             self.summary,
