@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.40.35
+boto3==1.40.40
     # via smart-open
-botocore==1.40.35
+botocore==1.40.40
     # via
     #   boto3
     #   s3transfer
@@ -20,7 +20,7 @@ chdb==3.6.0
     # via -r requirements/base.in
 click==8.3.0
     # via -r requirements/base.in
-clickhouse-connect==0.9.1
+clickhouse-connect==0.9.2
     # via -r requirements/base.in
 idna==3.10
     # via requests
@@ -44,7 +44,7 @@ pytz==2025.2
     # via
     #   clickhouse-connect
     #   pandas
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via -r requirements/base.in
 requests==2.32.5
     # via -r requirements/base.in
@@ -65,7 +65,7 @@ urwid==3.0.3
     # via -r requirements/base.in
 uvloop==0.21.0
     # via -r requirements/base.in
-wcwidth==0.2.13
+wcwidth==0.2.14
     # via urwid
 wrapt==1.17.3
     # via smart-open
