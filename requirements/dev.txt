@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.40.40
+boto3==1.40.45
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.40.40
+botocore==1.40.45
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -30,7 +30,7 @@ cachetools==6.2.0
     # via
     #   -r requirements/ci.txt
     #   tox
-certifi==2025.8.3
+certifi==2025.10.5
     # via
     #   -r requirements/quality.txt
     #   clickhouse-connect
@@ -76,7 +76,7 @@ coverage[toml]==7.10.7
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==46.0.1
+cryptography==46.0.2
     # via
     #   -r requirements/quality.txt
     #   secretstorage
@@ -117,7 +117,7 @@ iniconfig==2.1.0
     # via
     #   -r requirements/quality.txt
     #   pytest
-isort==6.0.1
+isort==6.1.0
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -195,11 +195,11 @@ packaging==25.0
     #   pytest
     #   tox
     #   twine
-pandas==2.3.2
+pandas==2.3.3
     # via
     #   -r requirements/quality.txt
     #   chdb
-pip-tools==7.5.0
+pip-tools==7.5.1
     # via -r requirements/pip-tools.txt
 platformdirs==4.4.0
     # via
@@ -235,7 +235,7 @@ pygments==2.19.2
     #   pytest
     #   readme-renderer
     #   rich
-pylint==3.3.8
+pylint==3.3.9
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -344,7 +344,7 @@ tomlkit==0.13.3
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.30.2
+tox==4.30.3
     # via -r requirements/ci.txt
 twine==6.2.0
     # via -r requirements/quality.txt
