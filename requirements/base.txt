@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.40.55
+boto3==1.40.68
     # via smart-open
-botocore==1.40.55
+botocore==1.40.68
     # via
     #   boto3
     #   s3transfer
@@ -16,7 +16,7 @@ certifi==2025.10.5
     #   requests
 charset-normalizer==3.4.4
     # via requests
-chdb==3.6.0
+chdb==3.7.1
     # via -r requirements/base.in
 click==8.3.0
     # via -r requirements/base.in
@@ -28,22 +28,12 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-lz4==4.4.4
+lz4==4.4.5
     # via clickhouse-connect
-numpy==2.3.4
-    # via pandas
-pandas==2.3.3
-    # via chdb
-pyarrow==21.0.0
-    # via chdb
 python-dateutil==2.9.0.post0
-    # via
-    #   botocore
-    #   pandas
+    # via botocore
 pytz==2025.2
-    # via
-    #   clickhouse-connect
-    #   pandas
+    # via clickhouse-connect
 pyyaml==6.0.3
     # via -r requirements/base.in
 requests==2.32.5
@@ -52,10 +42,8 @@ s3transfer==0.14.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-smart-open[s3]==7.3.1
+smart-open[s3]==7.4.4
     # via -r requirements/base.in
-tzdata==2025.2
-    # via pandas
 urllib3==2.5.0
     # via
     #   botocore
@@ -67,7 +55,7 @@ uvloop==0.22.1
     # via -r requirements/base.in
 wcwidth==0.2.14
     # via urwid
-wrapt==2.0.0
+wrapt==2.0.1
     # via smart-open
 zstandard==0.25.0
     # via clickhouse-connect
