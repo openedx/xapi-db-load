@@ -109,6 +109,8 @@ pluggy==1.6.0
     #   -r requirements/test.txt
     #   pytest
     #   pytest-cov
+pyarrow==22.0.0
+    # via -r requirements/test.txt
 pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
 pygments==2.19.2

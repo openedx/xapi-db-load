@@ -195,6 +195,8 @@ pluggy==1.6.0
     #   pytest
     #   pytest-cov
     #   tox
+pyarrow==22.0.0
+    # via -r requirements/quality.txt
 pycodestyle==2.14.0
     # via -r requirements/quality.txt
 pydocstyle==6.3.0

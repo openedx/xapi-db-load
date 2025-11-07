@@ -30,6 +30,8 @@ jmespath==1.0.1
     #   botocore
 lz4==4.4.5
     # via clickhouse-connect
+pyarrow==22.0.0
+    # via -r requirements/base.in
 python-dateutil==2.9.0.post0
     # via botocore
 pytz==2025.2
