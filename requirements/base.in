@@ -5,6 +5,7 @@ chdb                   # Embedded ClickHouse client
 click                  # Command line interface library
 clickhouse-connect     # ClickHouse client
 pyyaml                 # YAML parser
+pyarrow                # Required by chdb for internal data conversion
 requests               # HTTP library
 smart_open[s3]         # Consistent file handing between local and object storage
 urwid                  # Console UI library

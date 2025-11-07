@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.14.2
     # via pydata-sphinx-theme
-boto3==1.40.55
+boto3==1.40.68
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.40.55
+botocore==1.40.68
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -32,24 +32,20 @@ certifi==2025.10.5
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
-cffi==2.0.0
-    # via cryptography
 charset-normalizer==3.4.4
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==3.6.0
+chdb==3.7.1
     # via -r requirements/test.txt
 click==8.3.0
     # via -r requirements/test.txt
 clickhouse-connect==0.9.2
     # via -r requirements/test.txt
-coverage[toml]==7.11.0
+coverage[toml]==7.11.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==46.0.3
-    # via secretstorage
 docutils==0.21.2
     # via
     #   pydata-sphinx-theme
@@ -75,10 +71,6 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.3.0
     # via keyring
-jeepney==0.9.0
-    # via
-    #   keyring
-    #   secretstorage
 jinja2==3.1.6
     # via sphinx
 jmespath==1.0.1
@@ -88,7 +80,7 @@ jmespath==1.0.1
     #   botocore
 keyring==25.6.0
     # via twine
-lz4==4.4.4
+lz4==4.4.5
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -102,12 +94,8 @@ more-itertools==10.8.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.3.1
+nh3==0.3.2
     # via readme-renderer
-numpy==2.3.4
-    # via
-    #   -r requirements/test.txt
-    #   pandas
 packaging==25.0
     # via
     #   -r requirements/test.txt
@@ -116,21 +104,13 @@ packaging==25.0
     #   pytest
     #   sphinx
     #   twine
-pandas==2.3.3
-    # via
-    #   -r requirements/test.txt
-    #   chdb
 pluggy==1.6.0
     # via
     #   -r requirements/test.txt
     #   pytest
     #   pytest-cov
-pyarrow==21.0.0
-    # via
-    #   -r requirements/test.txt
-    #   chdb
-pycparser==2.23
-    # via cffi
+pyarrow==22.0.0
+    # via -r requirements/test.txt
 pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
 pygments==2.19.2
@@ -157,12 +137,10 @@ python-dateutil==2.9.0.post0
     # via
     #   -r requirements/test.txt
     #   botocore
-    #   pandas
 pytz==2025.2
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
-    #   pandas
 pyyaml==6.0.3
     # via -r requirements/test.txt
 readme-renderer==44.0
@@ -186,13 +164,11 @@ s3transfer==0.14.0
     # via
     #   -r requirements/test.txt
     #   boto3
-secretstorage==3.4.0
-    # via keyring
 six==1.17.0
     # via
     #   -r requirements/test.txt
     #   python-dateutil
-smart-open[s3]==7.3.1
+smart-open[s3]==7.4.4
     # via -r requirements/test.txt
 snowballstemmer==3.0.1
     # via sphinx
@@ -225,10 +201,6 @@ typing-extensions==4.15.0
     #   beautifulsoup4
     #   pydata-sphinx-theme
     #   pytest-asyncio
-tzdata==2025.2
-    # via
-    #   -r requirements/test.txt
-    #   pandas
 urllib3==2.5.0
     # via
     #   -r requirements/test.txt
@@ -244,7 +216,7 @@ wcwidth==0.2.14
     # via
     #   -r requirements/test.txt
     #   urwid
-wrapt==2.0.0
+wrapt==2.0.1
     # via
     #   -r requirements/test.txt
     #   smart-open
