@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.40.68
+boto3==1.40.69
     # via smart-open
-botocore==1.40.68
+botocore==1.40.69
     # via
     #   boto3
     #   s3transfer
@@ -44,7 +44,7 @@ s3transfer==0.14.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-smart-open[s3]==7.4.4
+smart-open[s3]==7.5.0
     # via -r requirements/base.in
 urllib3==2.5.0
     # via
