@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.42.4
+boto3==1.42.9
     # via smart-open
-botocore==1.42.4
+botocore==1.42.9
     # via
     #   boto3
     #   s3transfer
@@ -56,9 +56,9 @@ six==1.17.0
     # via python-dateutil
 smart-open[s3]==7.5.0
     # via -r requirements/base.in
-tzdata==2025.2
+tzdata==2025.3
     # via pandas
-urllib3==2.6.0
+urllib3==2.6.2
     # via
     #   botocore
     #   clickhouse-connect
