@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.42.9
+boto3==1.42.14
     # via smart-open
-botocore==1.42.9
+botocore==1.42.14
     # via
     #   boto3
     #   s3transfer
@@ -30,7 +30,7 @@ jmespath==1.0.1
     #   botocore
 lz4==4.4.5
     # via clickhouse-connect
-numpy==2.3.5
+numpy==2.4.0
     # via pandas
 pandas==2.3.3
     # via chdb
@@ -63,7 +63,7 @@ urllib3==2.6.2
     #   botocore
     #   clickhouse-connect
     #   requests
-urwid==3.0.4
+urwid==3.0.3
     # via -r requirements/base.in
 uvloop==0.22.1
     # via -r requirements/base.in
