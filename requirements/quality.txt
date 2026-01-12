@@ -10,11 +10,11 @@ astroid==4.0.3
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.42.21
+boto3==1.42.25
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.42.21
+botocore==1.42.25
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -109,7 +109,7 @@ more-itertools==10.8.0
     #   jaraco-functools
 nh3==0.3.2
     # via readme-renderer
-numpy==2.4.0
+numpy==2.4.1
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -229,7 +229,7 @@ tzdata==2025.3
     # via
     #   -r requirements/test.txt
     #   pandas
-urllib3==2.6.2
+urllib3==2.6.3
     # via
     #   -r requirements/test.txt
     #   botocore
