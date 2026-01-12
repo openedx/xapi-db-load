@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.42.21
+boto3==1.42.25
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.42.21
+botocore==1.42.25
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -45,7 +45,7 @@ lz4==4.4.5
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
-numpy==2.4.0
+numpy==2.4.1
     # via
     #   -r requirements/base.txt
     #   pandas
@@ -103,7 +103,7 @@ tzdata==2025.3
     # via
     #   -r requirements/base.txt
     #   pandas
-urllib3==2.6.2
+urllib3==2.6.3
     # via
     #   -r requirements/base.txt
     #   botocore
