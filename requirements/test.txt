@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.42.25
+boto3==1.42.30
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.42.25
+botocore==1.42.30
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -59,7 +59,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
-pyarrow==22.0.0
+pyarrow==23.0.0
     # via
     #   -r requirements/base.txt
     #   chdb
