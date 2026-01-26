@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.42.30
+boto3==1.42.34
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.42.30
+botocore==1.42.34
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -28,7 +28,7 @@ click==8.3.1
     # via -r requirements/base.txt
 clickhouse-connect==0.10.0
     # via -r requirements/base.txt
-coverage[toml]==7.13.1
+coverage[toml]==7.13.2
     # via pytest-cov
 idna==3.11
     # via
@@ -36,7 +36,7 @@ idna==3.11
     #   requests
 iniconfig==2.3.0
     # via pytest
-jmespath==1.0.1
+jmespath==1.1.0
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -49,9 +49,9 @@ numpy==2.4.1
     # via
     #   -r requirements/base.txt
     #   pandas
-packaging==25.0
+packaging==26.0
     # via pytest
-pandas==2.3.3
+pandas==3.0.0
     # via
     #   -r requirements/base.txt
     #   chdb
@@ -82,7 +82,6 @@ pytz==2025.2
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
-    #   pandas
 pyyaml==6.0.3
     # via -r requirements/base.txt
 requests==2.32.5
@@ -99,10 +98,6 @@ smart-open[s3]==7.5.0
     # via -r requirements/base.txt
 typing-extensions==4.15.0
     # via pytest-asyncio
-tzdata==2025.3
-    # via
-    #   -r requirements/base.txt
-    #   pandas
 urllib3==2.6.3
     # via
     #   -r requirements/base.txt
@@ -113,7 +108,7 @@ urwid==3.0.3
     # via -r requirements/base.txt
 uvloop==0.22.1
     # via -r requirements/base.txt
-wcwidth==0.2.14
+wcwidth==0.3.5
     # via
     #   -r requirements/base.txt
     #   urwid
