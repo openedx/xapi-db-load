@@ -8,7 +8,7 @@ accessible-pygments==0.0.5
     # via pydata-sphinx-theme
 alabaster==1.0.0
     # via sphinx
-babel==2.17.0
+babel==2.18.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.14.3
     # via pydata-sphinx-theme
-boto3==1.42.34
+boto3==1.42.40
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.42.34
+botocore==1.42.40
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -38,17 +38,17 @@ charset-normalizer==3.4.4
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==3.7.2
+chdb==4.0.1
     # via -r requirements/test.txt
 click==8.3.1
     # via -r requirements/test.txt
 clickhouse-connect==0.10.0
     # via -r requirements/test.txt
-coverage[toml]==7.13.2
+coverage[toml]==7.13.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==46.0.3
+cryptography==46.0.4
     # via secretstorage
 docutils==0.22.4
     # via
@@ -104,7 +104,7 @@ more-itertools==10.8.0
     #   jaraco-functools
 nh3==0.3.2
     # via readme-renderer
-numpy==2.4.1
+numpy==2.4.2
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -116,7 +116,7 @@ packaging==26.0
     #   pytest
     #   sphinx
     #   twine
-pandas==3.0.0
+pandas==2.3.3
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -162,6 +162,7 @@ pytz==2025.2
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
+    #   pandas
 pyyaml==6.0.3
     # via -r requirements/test.txt
 readme-renderer==44.0
@@ -177,7 +178,7 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==14.3.1
+rich==14.3.2
     # via twine
 roman-numerals==4.1.0
     # via sphinx
@@ -224,6 +225,10 @@ typing-extensions==4.15.0
     #   beautifulsoup4
     #   pydata-sphinx-theme
     #   pytest-asyncio
+tzdata==2025.3
+    # via
+    #   -r requirements/test.txt
+    #   pandas
 urllib3==2.6.3
     # via
     #   -r requirements/test.txt
@@ -231,15 +236,15 @@ urllib3==2.6.3
     #   clickhouse-connect
     #   requests
     #   twine
-urwid==3.0.3
+urwid==3.0.5
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt
-wcwidth==0.3.5
+wcwidth==0.5.3
     # via
     #   -r requirements/test.txt
     #   urwid
-wrapt==2.0.1
+wrapt==2.1.1
     # via
     #   -r requirements/test.txt
     #   smart-open
