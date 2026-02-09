@@ -4,17 +4,17 @@
 #
 #    make upgrade
 #
-astroid==4.0.3
+astroid==4.0.4
     # via
     #   pylint
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-boto3==1.42.40
+boto3==1.42.44
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.42.40
+botocore==1.42.44
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -56,7 +56,7 @@ docutils==0.22.4
     # via readme-renderer
 edx-lint==5.6.0
     # via -r requirements/quality.in
-id==1.5.0
+id==1.6.1
     # via twine
 idna==3.11
     # via
@@ -189,7 +189,6 @@ readme-renderer==44.0
 requests==2.32.5
     # via
     #   -r requirements/test.txt
-    #   id
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0
@@ -234,13 +233,14 @@ urllib3==2.6.3
     #   -r requirements/test.txt
     #   botocore
     #   clickhouse-connect
+    #   id
     #   requests
     #   twine
 urwid==3.0.5
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt
-wcwidth==0.5.3
+wcwidth==0.6.0
     # via
     #   -r requirements/test.txt
     #   urwid
