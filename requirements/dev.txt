@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-astroid==4.0.3
+astroid==4.0.4
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.42.40
+boto3==1.42.44
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.42.40
+botocore==1.42.44
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -101,7 +101,7 @@ filelock==3.20.3
     #   -r requirements/ci.txt
     #   tox
     #   virtualenv
-id==1.5.0
+id==1.6.1
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -299,7 +299,6 @@ readme-renderer==44.0
 requests==2.32.5
     # via
     #   -r requirements/quality.txt
-    #   id
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0
@@ -362,6 +361,7 @@ urllib3==2.6.3
     #   -r requirements/quality.txt
     #   botocore
     #   clickhouse-connect
+    #   id
     #   requests
     #   twine
 urwid==3.0.5
@@ -372,7 +372,7 @@ virtualenv==20.36.1
     # via
     #   -r requirements/ci.txt
     #   tox
-wcwidth==0.5.3
+wcwidth==0.6.0
     # via
     #   -r requirements/quality.txt
     #   urwid
