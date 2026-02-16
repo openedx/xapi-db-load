@@ -16,11 +16,11 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beautifulsoup4==4.14.3
     # via pydata-sphinx-theme
-boto3==1.42.44
+boto3==1.42.49
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.42.44
+botocore==1.42.49
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -38,17 +38,17 @@ charset-normalizer==3.4.4
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==4.0.1
+chdb==4.0.2
     # via -r requirements/test.txt
 click==8.3.1
     # via -r requirements/test.txt
-clickhouse-connect==0.10.0
+clickhouse-connect==0.11.0
     # via -r requirements/test.txt
-coverage[toml]==7.13.3
+coverage[toml]==7.13.4
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==46.0.4
+cryptography==46.0.5
     # via secretstorage
 docutils==0.22.4
     # via
@@ -102,7 +102,7 @@ more-itertools==10.8.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.3.2
+nh3==0.3.3
     # via readme-renderer
 numpy==2.4.2
     # via
