@@ -13,11 +13,11 @@ backports-tarfile==1.2.0
     # via
     #   -r requirements/quality.txt
     #   jaraco-context
-boto3==1.42.49
+boto3==1.42.54
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.42.49
+botocore==1.42.54
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -39,7 +39,7 @@ cffi==2.0.0
     # via
     #   -r requirements/quality.txt
     #   cryptography
-chardet==5.2.0
+chardet==6.0.0.post1
     # via
     #   -r requirements/ci.txt
     #   diff-cover
@@ -96,7 +96,7 @@ docutils==0.22.4
     #   readme-renderer
 edx-lint==5.6.0
     # via -r requirements/quality.txt
-filelock==3.24.1
+filelock==3.24.3
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -117,7 +117,7 @@ iniconfig==2.3.0
     # via
     #   -r requirements/quality.txt
     #   pytest
-isort==7.0.0
+isort==8.0.0
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -202,7 +202,7 @@ pandas==2.3.3
     #   chdb
 pip-tools==7.5.3
     # via -r requirements/pip-tools.txt
-platformdirs==4.9.1
+platformdirs==4.9.2
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -217,7 +217,7 @@ pluggy==1.6.0
     #   pytest
     #   pytest-cov
     #   tox
-pyarrow==23.0.0
+pyarrow==23.0.1
     # via
     #   -r requirements/quality.txt
     #   chdb
@@ -236,7 +236,7 @@ pygments==2.19.2
     #   pytest
     #   readme-renderer
     #   rich
-pylint==4.0.4
+pylint==4.0.5
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -309,7 +309,7 @@ rfc3986==2.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-rich==14.3.2
+rich==14.3.3
     # via
     #   -r requirements/quality.txt
     #   twine
@@ -326,13 +326,13 @@ six==1.17.0
     #   -r requirements/quality.txt
     #   edx-lint
     #   python-dateutil
-smart-open[s3]==7.5.0
+smart-open[s3]==7.5.1
     # via -r requirements/quality.txt
 snowballstemmer==3.0.1
     # via
     #   -r requirements/quality.txt
     #   pydocstyle
-stevedore==5.6.0
+stevedore==5.7.0
     # via
     #   -r requirements/quality.txt
     #   code-annotations
@@ -344,7 +344,7 @@ tomlkit==0.14.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.36.0
+tox==4.44.0
     # via -r requirements/ci.txt
 twine==6.2.0
     # via -r requirements/quality.txt
@@ -368,7 +368,7 @@ urwid==3.0.5
     # via -r requirements/quality.txt
 uvloop==0.22.1
     # via -r requirements/quality.txt
-virtualenv==20.36.1
+virtualenv==20.38.0
     # via
     #   -r requirements/ci.txt
     #   tox
