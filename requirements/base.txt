@@ -4,13 +4,13 @@
 #
 #    make upgrade
 #
-boto3==1.42.54
+boto3==1.42.59
     # via smart-open
-botocore==1.42.54
+botocore==1.42.59
     # via
     #   boto3
     #   s3transfer
-certifi==2026.1.4
+certifi==2026.2.25
     # via
     #   clickhouse-connect
     #   requests
@@ -20,7 +20,7 @@ chdb==4.0.2
     # via -r requirements/base.in
 click==8.3.1
     # via -r requirements/base.in
-clickhouse-connect==0.11.0
+clickhouse-connect==0.13.0
     # via -r requirements/base.in
 idna==3.11
     # via requests
