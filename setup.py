@@ -37,14 +37,13 @@ setup(
     description="Loads testing xAPI events into databases and LRSs",
     long_description=desc,
     long_description_content_type="text/x-rst",
-    python_requires=">=3.11",
+    python_requires=">=3.12",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
     ],
 )
