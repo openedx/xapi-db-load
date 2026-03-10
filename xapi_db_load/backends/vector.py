@@ -60,7 +60,9 @@ class InsertXAPIEventsVector(InsertXAPIEvents):
         super().__init__(config, logger, event_generator)
 
         stream_handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter("[%(name)s] %(message)s")
+        # This formatter is different from what the LMS uses, but is the smallest possible
+        # format that passes Vector's regex
+        formatter = logging.Formatter(" [{name}] [] {message}", style="{")
         stream_handler.setFormatter(formatter)
         self.xapi_logger = getLogger("xapi_tracking")
         self.xapi_logger.setLevel(logging.INFO)
