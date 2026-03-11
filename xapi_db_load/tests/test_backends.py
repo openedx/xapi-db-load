@@ -3,7 +3,9 @@ Tests for xapi-db-load.py.
 """
 
 import gzip
+import json
 import os
+import re
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -113,6 +115,66 @@ def test_clickhouse_backend(_, tmp_path):
         )
 
     # TODO: Check the ClickHouse insert calls to ensure they are correct.
+
+    assert "Insert xAPI Events complete." in result.output
+    assert "Insert Initial Enrollments complete." in result.output
+    assert "ALL TASKS DONE!" in result.output
+    assert "Run duration was" in result.output
+
+
+@patch(
+    "xapi_db_load.backends.base_async_backend.clickhouse_connect",
+    new_callable=AsyncMock,
+)
+@patch(
+    "xapi_db_load.backends.vector.getLogger",
+    new_callable=MagicMock,
+)
+def test_vector_backend(mock_get_logger, _, tmp_path):
+    """
+    Run a test through the Vector backend, currently this just checks that the
+    output indicates success.
+    """
+    test_path = "xapi_db_load/tests/fixtures/small_vector_config.yaml"
+
+    runner = CliRunner()
+
+    with override_config(test_path, tmp_path):
+        result = runner.invoke(
+            load_db,
+            f"--config_file {test_path}",
+            catch_exceptions=False,
+        )
+
+    # This test should create 300 xAPI log statemetns
+    assert mock_get_logger.return_value.info.call_count == 300
+
+    last_logged_statement = mock_get_logger.return_value.info.call_args.args[0]
+
+    # We check to make sure Vector's regex will parse what we're sending. We want it to match both
+    # the LMS and our local logger formatter.
+    # This is how things are generally formatted in the LMS
+    test_str_1 = f"2026-02-24 20:26:13,006 INFO 42 [xapi_tracking] [user None] [ip 172.19.0.1] logger.py:41 - {last_logged_statement}"
+
+    # This returns our message formatted with the abbreviated version we use for size and speed purposes
+    formatter = mock_get_logger.return_value.addHandler.call_args.args[0].formatter
+    test_str_2 = formatter._fmt.format(
+        name="xapi_tracking", message=last_logged_statement
+    )
+
+    # This is a direct copy and paste from Aspects' Vector common-post.toml
+    msg_regex = r"^.* \[xapi_tracking\] [^{}]* (?P<tracking_message>\{.*\})$"
+
+    # Quick test to make sure that what's being stored is at least parseable
+    for s in (test_str_1, test_str_2):
+        try:
+            statement = re.match(msg_regex, s).groups()[0]
+            json.loads(statement)
+        except Exception as e:
+            print(e)
+            print("Exception! Regex testing: ")
+            print(s)
+            raise
 
     assert "Insert xAPI Events complete." in result.output
     assert "Insert Initial Enrollments complete." in result.output

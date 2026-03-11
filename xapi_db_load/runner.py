@@ -7,6 +7,7 @@ from xapi_db_load.backends.chdb import AsyncCHDBTasks
 from xapi_db_load.backends.clickhouse import AsyncClickHouseTasks
 from xapi_db_load.backends.csv import AsyncCSVTasks
 from xapi_db_load.backends.ralph import AsyncRalphTasks
+from xapi_db_load.backends.vector import AsyncVectorTasks
 from xapi_db_load.generate_load_async import EventGenerator
 
 
@@ -40,6 +41,10 @@ class Runner:
             )
         elif backend == "ralph":
             self.backend = AsyncRalphTasks(
+                self.config, self.logger, self.event_generator
+            )
+        elif backend == "vector":
+            self.backend = AsyncVectorTasks(
                 self.config, self.logger, self.event_generator
             )
         else:
