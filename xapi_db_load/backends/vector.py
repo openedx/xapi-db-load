@@ -29,7 +29,7 @@ from xapi_db_load.generate_load_async import EventGenerator
 
 class AsyncVectorTasks(BaseBackendTasks):
     def __repr__(self) -> str:
-        return f"AsyncVectorTasks: {self.config['lrs_url']} -> {self.config['db_host']}"
+        return f"AsyncVectorTasks: {self.config['db_host']}"
 
     def get_test_data_tasks(self):
         """

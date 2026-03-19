@@ -28,11 +28,9 @@ class LoadData(urwid.WidgetWrap):
         s = app.runner.backend.get_backend_summary()
 
         self.summary = urwid.Text(
-            """{backend}
-    - {num_xapi_batches} batches of {batch_size} events for {total_events:,} events
-    - {num_actors} actors, with profiles saved {num_actor_profile_changes} times
-    - {num_courses} courses, with {num_course_publishes} publishes
-            """.format(**s)
+            "{backend}- {num_xapi_batches} x {batch_size} events for {total_events:,} events".format(
+                **s
+            )
         )
         self.go_button = urwid.Button(GO_TEXT, self.go_pressed)
         self.load_button = urwid.Button(LOAD_TEXT, self.load_pressed)
