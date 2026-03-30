@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.42.73
+boto3==1.42.78
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.42.73
+botocore==1.42.78
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -30,7 +30,7 @@ chdb-core==26.1.0
     #   chdb
 click==8.3.1
     # via -r requirements/base.txt
-clickhouse-connect==0.14.1
+clickhouse-connect==0.15.0
     # via -r requirements/base.txt
 coverage[toml]==7.13.5
     # via pytest-cov
@@ -49,7 +49,7 @@ lz4==4.4.5
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
-numpy==2.4.3
+numpy==2.4.4
     # via
     #   -r requirements/base.txt
     #   pandas
@@ -69,7 +69,7 @@ pyarrow==23.0.1
     #   -r requirements/base.txt
     #   chdb
     #   chdb-core
-pygments==2.19.2
+pygments==2.20.0
     # via pytest
 pytest==9.0.2
     # via
@@ -90,7 +90,7 @@ pytz==2026.1.post1
     #   clickhouse-connect
 pyyaml==6.0.3
     # via -r requirements/base.txt
-requests==2.32.5
+requests==2.33.0
     # via -r requirements/base.txt
 s3transfer==0.16.0
     # via
