@@ -8,11 +8,11 @@ astroid==4.0.4
     # via
     #   pylint
     #   pylint-celery
-boto3==1.42.78
+boto3==1.42.83
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.42.78
+botocore==1.42.83
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -24,7 +24,7 @@ certifi==2026.2.25
     #   requests
 cffi==2.0.0
     # via cryptography
-charset-normalizer==3.4.6
+charset-normalizer==3.4.7
     # via
     #   -r requirements/test.txt
     #   requests
@@ -34,7 +34,7 @@ chdb-core==26.1.0
     # via
     #   -r requirements/test.txt
     #   chdb
-click==8.3.1
+click==8.3.2
     # via
     #   -r requirements/test.txt
     #   click-log
@@ -42,7 +42,7 @@ click==8.3.1
     #   edx-lint
 click-log==0.4.0
     # via edx-lint
-clickhouse-connect==0.15.0
+clickhouse-connect==0.15.1
     # via -r requirements/test.txt
 code-annotations==3.0.0
     # via edx-lint
@@ -103,7 +103,7 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.8.0
+more-itertools==11.0.1
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -118,7 +118,7 @@ packaging==26.0
     #   -r requirements/test.txt
     #   pytest
     #   twine
-pandas==3.0.1
+pandas==3.0.2
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -187,7 +187,7 @@ pyyaml==6.0.3
     #   code-annotations
 readme-renderer==44.0
     # via twine
-requests==2.33.0
+requests==2.33.1
     # via
     #   -r requirements/test.txt
     #   requests-toolbelt
@@ -233,7 +233,7 @@ urllib3==2.6.3
     #   id
     #   requests
     #   twine
-urwid==3.0.5
+urwid==4.0.0
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt

@@ -14,11 +14,11 @@ babel==2.18.0
     #   sphinx
 beautifulsoup4==4.14.3
     # via pydata-sphinx-theme
-boto3==1.42.78
+boto3==1.42.83
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.42.78
+botocore==1.42.83
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -32,7 +32,7 @@ certifi==2026.2.25
     #   requests
 cffi==2.0.0
     # via cryptography
-charset-normalizer==3.4.6
+charset-normalizer==3.4.7
     # via
     #   -r requirements/test.txt
     #   requests
@@ -42,9 +42,9 @@ chdb-core==26.1.0
     # via
     #   -r requirements/test.txt
     #   chdb
-click==8.3.1
+click==8.3.2
     # via -r requirements/test.txt
-clickhouse-connect==0.15.0
+clickhouse-connect==0.15.1
     # via -r requirements/test.txt
 coverage[toml]==7.13.5
     # via
@@ -98,7 +98,7 @@ markupsafe==3.0.3
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.8.0
+more-itertools==11.0.1
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -115,7 +115,7 @@ packaging==26.0
     #   pytest
     #   sphinx
     #   twine
-pandas==3.0.1
+pandas==3.0.2
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -167,7 +167,7 @@ pyyaml==6.0.3
     # via -r requirements/test.txt
 readme-renderer==44.0
     # via twine
-requests==2.33.0
+requests==2.33.1
     # via
     #   -r requirements/test.txt
     #   requests-toolbelt
@@ -232,7 +232,7 @@ urllib3==2.6.3
     #   id
     #   requests
     #   twine
-urwid==3.0.5
+urwid==4.0.0
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt
