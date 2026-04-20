@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.42.88
+boto3==1.42.91
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.42.88
+botocore==1.42.91
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -53,7 +53,7 @@ numpy==2.4.4
     # via
     #   -r requirements/base.txt
     #   pandas
-packaging==26.0
+packaging==26.1
     # via pytest
 pandas==3.0.2
     # via
@@ -100,7 +100,7 @@ six==1.17.0
     # via
     #   -r requirements/base.txt
     #   python-dateutil
-smart-open[s3]==7.5.1
+smart-open[s3]==7.6.0
     # via -r requirements/base.txt
 typing-extensions==4.15.0
     # via pytest-asyncio
