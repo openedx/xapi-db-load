@@ -4,13 +4,13 @@
 #
 #    make upgrade
 #
-boto3==1.42.91
+boto3==1.42.96
     # via smart-open
-botocore==1.42.91
+botocore==1.42.96
     # via
     #   boto3
     #   s3transfer
-certifi==2026.2.25
+certifi==2026.4.22
     # via
     #   clickhouse-connect
     #   requests
@@ -20,11 +20,11 @@ chdb==4.1.6
     # via -r requirements/base.in
 chdb-core==26.1.0
     # via chdb
-click==8.3.2
+click==8.3.3
     # via -r requirements/base.in
 clickhouse-connect==0.15.1
     # via -r requirements/base.in
-idna==3.11
+idna==3.13
     # via requests
 jmespath==1.1.0
     # via
@@ -38,7 +38,7 @@ pandas==3.0.2
     # via
     #   chdb
     #   chdb-core
-pyarrow==23.0.1
+pyarrow==24.0.0
     # via
     #   -r requirements/base.in
     #   chdb
@@ -53,7 +53,7 @@ pyyaml==6.0.3
     # via -r requirements/base.in
 requests==2.33.1
     # via -r requirements/base.in
-s3transfer==0.16.0
+s3transfer==0.16.1
     # via boto3
 six==1.17.0
     # via python-dateutil
