@@ -21,4 +21,4 @@ spec:
   type: 'library'
 
   # (Required) Acceptable Lifecycle Values: experimental, production, deprecated
-  lifecycle: 'experimental'
+  lifecycle: 'production'
