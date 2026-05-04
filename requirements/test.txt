@@ -4,11 +4,11 @@
 #
 #    make upgrade
 #
-boto3==1.42.96
+boto3==1.43.2
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.42.96
+botocore==1.43.2
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -92,7 +92,7 @@ pyyaml==6.0.3
     # via -r requirements/base.txt
 requests==2.33.1
     # via -r requirements/base.txt
-s3transfer==0.16.1
+s3transfer==0.17.0
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -114,7 +114,7 @@ urwid==4.0.0
     # via -r requirements/base.txt
 uvloop==0.22.1
     # via -r requirements/base.txt
-wcwidth==0.6.0
+wcwidth==0.7.0
     # via
     #   -r requirements/base.txt
     #   urwid
