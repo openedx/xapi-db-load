@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-boto3==1.43.2
+boto3==1.43.6
     # via smart-open
-botocore==1.43.2
+botocore==1.43.6
     # via
     #   boto3
     #   s3transfer
@@ -24,7 +24,7 @@ click==8.3.3
     # via -r requirements/base.in
 clickhouse-connect==0.15.1
     # via -r requirements/base.in
-idna==3.13
+idna==3.14
     # via requests
 jmespath==1.1.0
     # via
@@ -47,7 +47,7 @@ python-dateutil==2.9.0.post0
     # via
     #   botocore
     #   pandas
-pytz==2026.1.post1
+pytz==2026.2
     # via clickhouse-connect
 pyyaml==6.0.3
     # via -r requirements/base.in
@@ -57,9 +57,9 @@ s3transfer==0.17.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-smart-open[s3]==7.6.0
+smart-open[s3]==7.6.1
     # via -r requirements/base.in
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   botocore
     #   clickhouse-connect
