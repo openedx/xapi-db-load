@@ -18,6 +18,13 @@ csv_load_from_s3_after: false
 # Run options
 log_dir: logs
 
+# Maximum size of db_load.log before it rotates, in bytes.
+# Set to 0 to disable rotation.
+log_max_bytes: 10485760 # 10 MB
+
+# Number of rotated log backups to retain (e.g. db_load.log.1 ... .5).
+log_backup_count: 5
+
 # Base URL used as the LMS "homePage" / course URL prefix in generated xAPI
 # statements. Override this to match a real environment when you need the
 # emitted events to point at a specific host.

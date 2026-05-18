@@ -102,7 +102,7 @@ def load_db(config_file: str, load_db_only: bool):
     config = get_config(config_file)
     app = App(config)
     asyncio.run(app.runner.run(load_db_only))
-    print(f"Total duration: {datetime.datetime.now() - start}")
+    app.log(f"Total duration: {datetime.datetime.now() - start}")
     exit(0)
 
 

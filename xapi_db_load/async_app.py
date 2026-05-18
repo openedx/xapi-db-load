@@ -3,6 +3,7 @@ Top level application state for UI and non-UI modes.
 """
 
 import logging
+import logging.handlers
 import os
 import sys
 from typing import TYPE_CHECKING
@@ -32,33 +33,45 @@ class App:
         self.logfile_path = os.path.join(self.logfile_path, "db_load.log")
         # If we are in UI mode, this lets us communicate with the UI
         self.ui = ui
-        self._setup_logger()
         self.config = config
+        self._setup_logger()
 
         # The Runner coordinates the async tasks from the configured backend
         self.runner = Runner(self.config, self.logger)
 
+    # Default size (bytes) at which the rotating log file rolls over.
+    # Override via the ``log_max_bytes`` config key. Set to ``0`` to disable
+    # rotation (1 big file, unbounded growth).
+    DEFAULT_LOG_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+
+    # Default number of rotated logs to retain. Override via
+    # ``log_backup_count``. Ignored if rotation is disabled.
+    DEFAULT_LOG_BACKUP_COUNT = 5
+
     def _setup_logger(self):
         """
-        Logging is a little complicated, we always want to log to a file but also to stdout if we
-        are not in UI mode.
+        Configure file and (optionally) stdout logging.
+
+        The logger always captures DEBUG to the file (with rotation) and INFO
+        to stdout when not running under the urwid UI. Per-handler levels are
+        set explicitly so adding a handler later cannot accidentally raise the
+        root level for existing handlers.
         """
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
 
         if not self.ui:
             stream_handler = logging.StreamHandler(sys.stdout)
-            formatter = logging.Formatter("%(asctime)s - %(message)s")
-            stream_handler.setFormatter(formatter)
-            self.logger.setLevel(logging.INFO)
+            stream_handler.setLevel(logging.INFO)
+            stream_handler.setFormatter(logging.Formatter("%(asctime)s - %(message)s"))
             self.logger.addHandler(stream_handler)
 
         try:
-            file_handler = logging.FileHandler(self.logfile_path)
-            formatter = logging.Formatter(
-                "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+            file_handler = self._build_file_handler()
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(
+                logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
             )
-            file_handler.setFormatter(formatter)
-            self.logger.setLevel(logging.DEBUG)
             self.logger.addHandler(file_handler)
         except OSError as exc:
             # File logging is a nice-to-have; failing to open the log file
@@ -69,6 +82,27 @@ class App:
             )
 
         self.log("Logging set up")
+
+    def _build_file_handler(self) -> logging.Handler:
+        """
+        Return the file handler to use, honoring rotation config.
+
+        ``log_max_bytes = 0`` disables rotation and returns a plain
+        ``FileHandler`` for users who prefer the pre-rotation behavior.
+        """
+        max_bytes = self.config.get("log_max_bytes", self.DEFAULT_LOG_MAX_BYTES)
+        backup_count = self.config.get(
+            "log_backup_count", self.DEFAULT_LOG_BACKUP_COUNT
+        )
+
+        if not max_bytes:
+            return logging.FileHandler(self.logfile_path)
+
+        return logging.handlers.RotatingFileHandler(
+            self.logfile_path,
+            maxBytes=max_bytes,
+            backupCount=backup_count,
+        )
 
     def set_main_loop(self, loop):
         """
@@ -91,9 +125,10 @@ class App:
 
     def log(self, message):
         """
-        Convenience method to log a message and print if necessary.
+        Log an info-level message.
+
+        In non-UI mode the stdout ``StreamHandler`` attached to ``self.logger``
+        already prints to the terminal, so we do not also call ``print()`` --
+        doing so would emit every message twice.
         """
         self.logger.info(message)
-
-        if not self.ui:
-            print(message)
