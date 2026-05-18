@@ -6,19 +6,35 @@
 #
 accessible-pygments==0.0.5
     # via pydata-sphinx-theme
+aiohappyeyeballs==2.6.1
+    # via
+    #   -r requirements/test.txt
+    #   aiohttp
+aiohttp==3.13.5
+    # via
+    #   -r requirements/test.txt
+    #   clickhouse-connect
+aiosignal==1.4.0
+    # via
+    #   -r requirements/test.txt
+    #   aiohttp
 alabaster==1.0.0
     # via sphinx
+attrs==26.1.0
+    # via
+    #   -r requirements/test.txt
+    #   aiohttp
 babel==2.18.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
 beautifulsoup4==4.14.3
     # via pydata-sphinx-theme
-boto3==1.43.6
+boto3==1.43.9
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.6
+botocore==1.43.9
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -36,15 +52,15 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==4.1.6
+chdb==4.1.7
     # via -r requirements/test.txt
-chdb-core==26.1.0
+chdb-core==26.3.0
     # via
     #   -r requirements/test.txt
     #   chdb
-click==8.3.3
+click==8.4.0
     # via -r requirements/test.txt
-clickhouse-connect==0.15.1
+clickhouse-connect[async]==1.0.0
     # via -r requirements/test.txt
 coverage[toml]==7.14.0
     # via
@@ -57,12 +73,18 @@ docutils==0.22.4
     #   pydata-sphinx-theme
     #   readme-renderer
     #   sphinx
+frozenlist==1.8.0
+    # via
+    #   -r requirements/test.txt
+    #   aiohttp
+    #   aiosignal
 id==1.6.1
     # via twine
-idna==3.14
+idna==3.15
     # via
     #   -r requirements/test.txt
     #   requests
+    #   yarl
 imagesize==2.0.0
     # via sphinx
 iniconfig==2.3.0
@@ -73,7 +95,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.1.2
     # via keyring
-jaraco-functools==4.4.0
+jaraco-functools==4.5.0
     # via keyring
 jeepney==0.9.0
     # via
@@ -102,9 +124,14 @@ more-itertools==11.0.2
     # via
     #   jaraco-classes
     #   jaraco-functools
+multidict==6.7.1
+    # via
+    #   -r requirements/test.txt
+    #   aiohttp
+    #   yarl
 nh3==0.3.5
     # via readme-renderer
-numpy==2.4.4
+numpy==2.4.5
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -115,7 +142,7 @@ packaging==26.2
     #   pytest
     #   sphinx
     #   twine
-pandas==3.0.2
+pandas==3.0.3
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -125,6 +152,11 @@ pluggy==1.6.0
     #   -r requirements/test.txt
     #   pytest
     #   pytest-cov
+propcache==0.5.2
+    # via
+    #   -r requirements/test.txt
+    #   aiohttp
+    #   yarl
 pyarrow==24.0.0
     # via
     #   -r requirements/test.txt
@@ -159,15 +191,11 @@ python-dateutil==2.9.0.post0
     #   -r requirements/test.txt
     #   botocore
     #   pandas
-pytz==2026.2
-    # via
-    #   -r requirements/test.txt
-    #   clickhouse-connect
 pyyaml==6.0.3
     # via -r requirements/test.txt
 readme-renderer==44.0
     # via twine
-requests==2.33.1
+requests==2.34.2
     # via
     #   -r requirements/test.txt
     #   requests-toolbelt
@@ -221,6 +249,7 @@ twine==6.2.0
 typing-extensions==4.15.0
     # via
     #   -r requirements/test.txt
+    #   aiosignal
     #   beautifulsoup4
     #   pydata-sphinx-theme
     #   pytest-asyncio
@@ -244,6 +273,10 @@ wrapt==2.1.2
     # via
     #   -r requirements/test.txt
     #   smart-open
+yarl==1.23.0
+    # via
+    #   -r requirements/test.txt
+    #   aiohttp
 zstandard==0.25.0
     # via
     #   -r requirements/test.txt
