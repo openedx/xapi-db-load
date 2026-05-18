@@ -15,7 +15,7 @@ class TextUI:
     config: dict
     app: App
     palette: list
-    screen: urwid.raw_display.Screen
+    screen: "urwid.raw_display.Screen"  # type: ignore[name-defined]
     main_display: Main.MainDisplay
     aio_loop: asyncio.AbstractEventLoop
     loop: urwid.MainLoop

@@ -1,6 +1,7 @@
 """
 Fake xAPI statements for various problem_check events.
 """
+
 import json
 import random
 from uuid import uuid4
@@ -17,7 +18,7 @@ class BaseProblemCheck(XAPIBase):
 
     problem_type = None  # "browser" or "server"
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -44,8 +45,13 @@ class BaseProblemCheck(XAPIBase):
         }
 
     def get_randomized_event(
-        self, event_id, account, course_locator, problem_id, create_time
-    ):
+        self,
+        event_id: str,
+        account: str,
+        course_locator: str,
+        problem_id: str,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
         """
@@ -77,13 +83,15 @@ class BaseProblemCheck(XAPIBase):
             "scaled": scaled_score,
             "raw": raw_score,
             "min": 0.0,
-            "max": max_score
+            "max": max_score,
         }
 
         server_object = {
             "object": {
                 "definition": {
-                    "extensions": {"http://id.tincanapi.com/extension/attempt-id": attempts},
+                    "extensions": {
+                        "http://id.tincanapi.com/extension/attempt-id": attempts
+                    },
                     "description": {
                         "en-US": "Add the question text, or prompt, here. This text is required."
                     },

@@ -19,7 +19,7 @@ class BaseVideo(XAPIBase):
     has_event_time = False
     has_time_from_to = False
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -45,7 +45,14 @@ class BaseVideo(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course, video_id, create_time):
+    def get_randomized_event(
+        self,
+        event_id: str,
+        account: str,
+        course,
+        video_id: str,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
         """

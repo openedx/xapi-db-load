@@ -133,7 +133,8 @@ class LoadData(urwid.WidgetWrap):
             await asyncio.sleep(1)
 
     def keypress(self, size, key):
-        if key == "up":
-            App.get_shared_instance().ui.main_display.frame.focus_position = "header"
+        ui = App.get_shared_instance().ui
+        if key == "up" and ui is not None:
+            ui.main_display.frame.focus_position = "header"
 
         return super(LoadData, self).keypress(size, key)

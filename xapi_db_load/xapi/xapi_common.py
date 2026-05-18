@@ -21,5 +21,5 @@ class XAPIBase(ABC):
         self.parent_load_generator = load_generator
 
     @abstractmethod
-    def get_data(self) -> dict:
+    def get_data(self, *args, **kwargs) -> dict:
         """Return a dict with event_id, verb, actor_id, emission_time, and event JSON."""

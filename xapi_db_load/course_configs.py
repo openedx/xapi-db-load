@@ -127,7 +127,7 @@ class RandomCourse:
         {self.course_config}
         """
 
-    def configure(self):
+    def configure(self) -> None:
         """
         Set up the fake course configuration such as course length, start and end dates, and size.
         """
@@ -171,7 +171,9 @@ class RandomCourse:
         ):
             self.items_in_course += self.course_config[config]
 
-    def get_random_emission_time(self, actor=None):
+    def get_random_emission_time(
+        self, actor: "EnrolledActor | None" = None
+    ) -> datetime.datetime:
         """
         Randomizes an emission time for events that falls within the course start and end dates.
         """
@@ -381,6 +383,7 @@ class RandomCourse:
         return course_structure
 
     def serialize_object_tag_data_for_event_sink(self) -> List[Dict]:
+        """Return list of object_tag dicts for the event-sink schema."""
         object_tags = []
         cnt = 0
         for block_type in (

@@ -93,7 +93,7 @@ class EventGenerator(Waiter):
         self.end_date = config["end_date"]
         self._validate_config()
 
-    def _validate_config(self):
+    def _validate_config(self) -> None:
         """
         Make sure the given values make sense.
         """
@@ -114,7 +114,7 @@ class EventGenerator(Waiter):
                     f"Course size {s} wants more actors than are configured in num_actors."
                 )
 
-    async def run_task(self):
+    async def run_task(self) -> None:
         """
         We override run_task here instead of _run_task because this is the setup task
         everyone else is waiting for!
@@ -133,7 +133,7 @@ class EventGenerator(Waiter):
         self.setup_complete = True
         self.finished = True
 
-    async def run_db_load_task(self):
+    async def run_db_load_task(self) -> None:
         """
         When we are just loading the database with existing data there is nothing to do.
         """
@@ -141,14 +141,14 @@ class EventGenerator(Waiter):
         self.setup_complete = True
         self.finished = True
 
-    def setup_orgs(self):
+    def setup_orgs(self) -> None:
         """
         Create some random organizations based on the config.
         """
         for i in range(self.config["num_organizations"]):
             self.orgs.append(f"Org{i}")
 
-    async def setup_courses(self):
+    async def setup_courses(self) -> None:
         """
         Pre-create a number of courses based on the config.
         """
@@ -205,7 +205,7 @@ class EventGenerator(Waiter):
                     if curr_num == num_courses:
                         break
 
-    def setup_actors(self):
+    def setup_actors(self) -> None:
         """
         Create all known actors.
 
@@ -234,7 +234,7 @@ class EventGenerator(Waiter):
         hierarchy.reverse()
         return hierarchy
 
-    def setup_taxonomies_tags(self):
+    def setup_taxonomies_tags(self) -> None:
         """
         Load a sample set of tags and format them for use.
         """

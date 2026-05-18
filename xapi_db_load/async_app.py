@@ -5,8 +5,12 @@ Top level application state for UI and non-UI modes.
 import logging
 import os
 import sys
+from typing import TYPE_CHECKING
 
 from xapi_db_load.runner import Runner
+
+if TYPE_CHECKING:
+    from xapi_db_load.ui.text_ui import TextUI
 
 
 class App:

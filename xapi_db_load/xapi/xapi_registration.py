@@ -1,6 +1,7 @@
 """
 Fake xAPI statements for various registration events.
 """
+
 import json
 from random import choice
 from uuid import uuid4
@@ -13,7 +14,7 @@ class BaseRegistration(XAPIBase):
     Base xAPI class for registration events.
     """
 
-    def get_data(self, course=None, enrolled_actor=None):
+    def get_data(self, course=None, enrolled_actor=None) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -44,7 +45,13 @@ class BaseRegistration(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course_locator, create_time):
+    def get_randomized_event(
+        self,
+        event_id: str,
+        account: str,
+        course_locator: str,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
         """
@@ -58,7 +65,7 @@ class BaseRegistration(XAPIBase):
             "context": {
                 "extensions": {
                     "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
-                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5",
                 }
             },
             "object": {

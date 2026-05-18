@@ -168,8 +168,12 @@ def test_vector_backend(mock_get_logger, _, tmp_path):
     # Quick test to make sure that what's being stored is at least parseable
     for s in (test_str_1, test_str_2):
         try:
-            statement = re.match(msg_regex, s).groups()[0]
-            json.loads(statement)
+            match = re.match(msg_regex, s)
+            if match is not None and match.groups():
+                statement = match.groups()[0]
+                json.loads(statement)
+            else:
+                raise ValueError("No match found")
         except Exception as e:
             print(e)
             print("Exception! Regex testing: ")
