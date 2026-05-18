@@ -4,9 +4,17 @@
 #
 #    make upgrade
 #
-boto3==1.43.6
+aiohappyeyeballs==2.6.1
+    # via aiohttp
+aiohttp==3.13.5
+    # via clickhouse-connect
+aiosignal==1.4.0
+    # via aiohttp
+attrs==26.1.0
+    # via aiohttp
+boto3==1.43.9
     # via smart-open
-botocore==1.43.6
+botocore==1.43.9
     # via
     #   boto3
     #   s3transfer
@@ -16,28 +24,42 @@ certifi==2026.4.22
     #   requests
 charset-normalizer==3.4.7
     # via requests
-chdb==4.1.6
+chdb==4.1.7
     # via -r requirements/base.in
-chdb-core==26.1.0
+chdb-core==26.3.0
     # via chdb
-click==8.3.3
+click==8.4.0
     # via -r requirements/base.in
-clickhouse-connect==0.15.1
+clickhouse-connect[async]==1.0.0
     # via -r requirements/base.in
-idna==3.14
-    # via requests
+frozenlist==1.8.0
+    # via
+    #   aiohttp
+    #   aiosignal
+idna==3.15
+    # via
+    #   requests
+    #   yarl
 jmespath==1.1.0
     # via
     #   boto3
     #   botocore
 lz4==4.4.5
     # via clickhouse-connect
-numpy==2.4.4
+multidict==6.7.1
+    # via
+    #   aiohttp
+    #   yarl
+numpy==2.4.5
     # via pandas
-pandas==3.0.2
+pandas==3.0.3
     # via
     #   chdb
     #   chdb-core
+propcache==0.5.2
+    # via
+    #   aiohttp
+    #   yarl
 pyarrow==24.0.0
     # via
     #   -r requirements/base.in
@@ -47,11 +69,9 @@ python-dateutil==2.9.0.post0
     # via
     #   botocore
     #   pandas
-pytz==2026.2
-    # via clickhouse-connect
 pyyaml==6.0.3
     # via -r requirements/base.in
-requests==2.33.1
+requests==2.34.2
     # via -r requirements/base.in
 s3transfer==0.17.0
     # via boto3
@@ -59,6 +79,8 @@ six==1.17.0
     # via python-dateutil
 smart-open[s3]==7.6.1
     # via -r requirements/base.in
+typing-extensions==4.15.0
+    # via aiosignal
 urllib3==2.7.0
     # via
     #   botocore
@@ -72,5 +94,7 @@ wcwidth==0.7.0
     # via urwid
 wrapt==2.1.2
     # via smart-open
+yarl==1.23.0
+    # via aiohttp
 zstandard==0.25.0
     # via clickhouse-connect
