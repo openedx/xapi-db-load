@@ -76,7 +76,7 @@ class HintAnswerBase(XAPIBase):
         event = {
             "id": event_id,
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
                 "objectType": "Agent",
             },
             "context": {

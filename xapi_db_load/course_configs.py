@@ -10,6 +10,8 @@ import uuid
 from random import choice, randrange
 from typing import Dict, List, NamedTuple
 
+from xapi_db_load.constants import DEFAULT_LMS_URL, UUID_SHORT_LENGTH
+
 
 class Actor:
     """
@@ -90,6 +92,7 @@ class RandomCourse:
         course_config_name: str,
         course_size_makeup: dict,
         tags: list[str],
+        lms_url: str = DEFAULT_LMS_URL,
     ) -> "RandomCourse":
         self.course_uuid = course_uuid
         self.course_run = course_run
@@ -98,8 +101,9 @@ class RandomCourse:
         # to be able to catch all course runs in those queries.
         self.course_name = f"{self.course_uuid} ({course_config_name})"
         self.org = org
+        self.lms_url = lms_url
         self.course_id = f"course-v1:{org}+{self.course_uuid}+{self.course_run}"
-        self.course_url = f"http://localhost:18000/course/{self.course_id}"
+        self.course_url = f"{self.lms_url}/course/{self.course_id}"
 
         delta = datetime.timedelta(days=course_length)
         self.start_date = self._random_datetime(
@@ -229,8 +233,8 @@ class RandomCourse:
         return choice(self.video_ids)
 
     def _generate_random_block_type_id(self, block_type: str) -> str:
-        block_uuid = str(uuid.uuid4())[:8]
-        return f"http://localhost:18000/xblock/block-v1:{self.course_id}+type@{block_type}+block@{block_uuid}"
+        block_uuid = str(uuid.uuid4())[:UUID_SHORT_LENGTH]
+        return f"{self.lms_url}/xblock/block-v1:{self.course_id}+type@{block_type}+block@{block_uuid}"
 
     def get_problem_id(self) -> str:
         """
@@ -251,8 +255,8 @@ class RandomCourse:
         return choice(self.forum_post_ids)
 
     def _generate_random_forum_post_id(self) -> str:
-        thread_id = str(uuid.uuid4())[:8]
-        return f"http://localhost:18000/api/discussion/v1/threads/{thread_id}"
+        thread_id = str(uuid.uuid4())[:UUID_SHORT_LENGTH]
+        return f"{self.lms_url}/api/discussion/v1/threads/{thread_id}"
 
     def get_random_nav_location(self) -> str:
         """

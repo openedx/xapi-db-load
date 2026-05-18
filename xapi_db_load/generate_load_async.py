@@ -11,6 +11,12 @@ from logging import Logger
 from random import choice, choices
 from typing import Dict, Generator, List
 
+from xapi_db_load.constants import (
+    COURSE_ID_SHORT_LENGTH,
+    DEFAULT_LMS_URL,
+    MAX_COURSE_RUNS,
+    MIN_COURSE_RUNS,
+)
 from xapi_db_load.course_configs import Actor, RandomCourse
 from xapi_db_load.fixtures.music_tags import MUSIC_TAGS
 from xapi_db_load.waiter import Waiter
@@ -177,8 +183,8 @@ class EventGenerator(Waiter):
                 ]
                 org = choice(self.orgs)
                 actors = choices(self.actors, k=course_config_makeup["actors"])
-                runs = random.randrange(1, 5)
-                course_id = str(uuid.uuid4())[:6]
+                runs = random.randrange(MIN_COURSE_RUNS, MAX_COURSE_RUNS)
+                course_id = str(uuid.uuid4())[:COURSE_ID_SHORT_LENGTH]
 
                 # Create 1-5 of the same course size / makeup / name
                 # but different course runs.
@@ -194,6 +200,7 @@ class EventGenerator(Waiter):
                         course_config_name,
                         course_config_makeup,
                         self.tags,
+                        lms_url=self.config.get("lms_url", DEFAULT_LMS_URL),
                     )
 
                     self.courses.append(course)

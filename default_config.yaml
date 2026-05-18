@@ -17,6 +17,12 @@ csv_load_from_s3_after: false
 
 # Run options
 log_dir: logs
+
+# Base URL used as the LMS "homePage" / course URL prefix in generated xAPI
+# statements. Override this to match a real environment when you need the
+# emitted events to point at a specific host.
+lms_url: http://localhost:18000
+
 num_xapi_batches: 300
 batch_size: 1000
 

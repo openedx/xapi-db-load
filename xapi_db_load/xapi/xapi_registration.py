@@ -60,7 +60,12 @@ class BaseRegistration(XAPIBase):
             "id": event_id,
             "actor": {
                 "objectType": "Agent",
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {
+                    "homePage": self.parent_load_generator.config.get(
+                        "lms_url", "http://localhost:18000"
+                    ),
+                    "name": account,
+                },
             },
             "context": {
                 "extensions": {

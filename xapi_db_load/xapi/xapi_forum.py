@@ -59,7 +59,7 @@ class BaseForum(XAPIBase):
             "id": event_id,
             "actor": {
                 "objectType": "Agent",
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
             },
             "context": {
                 "contextActivities": {

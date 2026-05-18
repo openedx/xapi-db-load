@@ -52,7 +52,7 @@ class FirstTimePassed(XAPIBase):
         event = {
             "id": event_id,
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
                 "objectType": "Agent",
             },
             "context": {
@@ -130,7 +130,7 @@ class GradeCalculated(XAPIBase):
 
         event = {
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": actor_id},
+                "account": {"homePage": course.lms_url, "name": actor_id},
                 "objectType": "Agent",
             },
             "id": event_id,

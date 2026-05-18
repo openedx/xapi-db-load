@@ -10,8 +10,8 @@ import click
 import uvloop
 import yaml
 
+from xapi_db_load.constants import DEFAULT_LMS_URL
 from xapi_db_load.ui.text_ui import TextUI
-
 
 _ENV_VAR_OVERRIDES = {
     "XAPI_DB_LOAD_CLICKHOUSE_PASSWORD": "db_password",
@@ -39,6 +39,9 @@ def get_config(config_file: str) -> dict:
         value = os.environ.get(env_var)
         if value is not None:
             conf[config_key] = value
+
+    # Apply defaults for optional config keys.
+    conf.setdefault("lms_url", DEFAULT_LMS_URL)
 
     return conf
 

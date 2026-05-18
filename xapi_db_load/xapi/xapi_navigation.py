@@ -67,7 +67,7 @@ class BaseNavigation(XAPIBase):
         event = {
             "id": event_id,
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
                 "objectType": "Agent",
             },
             "context": {
@@ -101,7 +101,11 @@ class BaseNavigation(XAPIBase):
                         "definition": {
                             "type": "http://adlnet.gov/expapi/activities/link"
                         },
-                        "id": "http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course/jump_to/block-v1:edX+DemoX+Demo_Course+type@sequential+block@6ab9c442501d472c8ed200e367b4edfa",  # pylint: disable=line-too-long
+                        "id": (
+                            f"{course.lms_url}/courses/course-v1:edX+DemoX+Demo_Course"
+                            "/jump_to/block-v1:edX+DemoX+Demo_Course+type@sequential"
+                            "+block@6ab9c442501d472c8ed200e367b4edfa"
+                        ),
                         "objectType": "Activity",
                     }
                 }
