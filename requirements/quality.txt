@@ -8,11 +8,11 @@ astroid==4.0.4
     # via
     #   pylint
     #   pylint-celery
-boto3==1.43.6
+boto3==1.43.9
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.6
+botocore==1.43.9
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -28,13 +28,13 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==4.1.6
+chdb==4.1.7
     # via -r requirements/test.txt
-chdb-core==26.1.0
+chdb-core==26.3.0
     # via
     #   -r requirements/test.txt
     #   chdb
-click==8.3.3
+click==8.4.0
     # via
     #   -r requirements/test.txt
     #   click-log
@@ -42,7 +42,7 @@ click==8.3.3
     #   edx-lint
 click-log==0.4.0
     # via edx-lint
-clickhouse-connect==0.15.1
+clickhouse-connect==1.0.0
     # via -r requirements/test.txt
 code-annotations==3.0.0
     # via edx-lint
@@ -60,7 +60,7 @@ edx-lint==6.1.0
     # via -r requirements/quality.in
 id==1.6.1
     # via twine
-idna==3.14
+idna==3.15
     # via
     #   -r requirements/test.txt
     #   requests
@@ -76,7 +76,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.1.2
     # via keyring
-jaraco-functools==4.4.0
+jaraco-functools==4.5.0
     # via keyring
 jeepney==0.9.0
     # via
@@ -109,7 +109,7 @@ more-itertools==11.0.2
     #   jaraco-functools
 nh3==0.3.5
     # via readme-renderer
-numpy==2.4.4
+numpy==2.4.5
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -118,7 +118,7 @@ packaging==26.2
     #   -r requirements/test.txt
     #   pytest
     #   twine
-pandas==3.0.2
+pandas==3.0.3
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -177,17 +177,13 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-slugify==8.0.4
     # via code-annotations
-pytz==2026.2
-    # via
-    #   -r requirements/test.txt
-    #   clickhouse-connect
 pyyaml==6.0.3
     # via
     #   -r requirements/test.txt
     #   code-annotations
 readme-renderer==44.0
     # via twine
-requests==2.33.1
+requests==2.34.2
     # via
     #   -r requirements/test.txt
     #   requests-toolbelt
