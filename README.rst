@@ -26,6 +26,44 @@ Please add any issues you find here: https://github.com/openedx/xapi-db-load/iss
 
 Data can be generated using the following backends:
 
+Backend comparison
+------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 18 18 18 34
+
+   * - Backend
+     - Recommended scale
+     - Speed
+     - Output
+     - Best for
+   * - ``clickhouse``
+     - Up to ~10K xAPI events
+     - Slow
+     - Direct ClickHouse inserts
+     - Smoke tests, configuration and permission checks
+   * - ``ralph``
+     - Up to ~1M xAPI events
+     - Slowest
+     - HTTP POST to Ralph LRS
+     - Exercising the full Aspects / Ralph integration path
+   * - ``vector``
+     - Up to ~10M xAPI events
+     - Medium
+     - Log statements consumed by Vector
+     - Testing a Vector-based pipeline into ClickHouse
+   * - ``csv``
+     - Up to 100M xAPI events
+     - Fast
+     - Gzipped CSV files (local or block storage)
+     - Reusable fixtures, readable output, medium-to-large performance tests
+   * - ``chdb``
+     - 100M+ xAPI events
+     - Fastest
+     - lz4 ClickHouse Native files on block storage
+     - Reusable fixtures, readable output, very large scale tests
+
 clickhouse
 ----------
 This backend issues batched insert statements directly against the configured
@@ -41,6 +79,14 @@ inserting of xAPI events into ClickHouse. All other data is handled using the
 clickhouse backend. It is useful for testing Ralph configuration, integration,
 and permissions. This is the slowest method, but exercises the largest
 surface area of the Aspects project.
+
+vector
+------
+This backend emits xAPI statements through a dedicated ``xapi_tracking``
+Python logger so that a co-located `Vector <https://vector.dev>`_ agent can
+read them and forward them to ClickHouse. All non-xAPI data (courses, blocks,
+enrollments, etc.) is still written using the direct ``clickhouse`` backend.
+Use this backend when validating a Vector-based ingestion pipeline.
 
 csv
 ---
@@ -59,8 +105,8 @@ configured `start_date` and `end_date`.
 
 chdb
 ----
-This backend generates lz4 compressed ClickHouse Native files in S3 using the
-CHDB in-process ClickHouse engine and can optionally load the files to
+This backend generates lz4 compressed ClickHouse Native files in block storage
+using the CHDB in-process ClickHouse engine, and can optionally load the files to
 a ClickHouse service directly after creation or at a later time using the
 ``--load_db_only`` option. The generated files are partitioned differently per data
 type to parallelize data writing and loading. This is the fastest engine for
@@ -103,6 +149,37 @@ To try out the new UI mode:
 
 
 
+Secrets and environment variable overrides
+------------------------------------------
+Sensitive credentials should not be committed to source control. The following
+environment variables override their corresponding config keys at load time
+(env vars take precedence over values in the YAML file):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 25 30
+
+   * - Environment variable
+     - Config key it overrides
+     - Used by
+   * - ``XAPI_DB_LOAD_CLICKHOUSE_PASSWORD``
+     - ``db_password``
+     - All ClickHouse-backed runs
+   * - ``XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY``
+     - ``s3_secret``
+     - ``csv`` (S3 destination), ``chdb``
+   * - ``XAPI_DB_LOAD_RALPH_PASSWORD``
+     - ``lrs_password``
+     - ``ralph``
+
+A typical pattern is to keep all non-secret keys in YAML and provide the
+secrets via the shell, your CI secret store, or a ``.env`` file::
+
+    export XAPI_DB_LOAD_CLICKHOUSE_PASSWORD=...
+    export XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY=...
+    export XAPI_DB_LOAD_RALPH_PASSWORD=...
+    xapi-db-load load-db --config_file my_config.yaml
+
 Configuration Format
 --------------------
 There are a number of different configuration options for tuning the output.
@@ -116,6 +193,20 @@ test::
 
     # Location where timing logs will be saved
     log_dir: logs
+
+    # Maximum size of db_load.log before it rotates, in bytes.
+    # Defaults to 10 MB. Set to 0 to disable rotation and keep a single
+    # unbounded log file (the pre-rotation behavior).
+    log_max_bytes: 10485760
+
+    # Number of rotated log backups to retain (db_load.log.1 ... .5 by default).
+    log_backup_count: 5
+
+    # Base URL used as the LMS "homePage" / course URL prefix in every
+    # generated xAPI statement. Defaults to http://localhost:18000. Set this
+    # to match a real environment when you need the emitted events to point
+    # at a specific host.
+    lms_url: http://localhost:18000
 
     # xAPI statements will be generated in batches, the total number of
     # statements is ``num_xapi_batches * batch_size``. The batch size is the number
@@ -208,26 +299,41 @@ Ralph / ClickHouse Backend
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Variables necessary to send xAPI statements via Ralph::
 
-    backend: ralph_clickhouse
+    backend: ralph
     lrs_url: http://ralph.tutor-nightly-local.orb.local/xAPI/statements
     lrs_username: ralph
     lrs_password: secret
 
+    # Optional: per-request timeout (seconds) applied to every Ralph POST.
+    # Defaults to 120. Set to ``null`` for unbounded waits (pre-timeout
+    # behavior). A finite value prevents a hung Ralph endpoint from stalling
+    # the entire run.
+    lrs_request_timeout: 120
+
     # This also requires all of the ClickHouse backend variables!
+
+Vector Backend
+^^^^^^^^^^^^^^
+The ``vector`` backend reuses the ``clickhouse`` connection variables for the
+non-xAPI data and emits xAPI statements through the ``xapi_tracking`` logger
+for Vector to consume::
+
+    backend: vector
+    # ... plus all the ClickHouse backend variables above
 
 
 CSV Backend, Local Files
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Generates gzipped CSV files to a local directory::
 
-    backend: csv_file
+    backend: csv
     csv_output_destination: logs/
 
 CSV Backend, S3 Compatible Destination
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Generates gzipped CSV files to remote location::
 
-    backend: csv_file
+    backend: csv
     # This can be anything smart-open can handle (ex. a local directory or
     # an S3 bucket etc.) but importing to ClickHouse using this tool only
     # supports S3 or compatible services like MinIO right now.
@@ -244,7 +350,7 @@ CSV Backend, S3 Compatible Destination, Load to ClickHouse
 Generates gzipped CSV files to a remote location, then automatically loads
 them to ClickHouse::
 
-    backend: csv_file
+    backend: csv
     # csv_output_destination can be anything smart_open can handle, a local
     # directory or an S3 bucket etc., but importing to ClickHouse using this
     # tool only supports S3 or compatible services (ex: MinIO) right now

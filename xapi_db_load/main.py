@@ -16,7 +16,7 @@ from xapi_db_load.ui.text_ui import TextUI
 _ENV_VAR_OVERRIDES = {
     "XAPI_DB_LOAD_CLICKHOUSE_PASSWORD": "db_password",
     "XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY": "s3_secret",
-    "XAPI_DB_LOAD_RALPH_PASSWORD": "ralph_password",
+    "XAPI_DB_LOAD_RALPH_PASSWORD": "lrs_password",
 }
 
 
@@ -28,7 +28,7 @@ def get_config(config_file: str) -> dict:
     Environment variables take precedence over values in the config file:
       XAPI_DB_LOAD_CLICKHOUSE_PASSWORD -> db_password
       XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY -> s3_secret
-      XAPI_DB_LOAD_RALPH_PASSWORD -> ralph_password
+      XAPI_DB_LOAD_RALPH_PASSWORD -> lrs_password
     """
     with open(config_file, "r") as y:
         conf = yaml.safe_load(y)

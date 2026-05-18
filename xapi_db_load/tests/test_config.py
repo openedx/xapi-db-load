@@ -13,7 +13,7 @@ from xapi_db_load.main import get_config
 ENV_VAR_OVERRIDES = [
     ("XAPI_DB_LOAD_CLICKHOUSE_PASSWORD", "db_password"),
     ("XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY", "s3_secret"),
-    ("XAPI_DB_LOAD_RALPH_PASSWORD", "ralph_password"),
+    ("XAPI_DB_LOAD_RALPH_PASSWORD", "lrs_password"),
 ]
 
 
@@ -27,7 +27,7 @@ def config_file(tmp_path):
             backend: csv
             db_password: from_file
             s3_secret: from_file
-            ralph_password: from_file
+            lrs_password: from_file
             """
         ).strip()
     )
