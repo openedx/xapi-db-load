@@ -61,10 +61,14 @@ class Waiter:
         with self.complete_pct_lock:
             try:
                 self.complete_pct = self.completed_task_count / self.total_task_count
-            # Eat all errors here since this can be happening in a long running thread that would
-            # otherwise die and leave the application hanging in the case of a div by 0 etc.
-            except Exception as e:
-                self.logger.error(f"Error in update_complete_pct {e}")
+            # Guard against div-by-zero when ``total_task_count`` has not yet
+            # been initialised by a producer task. Any other exception here indicates a
+            # real bug and should propagate.
+            except ZeroDivisionError:
+                self.logger.debug(
+                    "update_complete_pct called before total_task_count was set; "
+                    "leaving complete_pct unchanged."
+                )
 
     def update_total_task_count(self, increment_by: int) -> None:
         """

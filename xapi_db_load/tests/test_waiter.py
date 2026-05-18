@@ -44,15 +44,22 @@ def test_update_counts_drive_percentage(waiter):
 
 
 def test_update_complete_pct_handles_zero_total(waiter, caplog):
-    """``update_complete_pct`` swallows ZeroDivisionError and logs an error."""
+    """``update_complete_pct`` swallows ZeroDivisionError and leaves pct unchanged."""
     # total stays at 0 - the next call should not raise
     waiter.completed_task_count = 1
-    with caplog.at_level(logging.ERROR, logger="test"):
+    with caplog.at_level(logging.DEBUG, logger="test"):
         waiter.update_complete_pct()
 
-    # Percentage is unchanged from its initial value, and an error was logged.
+    # Percentage is unchanged from its initial value.
     assert waiter.complete_pct == 0.0
-    assert any("update_complete_pct" in r.message for r in caplog.records)
+
+
+def test_update_complete_pct_propagates_real_errors(waiter):
+    """Unexpected errors should propagate rather than being silently swallowed."""
+    waiter.total_task_count = 10
+    waiter.completed_task_count = "not a number"  # type: ignore[assignment]
+    with pytest.raises(TypeError):
+        waiter.update_complete_pct()
 
 
 def test_finish_marks_complete(waiter):

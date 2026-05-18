@@ -60,8 +60,13 @@ class App:
             file_handler.setFormatter(formatter)
             self.logger.setLevel(logging.DEBUG)
             self.logger.addHandler(file_handler)
-        except Exception:
-            self.logger.warning("Unable to open log file.")
+        except OSError as exc:
+            # File logging is a nice-to-have; failing to open the log file
+            # (permissions, disk full, missing directory, etc.) should not abort
+            # the run, especially in non-UI mode where stdout logging still works.
+            self.logger.warning(
+                "Unable to open log file %r: %s", self.logfile_path, exc
+            )
 
         self.log("Logging set up")
 
