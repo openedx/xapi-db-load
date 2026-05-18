@@ -277,9 +277,11 @@ class EventGenerator(Waiter):
                 self.tags.append(tag)
 
     def get_random_event_count(self) -> int:
+        """Return the total number of random xAPI events that will be generated."""
         return self.config["batch_size"] * self.config["num_xapi_batches"]
 
     def get_batch_events_iter(self) -> Generator[str, None, None]:
+        """Yield batch events pre-formatted as SQL VALUES tuples."""
         for v in self.get_batch_events():
             yield f"('{v['event_id']}', '{v['emission_time']}', '{v['event']}')"
 

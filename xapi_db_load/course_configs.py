@@ -94,6 +94,7 @@ class RandomCourse:
         tags: list[str],
         lms_url: str = DEFAULT_LMS_URL,
     ) -> "RandomCourse":
+        """Populate this course with randomized blocks, dates, actors, and tags."""
         self.course_uuid = course_uuid
         self.course_run = course_run
         # It's important that the course name stay the same between runs

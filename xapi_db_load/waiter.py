@@ -1,3 +1,5 @@
+"""Base ``Waiter`` task class with shared progress bookkeeping for all backend tasks."""
+
 import asyncio
 from logging import Logger
 from threading import Lock
@@ -36,9 +38,11 @@ class Waiter:
             self.task_name = f"[Unnamed task] {type(self)}"
 
     def get_complete(self) -> float:
+        """Return the current completion percentage (0.0 - 1.0)."""
         return self.complete_pct
 
     def reset(self) -> None:
+        """Reset progress counters so the task can be re-run."""
         self.complete_pct = 0.0
         self.total_task_count = 0
         self.completed_task_count = 0

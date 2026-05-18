@@ -932,6 +932,7 @@ class LoadFromS3(XAPILakeCHDBAsync):
         self.registered_tasks = []
 
     def reset(self):
+        """Reset progress counters and per-run state (errors, shutdown flag)."""
         super().reset()
         self.error_count = 0
         self.shutting_down = False

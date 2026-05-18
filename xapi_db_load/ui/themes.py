@@ -1,3 +1,5 @@
+"""Color palette definitions for the urwid UI."""
+
 THEMES = {
     "default": [
         # Style name                    # 16-color style                        # Monochrome style          # 88, 256 and true-color style

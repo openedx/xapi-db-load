@@ -1,3 +1,10 @@
+"""
+Top-level ``Runner`` that wires together backends, tasks, and the event generator.
+
+The ``Runner`` selects the appropriate backend based on config, registers tasks,
+and drives the async task loop that performs the data generation / load.
+"""
+
 import asyncio
 import datetime
 from logging import Logger

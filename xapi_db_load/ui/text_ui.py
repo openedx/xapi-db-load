@@ -1,3 +1,5 @@
+"""Top-level urwid ``TextUI`` that owns the screen, palette, and asyncio main loop."""
+
 import asyncio
 
 import urwid

@@ -74,11 +74,13 @@ class App:
         self.main_loop = loop
 
     def draw_screen(self):
+        """Trigger a UI redraw if a main loop is currently attached."""
         if self.main_loop:
             self.main_loop.draw_screen()
 
     @staticmethod
     def get_shared_instance() -> "App":
+        """Return the process-wide singleton ``App`` instance."""
         assert App._shared_instance, "App not initialized"
         return App._shared_instance
 
