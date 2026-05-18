@@ -83,11 +83,6 @@ class EventGenerator(Waiter):
     Generates a batch of random xAPI events based on the EVENT_WEIGHTS proportions.
     """
 
-    actors: List[Actor] = []
-    courses: List[RandomCourse] = []
-    orgs: List[str] = []
-    taxonomies: Dict = {}
-    tags: List = []
     setup_complete: bool = False
     task_name: str = "Setup"
 
@@ -95,6 +90,12 @@ class EventGenerator(Waiter):
         self, config: Dict, logger: Logger, event_generator: "EventGenerator|None"
     ):
         super().__init__(config, logger, self)
+        self.actors: List[Actor] = []
+        self.courses: List[RandomCourse] = []
+        self.orgs: List[str] = []
+        self.taxonomies: Dict = {}
+        self.tags: List = []
+        self.setup_complete = False
         self.start_date = config["start_date"]
         self.end_date = config["end_date"]
         self._validate_config()

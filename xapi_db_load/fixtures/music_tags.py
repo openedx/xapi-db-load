@@ -1,6 +1,7 @@
 """
 This is a pythonized version the testing CSV we use for tags in edx-platform.
 """
+
 import csv
 from io import StringIO
 
@@ -36,4 +37,6 @@ TABLA,Tabla,DRUMS,
 PIANO,Piano,CHORD,
 """)
 
-MUSIC_TAGS = csv.DictReader(MUSIC_TAGS_CSV)
+# Materialize into a list so the fixture can be consumed multiple times
+# without having to do another read. This happens in tests, for instance.
+MUSIC_TAGS = list(csv.DictReader(MUSIC_TAGS_CSV))
