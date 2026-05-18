@@ -1,4 +1,10 @@
-# This default configuration should generally work as long as the logs director is writable.
+# This default configuration should generally work as long as the logs directory is writable.
+#
+# SECRETS: Do not commit credentials to source control. Sensitive config values can be
+# overridden via environment variables (env vars take precedence over values in this file):
+#   XAPI_DB_LOAD_CLICKHOUSE_PASSWORD  -> db_password
+#   XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY -> s3_secret
+#   XAPI_DB_LOAD_RALPH_PASSWORD        -> ralph_password
 
 # CSV backend configuration
 # #########################

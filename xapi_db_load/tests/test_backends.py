@@ -182,7 +182,7 @@ def test_vector_backend(mock_get_logger, _, tmp_path):
     assert "Run duration was" in result.output
 
 
-@patch("xapi_db_load.backends.ralph.requests", new_callable=AsyncMock)
+@patch("xapi_db_load.backends.ralph.requests", new_callable=MagicMock)
 @patch(
     "xapi_db_load.backends.base_async_backend.clickhouse_connect",
     new_callable=AsyncMock,
@@ -192,7 +192,6 @@ def test_ralph_backend(mock_requests, _, tmp_path):
     Run a test through the Ralph backend, currently this just checks that the
     output indicates success.
     """
-    mock_requests.post = MagicMock()
     test_path = "xapi_db_load/tests/fixtures/small_ralph_config.yaml"
     runner = CliRunner()
 

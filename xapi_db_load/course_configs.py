@@ -64,17 +64,19 @@ class RandomCourse:
     Holds "known objects" and configuration values for a fake course.
     """
 
-    items_in_course = 0
-    chapter_ids: List[str] = []
-    sequential_ids: List[str] = []
-    vertical_ids: List[str] = []
-    problem_ids: List[str] = []
-    video_ids: List[str] = []
-    forum_post_ids: List[str] = []
-    actors: list[EnrolledActor] = []
-    all_tags: list = []
-    start_date: datetime.datetime | None = None
-    end_date: datetime.datetime | None = None
+    def __init__(self):
+        """Initialize per-instance mutable state."""
+        self.items_in_course: int = 0
+        self.chapter_ids: List[str] = []
+        self.sequential_ids: List[str] = []
+        self.vertical_ids: List[str] = []
+        self.problem_ids: List[str] = []
+        self.video_ids: List[str] = []
+        self.forum_post_ids: List[str] = []
+        self.actors: list[EnrolledActor] = []
+        self.all_tags: list = []
+        self.start_date: datetime.datetime | None = None
+        self.end_date: datetime.datetime | None = None
 
     async def populate(
         self,
