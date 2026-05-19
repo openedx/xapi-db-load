@@ -4,11 +4,27 @@
 #
 #    make upgrade
 #
-boto3==1.43.6
+aiohappyeyeballs==2.6.1
+    # via
+    #   -r requirements/base.txt
+    #   aiohttp
+aiohttp==3.13.5
+    # via
+    #   -r requirements/base.txt
+    #   clickhouse-connect
+aiosignal==1.4.0
+    # via
+    #   -r requirements/base.txt
+    #   aiohttp
+attrs==26.1.0
+    # via
+    #   -r requirements/base.txt
+    #   aiohttp
+boto3==1.43.9
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.43.6
+botocore==1.43.9
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -22,22 +38,28 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/base.txt
     #   requests
-chdb==4.1.6
+chdb==4.1.7
     # via -r requirements/base.txt
-chdb-core==26.1.0
+chdb-core==26.3.0
     # via
     #   -r requirements/base.txt
     #   chdb
-click==8.3.3
+click==8.4.0
     # via -r requirements/base.txt
-clickhouse-connect==0.15.1
+clickhouse-connect[async]==1.0.0
     # via -r requirements/base.txt
 coverage[toml]==7.14.0
     # via pytest-cov
-idna==3.14
+frozenlist==1.8.0
+    # via
+    #   -r requirements/base.txt
+    #   aiohttp
+    #   aiosignal
+idna==3.15
     # via
     #   -r requirements/base.txt
     #   requests
+    #   yarl
 iniconfig==2.3.0
     # via pytest
 jmespath==1.1.0
@@ -49,13 +71,18 @@ lz4==4.4.5
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
-numpy==2.4.4
+multidict==6.7.1
+    # via
+    #   -r requirements/base.txt
+    #   aiohttp
+    #   yarl
+numpy==2.4.5
     # via
     #   -r requirements/base.txt
     #   pandas
 packaging==26.2
     # via pytest
-pandas==3.0.2
+pandas==3.0.3
     # via
     #   -r requirements/base.txt
     #   chdb
@@ -64,6 +91,11 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
+propcache==0.5.2
+    # via
+    #   -r requirements/base.txt
+    #   aiohttp
+    #   yarl
 pyarrow==24.0.0
     # via
     #   -r requirements/base.txt
@@ -84,13 +116,9 @@ python-dateutil==2.9.0.post0
     #   -r requirements/base.txt
     #   botocore
     #   pandas
-pytz==2026.2
-    # via
-    #   -r requirements/base.txt
-    #   clickhouse-connect
 pyyaml==6.0.3
     # via -r requirements/base.txt
-requests==2.33.1
+requests==2.34.2
     # via -r requirements/base.txt
 s3transfer==0.17.0
     # via
@@ -103,7 +131,10 @@ six==1.17.0
 smart-open[s3]==7.6.1
     # via -r requirements/base.txt
 typing-extensions==4.15.0
-    # via pytest-asyncio
+    # via
+    #   -r requirements/base.txt
+    #   aiosignal
+    #   pytest-asyncio
 urllib3==2.7.0
     # via
     #   -r requirements/base.txt
@@ -122,6 +153,10 @@ wrapt==2.1.2
     # via
     #   -r requirements/base.txt
     #   smart-open
+yarl==1.23.0
+    # via
+    #   -r requirements/base.txt
+    #   aiohttp
 zstandard==0.25.0
     # via
     #   -r requirements/base.txt
