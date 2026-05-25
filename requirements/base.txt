@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-aiohappyeyeballs==2.6.1
+aiohappyeyeballs==2.6.2
     # via aiohttp
 aiohttp==3.13.5
     # via clickhouse-connect
@@ -12,31 +12,31 @@ aiosignal==1.4.0
     # via aiohttp
 attrs==26.1.0
     # via aiohttp
-boto3==1.43.9
+boto3==1.43.14
     # via smart-open
-botocore==1.43.9
+botocore==1.43.14
     # via
     #   boto3
     #   s3transfer
-certifi==2026.4.22
+certifi==2026.5.20
     # via
     #   clickhouse-connect
     #   requests
 charset-normalizer==3.4.7
     # via requests
-chdb==4.1.7
+chdb==4.1.8
     # via -r requirements/base.in
 chdb-core==26.3.0
     # via chdb
-click==8.4.0
+click==8.4.1
     # via -r requirements/base.in
-clickhouse-connect[async]==1.0.0
+clickhouse-connect[async]==1.0.1
     # via -r requirements/base.in
 frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
-idna==3.15
+idna==3.16
     # via
     #   requests
     #   yarl
@@ -50,7 +50,7 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-numpy==2.4.5
+numpy==2.4.6
     # via pandas
 pandas==3.0.3
     # via
@@ -92,9 +92,9 @@ uvloop==0.22.1
     # via -r requirements/base.in
 wcwidth==0.7.0
     # via urwid
-wrapt==2.1.2
+wrapt==2.2.1
     # via smart-open
-yarl==1.23.0
+yarl==1.24.2
     # via aiohttp
 zstandard==0.25.0
     # via clickhouse-connect

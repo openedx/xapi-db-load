@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-aiohappyeyeballs==2.6.1
+aiohappyeyeballs==2.6.2
     # via
     #   -r requirements/base.txt
     #   aiohttp
@@ -20,16 +20,16 @@ attrs==26.1.0
     # via
     #   -r requirements/base.txt
     #   aiohttp
-boto3==1.43.9
+boto3==1.43.14
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.43.9
+botocore==1.43.14
     # via
     #   -r requirements/base.txt
     #   boto3
     #   s3transfer
-certifi==2026.4.22
+certifi==2026.5.20
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
@@ -38,15 +38,15 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/base.txt
     #   requests
-chdb==4.1.7
+chdb==4.1.8
     # via -r requirements/base.txt
 chdb-core==26.3.0
     # via
     #   -r requirements/base.txt
     #   chdb
-click==8.4.0
+click==8.4.1
     # via -r requirements/base.txt
-clickhouse-connect[async]==1.0.0
+clickhouse-connect[async]==1.0.1
     # via -r requirements/base.txt
 coverage[toml]==7.14.0
     # via pytest-cov
@@ -55,7 +55,7 @@ frozenlist==1.8.0
     #   -r requirements/base.txt
     #   aiohttp
     #   aiosignal
-idna==3.15
+idna==3.16
     # via
     #   -r requirements/base.txt
     #   requests
@@ -76,7 +76,7 @@ multidict==6.7.1
     #   -r requirements/base.txt
     #   aiohttp
     #   yarl
-numpy==2.4.5
+numpy==2.4.6
     # via
     #   -r requirements/base.txt
     #   pandas
@@ -149,11 +149,11 @@ wcwidth==0.7.0
     # via
     #   -r requirements/base.txt
     #   urwid
-wrapt==2.1.2
+wrapt==2.2.1
     # via
     #   -r requirements/base.txt
     #   smart-open
-yarl==1.23.0
+yarl==1.24.2
     # via
     #   -r requirements/base.txt
     #   aiohttp
