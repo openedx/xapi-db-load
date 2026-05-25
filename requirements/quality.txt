@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-aiohappyeyeballs==2.6.1
+aiohappyeyeballs==2.6.2
     # via
     #   -r requirements/test.txt
     #   aiohttp
@@ -24,16 +24,16 @@ attrs==26.1.0
     # via
     #   -r requirements/test.txt
     #   aiohttp
-boto3==1.43.9
+boto3==1.43.14
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.9
+botocore==1.43.14
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
-certifi==2026.4.22
+certifi==2026.5.20
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -44,13 +44,13 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==4.1.7
+chdb==4.1.8
     # via -r requirements/test.txt
 chdb-core==26.3.0
     # via
     #   -r requirements/test.txt
     #   chdb
-click==8.4.0
+click==8.4.1
     # via
     #   -r requirements/test.txt
     #   click-log
@@ -58,7 +58,7 @@ click==8.4.0
     #   edx-lint
 click-log==0.4.0
     # via edx-lint
-clickhouse-connect[async]==1.0.0
+clickhouse-connect[async]==1.0.1
     # via -r requirements/test.txt
 code-annotations==3.0.0
     # via edx-lint
@@ -81,7 +81,7 @@ frozenlist==1.8.0
     #   aiosignal
 id==1.6.1
     # via twine
-idna==3.15
+idna==3.16
     # via
     #   -r requirements/test.txt
     #   requests
@@ -125,7 +125,7 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==11.0.2
+more-itertools==11.1.0
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -136,7 +136,7 @@ multidict==6.7.1
     #   yarl
 nh3==0.3.5
     # via readme-renderer
-numpy==2.4.5
+numpy==2.4.6
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -239,7 +239,7 @@ six==1.17.0
     #   python-dateutil
 smart-open[s3]==7.6.1
     # via -r requirements/test.txt
-snowballstemmer==3.0.1
+snowballstemmer==3.1.0
     # via pydocstyle
 stevedore==5.8.0
     # via code-annotations
@@ -272,11 +272,11 @@ wcwidth==0.7.0
     # via
     #   -r requirements/test.txt
     #   urwid
-wrapt==2.1.2
+wrapt==2.2.1
     # via
     #   -r requirements/test.txt
     #   smart-open
-yarl==1.23.0
+yarl==1.24.2
     # via
     #   -r requirements/test.txt
     #   aiohttp
