@@ -30,11 +30,11 @@ babel==2.18.0
     #   sphinx
 beautifulsoup4==4.14.3
     # via pydata-sphinx-theme
-boto3==1.43.14
+boto3==1.43.18
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.14
+botocore==1.43.18
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -60,9 +60,9 @@ chdb-core==26.3.0
     #   chdb
 click==8.4.1
     # via -r requirements/test.txt
-clickhouse-connect[async]==1.0.1
+clickhouse-connect[async]==1.1.1
     # via -r requirements/test.txt
-coverage[toml]==7.14.0
+coverage[toml]==7.14.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -80,7 +80,7 @@ frozenlist==1.8.0
     #   aiosignal
 id==1.6.1
     # via twine
-idna==3.16
+idna==3.17
     # via
     #   -r requirements/test.txt
     #   requests
@@ -182,7 +182,7 @@ pytest==9.0.3
     #   -r requirements/test.txt
     #   pytest-asyncio
     #   pytest-cov
-pytest-asyncio==1.3.0
+pytest-asyncio==1.4.0
     # via -r requirements/test.txt
 pytest-cov==7.1.0
     # via -r requirements/test.txt
@@ -209,7 +209,7 @@ rich==15.0.0
     # via twine
 roman-numerals==4.1.0
     # via sphinx
-s3transfer==0.17.0
+s3transfer==0.18.0
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -261,7 +261,7 @@ urllib3==2.7.0
     #   id
     #   requests
     #   twine
-urwid==4.0.0
+urwid==4.0.1
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt
