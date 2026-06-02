@@ -6,6 +6,8 @@ import json
 from random import randrange
 from uuid import uuid4
 
+from xapi_db_load.constants import DEFAULT_VIDEO_LENGTH_SECONDS
+
 from .xapi_common import XAPIBase
 
 
@@ -19,7 +21,7 @@ class BaseVideo(XAPIBase):
     has_event_time = False
     has_time_from_to = False
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -45,25 +47,33 @@ class BaseVideo(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course, video_id, create_time):
+    def get_randomized_event(
+        self,
+        event_id: str,
+        account: str,
+        course,
+        video_id: str,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
         """
-        video_length = 195.0
+        video_length = DEFAULT_VIDEO_LENGTH_SECONDS
+        max_offset = int(DEFAULT_VIDEO_LENGTH_SECONDS)
         video_event_time = video_event_time_to = video_event_time_from = None
 
         if self.has_event_time:
-            video_event_time = float(randrange(0, 195))
+            video_event_time = float(randrange(0, max_offset))
 
         if self.has_time_from_to:
-            video_event_time_from = float(randrange(0, 195))
-            video_event_time_to = float(randrange(0, 195))
+            video_event_time_from = float(randrange(0, max_offset))
+            video_event_time_to = float(randrange(0, max_offset))
 
         event = {
             "id": event_id,
             "actor": {
                 "objectType": "Agent",
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
             },
             "context": {
                 "contextActivities": {

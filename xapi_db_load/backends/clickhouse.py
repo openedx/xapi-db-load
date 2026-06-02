@@ -47,35 +47,32 @@ class XAPILakeClickhouseAsync(QueueBackend):
     Abstract implementation for ClickHouse async.
     """
 
-    async def _insert_list_sql_retry(
-        self, data_list: List, table: str, database: str = "event_sink"
+    async def _insert_rows(
+        self,
+        table: str,
+        rows: List[tuple],
+        column_names: List[str] | str = "*",
+        database: str = "event_sink",
     ):
-        """
-        Wrap up inserts that join values lists.
-        """
-        sql = f"""
-                INSERT INTO {database}.{table}
-                VALUES {",".join(data_list)}
-        """
-
-        await self._insert_sql_with_retry(sql)
-
-    async def _insert_sql_with_retry(self, sql: str):
-        """
-        Wrap insert commands with a single retry.
-        """
+        """Insert rows via clickhouse-connect's parameterized insert."""
         try:
             if not self.client:
                 await self.set_client()
             assert self.client
-            await self.client.command(sql)
-        except (OperationalError, DatabaseError) as e:
+            await self.client.insert(
+                table, rows, column_names=column_names, database=database
+            )
+        except OperationalError as e:
             self.logger.error(e)
-            self.logger.error(sql)
-            self.logger.error("ClickHouse Error, retrying once.")
+            self.logger.error("ClickHouse OperationalError, retrying once.")
             await self.set_client()
             assert self.client
-            await self.client.command(sql)
+            await self.client.insert(
+                table, rows, column_names=column_names, database=database
+            )
+        except DatabaseError as e:
+            self.logger.error("ClickHouse DatabaseError: %s", e)
+            raise
 
 
 class InsertXAPIEvents(XAPILakeClickhouseAsync):
@@ -125,28 +122,24 @@ class InsertXAPIEvents(XAPILakeClickhouseAsync):
         self.logger.debug(f"   {self.task_name} worker batch {batch} inserted")
         self.update_completed_task_count(increment_by=1)
 
-    async def _do_insert(self, out_data: List):
+    async def _do_insert(self, out_data: List[tuple]):
         """
         Performs the actual insert of a batch of events to ClickHouse.
         """
-        vals = ",".join(out_data)
-        sql = f"""
-            INSERT INTO xapi.xapi_events_all (
-                event_id,
-                emission_time,
-                event
-            )
-            VALUES {vals}
-        """
-        await self._insert_sql_with_retry(sql)
+        await self._insert_rows(
+            "xapi_events_all",
+            out_data,
+            column_names=["event_id", "emission_time", "event"],
+            database="xapi",
+        )
 
-    def _format_row(self, row):
+    def _format_row(self, row: dict) -> tuple:
         """
         Format a row of data for ClickHouse insert.
 
-        This is broken out so it can be overridden in the Ralph bakend.
+        This is broken out so it can be overridden in the Ralph backend.
         """
-        return f"('{row['event_id']}', '{row['emission_time']}', '{row['event']}')"
+        return (row["event_id"], row["emission_time"], row["event"])
 
 
 class InsertInitialEnrollments(InsertXAPIEvents):
@@ -247,25 +240,25 @@ class InsertCourses(XAPILakeClickhouseAsync):
                 c = course.serialize_course_data_for_event_sink()
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
+                out_data.append(
+                    (
+                        c["org"],
+                        c["course_key"],
+                        c["display_name"],
+                        c["course_start"],
+                        c["course_end"],
+                        c["enrollment_start"],
+                        c["enrollment_end"],
+                        c["self_paced"],
+                        c["course_data_json"],
+                        c["created"],
+                        c["modified"],
+                        dump_id,
+                        dump_time,
+                    )
+                )
 
-                out = f"""(
-                    '{c["org"]}',
-                    '{c["course_key"]}',
-                    '{c["display_name"]}',
-                    '{c["course_start"]}',
-                    '{c["course_end"]}',
-                    '{c["enrollment_start"]}',
-                    '{c["enrollment_end"]}',
-                    '{c["self_paced"]}',
-                    '{c["course_data_json"]}',
-                    '{c["created"]}',
-                    '{c["modified"]}',
-                    '{dump_id}',
-                    '{dump_time}'
-                )"""
-                out_data.append(out)
-
-            await self._insert_list_sql_retry(out_data, "course_overviews")
+            await self._insert_rows("course_overviews", out_data)
             self.update_completed_task_count(increment_by=1)
 
 
@@ -291,27 +284,24 @@ class InsertBlocks(XAPILakeClickhouseAsync):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for b in blocks:
-                    try:
-                        out = f"""(
-                            '{b["org"]}',
-                            '{b["course_key"]}',
-                            '{b["location"]}',
-                            '{b["display_name"]}',
-                            '{b["xblock_data_json"]}',
-                            '{b["order"]}',
-                            '{b["edited_on"]}',
-                            '{dump_id}',
-                            '{dump_time}'
-                        )"""
-                        out_data.append(out)
-                    except Exception:
-                        self.logger.info(b)
-                        raise
+                    out_data.append(
+                        (
+                            b["org"],
+                            b["course_key"],
+                            b["location"],
+                            b["display_name"],
+                            b["xblock_data_json"],
+                            b["order"],
+                            b["edited_on"],
+                            dump_id,
+                            dump_time,
+                        )
+                    )
 
                 self.logger.debug(
                     f"   {self.task_name} starting insert for course {course_count}"
                 )
-                await self._insert_list_sql_retry(out_data, "course_blocks")
+                await self._insert_rows("course_blocks", out_data)
                 self.update_completed_task_count(increment_by=1)
 
 
@@ -338,22 +328,21 @@ class InsertObjectTags(XAPILakeClickhouseAsync):
                 row_id = 0
                 for obj_tag in object_tags:
                     row_id += 1
+                    obj_tag_out_data.append(
+                        (
+                            row_id,
+                            obj_tag["object_id"],
+                            obj_tag["taxonomy_id"],
+                            obj_tag["tag_id"],
+                            obj_tag["value"],
+                            "fake export id",
+                            obj_tag["hierarchy"],
+                            dump_id,
+                            dump_time,
+                        )
+                    )
 
-                    out_tag = f"""(
-                    {row_id},
-                    '{obj_tag["object_id"]}',
-                    {obj_tag["taxonomy_id"]},
-                    {obj_tag["tag_id"]},
-                    '{obj_tag["value"]}',
-                    'fake export id',
-                    '{obj_tag["hierarchy"]}',
-                    '{dump_id}',
-                    '{dump_time}'
-                    )"""
-
-                    obj_tag_out_data.append(out_tag)
-
-                await self._insert_list_sql_retry(obj_tag_out_data, "object_tag")
+                await self._insert_rows("object_tag", obj_tag_out_data)
                 self.update_completed_task_count(increment_by=1)
 
 
@@ -374,17 +363,10 @@ class InsertTaxonomies(XAPILakeClickhouseAsync):
         id = 0
         for taxonomy in taxonomies.keys():
             id += 1
-            out = f"""(
-                {id},
-                '{taxonomy}',
-                '{dump_id}',
-                '{dump_time}'
-            )
-            """
-            out_data.append(out)
+            out_data.append((id, taxonomy, dump_id, dump_time))
             self.update_completed_task_count(increment_by=1)
 
-        await self._insert_list_sql_retry(out_data, "taxonomy")
+        await self._insert_rows("taxonomy", out_data)
 
 
 class InsertTags(XAPILakeClickhouseAsync):
@@ -404,20 +386,20 @@ class InsertTags(XAPILakeClickhouseAsync):
         tag_out_data = []
 
         for tag in tags:
-            out_tag = f"""(
-                {tag["tag_id"]},
-                {tag["taxonomy_id"]},
-                {tag["parent_int_id"] or 0},
-                '{tag["value"]}',
-                '{tag["id"]}',
-                '{tag["hierarchy"]}',
-                '{dump_id}',
-                '{dump_time}'
-            )"""
+            tag_out_data.append(
+                (
+                    tag["tag_id"],
+                    tag["taxonomy_id"],
+                    tag["parent_int_id"] or 0,
+                    tag["value"],
+                    tag["id"],
+                    tag["hierarchy"],
+                    dump_id,
+                    dump_time,
+                )
+            )
 
-            tag_out_data.append(out_tag)
-
-        await self._insert_list_sql_retry(tag_out_data, "tag")
+        await self._insert_rows("tag", tag_out_data)
         self.update_completed_task_count(increment_by=1)
 
 
@@ -440,28 +422,29 @@ class InsertExternalIDs(XAPILakeClickhouseAsync):
             actor_cnt += 1
             dump_id = str(uuid.uuid4())
             dump_time = datetime.now(UTC)
-            id_row = f"""(
-                '{actor.id}',
-                'xapi',
-                '{actor.username}',
-                '{actor.user_id}',
-                '{dump_id}',
-                '{dump_time}'
-            )"""
-            out_external_id.append(id_row)
+            out_external_id.append(
+                (
+                    actor.id,
+                    "xapi",
+                    actor.username,
+                    actor.user_id,
+                    dump_id,
+                    dump_time,
+                )
+            )
 
             if len(out_external_id) == self.config["batch_size"]:
                 if actor_cnt % 100 == 0:
                     self.logger.debug(
                         f"   {self.task_name} starting insert for external ids batch {actor_cnt}"
                     )
-                await self._insert_list_sql_retry(out_external_id, "external_id")
+                await self._insert_rows("external_id", out_external_id)
                 self.update_completed_task_count(increment_by=len(out_external_id))
                 out_external_id = []
 
         # Catch any stragglers from the last batch
         if len(out_external_id):
-            await self._insert_list_sql_retry(out_external_id, "external_id")
+            await self._insert_rows("external_id", out_external_id)
             self.update_completed_task_count(increment_by=len(out_external_id))
 
 
@@ -491,40 +474,40 @@ class InsertProfiles(XAPILakeClickhouseAsync):
                 dump_time = datetime.now(UTC)
 
                 # This first column is usually the MySQL row pk, we just
-                # user this for now to have a unique id.
-                profile_row = f"""(
-                    '{actor.user_id}',
-                    '{actor.user_id}',
-                    '{actor.name}',
-                    '{actor.username}',
-                    '{actor.username}@aspects.invalid',
-                    '{actor.meta}',
-                    '{actor.courseware}',
-                    '{actor.language}',
-                    '{actor.location}',
-                    '{actor.year_of_birth}',
-                    '{actor.gender}',
-                    '{actor.level_of_education}',
-                    '{actor.mailing_address}',
-                    '{actor.city}',
-                    '{actor.country}',
-                    '{actor.state}',
-                    '{actor.goals}',
-                    '{actor.bio}',
-                    '{actor.profile_image_uploaded_at}',
-                    '{actor.phone_number}',
-                    '{dump_id}',
-                    '{dump_time}'
-                )"""
-
-                out_profile.append(profile_row)
+                # use this for now to have a unique id.
+                out_profile.append(
+                    (
+                        actor.user_id,
+                        actor.user_id,
+                        actor.name,
+                        actor.username,
+                        f"{actor.username}@aspects.invalid",
+                        actor.meta,
+                        actor.courseware,
+                        actor.language,
+                        actor.location,
+                        actor.year_of_birth,
+                        actor.gender,
+                        actor.level_of_education,
+                        actor.mailing_address,
+                        actor.city,
+                        actor.country,
+                        actor.state,
+                        actor.goals,
+                        actor.bio,
+                        actor.profile_image_uploaded_at,
+                        actor.phone_number,
+                        dump_id,
+                        dump_time,
+                    )
+                )
 
                 if len(out_profile) == self.config["batch_size"]:
-                    await self._insert_list_sql_retry(out_profile, "user_profile")
+                    await self._insert_rows("user_profile", out_profile)
                     self.update_completed_task_count(increment_by=len(out_profile))
                     out_profile = []
 
         # Catch any stragglers from the last batch
         if len(out_profile):
-            await self._insert_list_sql_retry(out_profile, "user_profile")
+            await self._insert_rows("user_profile", out_profile)
             self.update_completed_task_count(increment_by=len(out_profile))

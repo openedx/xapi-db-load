@@ -3,6 +3,7 @@ Base asynchronous backend, abstract classes that other backends inherit from.
 """
 
 import asyncio
+from abc import abstractmethod
 from logging import Logger
 from typing import Dict, List
 
@@ -33,11 +34,9 @@ class BaseBackendTasks:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: {self.config.get('db_host', 'No ClickHouse configured')}"
 
+    @abstractmethod
     def get_test_data_tasks(self) -> List[Waiter]:
-        """
-        Return the tasks to be run to generate test data.
-        """
-        raise NotImplementedError("get_test_data_tasks not implemented")
+        """Return the tasks to be run to generate test data."""
 
     def get_backend_summary(self) -> Dict:
         """
@@ -162,23 +161,15 @@ class QueueBackend(BaseClickhouseBackend):
         # queue until there is more room.
         self.queue = asyncio.Queue(maxsize=20)
 
+    @abstractmethod
     async def _populate_queue(self):
-        """
-        Subclasses override this to enque work for their particular data task.
-        """
-        raise NotImplementedError(
-            f"_get_batch_data not implemented for {self.task_name}"
-        )
+        """Subclasses override this to enqueue work for their particular data task."""
 
+    @abstractmethod
     async def _process_queue_item(
         self, worker_id: int, batch_id: int, batch: List | int
     ):
-        """
-        Subclasses override this to create workers that process their data for a batch.
-        """
-        raise NotImplementedError(
-            f"_process_queue_item not implemented for {self.task_name}"
-        )
+        """Subclasses override this to process a single batch item from the queue."""
 
     async def _batch_worker(self, worker_id):
         """

@@ -2,20 +2,24 @@
 Base class for all fake xAPI events.
 """
 
+from abc import ABC, abstractmethod
 
-class XAPIBase:
+
+class XAPIBase(ABC):
     """
-    Base class to handle some common functionality.
+    Abstract base class for all fake xAPI event types.
 
-    Should be turned into a proper ABC when we have a chance.
+    Subclasses must declare class-level ``verb`` and ``verb_display`` strings
+    and implement :meth:`get_data`.
     """
 
-    verb = None
-    verb_display = None
+    verb: str
+    verb_display: str
 
     def __init__(self, load_generator):
-        if not self.verb:
-            raise NotImplementedError(
-                f"XAPIBase is abstract, add your verb in subclass {type(self)}."
-            )
+        """Initialize with the parent EventGenerator instance."""
         self.parent_load_generator = load_generator
+
+    @abstractmethod
+    def get_data(self, *args, **kwargs) -> dict:
+        """Return a dict with event_id, verb, actor_id, emission_time, and event JSON."""

@@ -1,6 +1,7 @@
 """
 Fake xAPI statements for various grading events.
 """
+
 import json
 import random
 from uuid import uuid4
@@ -16,7 +17,7 @@ class FirstTimePassed(XAPIBase):
     verb = "http://adlnet.gov/expapi/verbs/passed"
     verb_display = "passed"
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -38,20 +39,26 @@ class FirstTimePassed(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course, create_time):
+    def get_randomized_event(
+        self,
+        event_id: str,
+        account: str,
+        course,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
         """
         event = {
             "id": event_id,
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
                 "objectType": "Agent",
             },
             "context": {
                 "extensions": {
                     "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
-                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5",
                 }
             },
             "object": {
@@ -80,7 +87,7 @@ class GradeCalculated(XAPIBase):
     verb_display = "earned"
     object_type = None
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -101,7 +108,13 @@ class GradeCalculated(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, actor_id, course, emission_time):
+    def get_randomized_event(
+        self,
+        event_id: str,
+        actor_id: str,
+        course,
+        emission_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement for a grade_calculated event.
         """
@@ -112,24 +125,16 @@ class GradeCalculated(XAPIBase):
             "scaled": scaled_score,
             "raw": raw_score,
             "min": 0.0,
-            "max": max_score
+            "max": max_score,
         }
 
         event = {
             "actor": {
-                "account": {
-                    "homePage": "http://localhost:18000",
-                    "name": actor_id
-                },
-                "objectType": "Agent"
+                "account": {"homePage": course.lms_url, "name": actor_id},
+                "objectType": "Agent",
             },
             "id": event_id,
-            "verb": {
-                "id": self.verb,
-                "display": {
-                    "en": self.verb_display
-                }
-            },
+            "verb": {"id": self.verb, "display": {"en": self.verb_display}},
             "context": {
                 "contextActivities": {
                     "parent": [
@@ -137,10 +142,8 @@ class GradeCalculated(XAPIBase):
                             "id": course.course_url,
                             "objectType": "Activity",
                             "definition": {
-                                "name": {
-                                    "en-US": "Demonstration Course"
-                                },
-                                "type": "http://adlnet.gov/expapi/activities/course"
+                                "name": {"en-US": "Demonstration Course"},
+                                "type": "http://adlnet.gov/expapi/activities/course",
                             },
                         }
                     ]
@@ -168,8 +171,8 @@ class GradeCalculated(XAPIBase):
                     "score": score_obj,
                     "extensions": {
                         "http://www.tincanapi.co.uk/activitytypes/grade_classification": grade_classification
-                    }
-                }
+                    },
+                },
             }
             event.update(course_fields)
         elif self.object_type == "subsection":
@@ -179,12 +182,12 @@ class GradeCalculated(XAPIBase):
                     "definition": {
                         "type": "http://id.tincanapi.com/activitytype/resource"
                     },
-                    "objectType": "Activity"
+                    "objectType": "Activity",
                 },
                 "result": {
                     "score": score_obj,
                     "success": random.choice([True, False]),
-                }
+                },
             }
             event.update(subsection_fields)
 

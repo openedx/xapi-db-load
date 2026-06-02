@@ -1,6 +1,7 @@
 """
 Fake xAPI statements for various hint and answer events.
 """
+
 import json
 from uuid import uuid4
 
@@ -18,7 +19,7 @@ class HintAnswerBase(XAPIBase):
     # Whether this is a hint or an answer, "hint" or "answer" are valid values
     type = None
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -43,7 +44,14 @@ class HintAnswerBase(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course, problem_id, create_time):
+    def get_randomized_event(
+        self,
+        event_id: str,
+        account: str,
+        course,
+        problem_id: str,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
         """
@@ -68,7 +76,7 @@ class HintAnswerBase(XAPIBase):
         event = {
             "id": event_id,
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
                 "objectType": "Agent",
             },
             "context": {
@@ -86,8 +94,8 @@ class HintAnswerBase(XAPIBase):
                 },
                 "extensions": {
                     "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
-                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
-                }
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5",
+                },
             },
             "timestamp": create_time.isoformat(),
             "verb": {"display": {"en": self.verb_display}, "id": self.verb},

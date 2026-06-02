@@ -11,6 +11,12 @@ from logging import Logger
 from random import choice, choices
 from typing import Dict, Generator, List
 
+from xapi_db_load.constants import (
+    COURSE_ID_SHORT_LENGTH,
+    DEFAULT_LMS_URL,
+    MAX_COURSE_RUNS,
+    MIN_COURSE_RUNS,
+)
 from xapi_db_load.course_configs import Actor, RandomCourse
 from xapi_db_load.fixtures.music_tags import MUSIC_TAGS
 from xapi_db_load.waiter import Waiter
@@ -77,11 +83,6 @@ class EventGenerator(Waiter):
     Generates a batch of random xAPI events based on the EVENT_WEIGHTS proportions.
     """
 
-    actors: List[Actor] = []
-    courses: List[RandomCourse] = []
-    orgs: List[str] = []
-    taxonomies: Dict = {}
-    tags: List = []
     setup_complete: bool = False
     task_name: str = "Setup"
 
@@ -89,11 +90,17 @@ class EventGenerator(Waiter):
         self, config: Dict, logger: Logger, event_generator: "EventGenerator|None"
     ):
         super().__init__(config, logger, self)
+        self.actors: List[Actor] = []
+        self.courses: List[RandomCourse] = []
+        self.orgs: List[str] = []
+        self.taxonomies: Dict = {}
+        self.tags: List = []
+        self.setup_complete = False
         self.start_date = config["start_date"]
         self.end_date = config["end_date"]
         self._validate_config()
 
-    def _validate_config(self):
+    def _validate_config(self) -> None:
         """
         Make sure the given values make sense.
         """
@@ -114,7 +121,7 @@ class EventGenerator(Waiter):
                     f"Course size {s} wants more actors than are configured in num_actors."
                 )
 
-    async def run_task(self):
+    async def run_task(self) -> None:
         """
         We override run_task here instead of _run_task because this is the setup task
         everyone else is waiting for!
@@ -133,7 +140,7 @@ class EventGenerator(Waiter):
         self.setup_complete = True
         self.finished = True
 
-    async def run_db_load_task(self):
+    async def run_db_load_task(self) -> None:
         """
         When we are just loading the database with existing data there is nothing to do.
         """
@@ -141,14 +148,14 @@ class EventGenerator(Waiter):
         self.setup_complete = True
         self.finished = True
 
-    def setup_orgs(self):
+    def setup_orgs(self) -> None:
         """
         Create some random organizations based on the config.
         """
         for i in range(self.config["num_organizations"]):
             self.orgs.append(f"Org{i}")
 
-    async def setup_courses(self):
+    async def setup_courses(self) -> None:
         """
         Pre-create a number of courses based on the config.
         """
@@ -177,8 +184,8 @@ class EventGenerator(Waiter):
                 ]
                 org = choice(self.orgs)
                 actors = choices(self.actors, k=course_config_makeup["actors"])
-                runs = random.randrange(1, 5)
-                course_id = str(uuid.uuid4())[:6]
+                runs = random.randrange(MIN_COURSE_RUNS, MAX_COURSE_RUNS)
+                course_id = str(uuid.uuid4())[:COURSE_ID_SHORT_LENGTH]
 
                 # Create 1-5 of the same course size / makeup / name
                 # but different course runs.
@@ -194,6 +201,7 @@ class EventGenerator(Waiter):
                         course_config_name,
                         course_config_makeup,
                         self.tags,
+                        lms_url=self.config.get("lms_url", DEFAULT_LMS_URL),
                     )
 
                     self.courses.append(course)
@@ -205,7 +213,7 @@ class EventGenerator(Waiter):
                     if curr_num == num_courses:
                         break
 
-    def setup_actors(self):
+    def setup_actors(self) -> None:
         """
         Create all known actors.
 
@@ -234,7 +242,7 @@ class EventGenerator(Waiter):
         hierarchy.reverse()
         return hierarchy
 
-    def setup_taxonomies_tags(self):
+    def setup_taxonomies_tags(self) -> None:
         """
         Load a sample set of tags and format them for use.
         """
@@ -270,9 +278,11 @@ class EventGenerator(Waiter):
                 self.tags.append(tag)
 
     def get_random_event_count(self) -> int:
+        """Return the total number of random xAPI events that will be generated."""
         return self.config["batch_size"] * self.config["num_xapi_batches"]
 
     def get_batch_events_iter(self) -> Generator[str, None, None]:
+        """Yield batch events pre-formatted as SQL VALUES tuples."""
         for v in self.get_batch_events():
             yield f"('{v['event_id']}', '{v['emission_time']}', '{v['event']}')"
 

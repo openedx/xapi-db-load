@@ -10,19 +10,39 @@ import click
 import uvloop
 import yaml
 
+from xapi_db_load.constants import DEFAULT_LMS_URL
 from xapi_db_load.ui.text_ui import TextUI
+
+_ENV_VAR_OVERRIDES = {
+    "XAPI_DB_LOAD_CLICKHOUSE_PASSWORD": "db_password",
+    "XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY": "s3_secret",
+    "XAPI_DB_LOAD_RALPH_PASSWORD": "lrs_password",
+}
 
 
 def get_config(config_file: str) -> dict:
     """
-    Wrap around config loading.
+    Load YAML config and apply environment variable overrides for secrets.
 
     We override this in tests so that we can use temp dirs for logs etc.
+    Environment variables take precedence over values in the config file:
+      XAPI_DB_LOAD_CLICKHOUSE_PASSWORD -> db_password
+      XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY -> s3_secret
+      XAPI_DB_LOAD_RALPH_PASSWORD -> lrs_password
     """
     with open(config_file, "r") as y:
         conf = yaml.safe_load(y)
 
     conf["config_file"] = config_file
+
+    for env_var, config_key in _ENV_VAR_OVERRIDES.items():
+        value = os.environ.get(env_var)
+        if value is not None:
+            conf[config_key] = value
+
+    # Apply defaults for optional config keys.
+    conf.setdefault("lms_url", DEFAULT_LMS_URL)
+
     return conf
 
 
@@ -82,7 +102,7 @@ def load_db(config_file: str, load_db_only: bool):
     config = get_config(config_file)
     app = App(config)
     asyncio.run(app.runner.run(load_db_only))
-    print(f"Total duration: {datetime.datetime.now() - start}")
+    app.log(f"Total duration: {datetime.datetime.now() - start}")
     exit(0)
 
 

@@ -1,6 +1,7 @@
 """
 Fake xAPI statements for various forum events.
 """
+
 import json
 from uuid import uuid4
 
@@ -12,7 +13,7 @@ class BaseForum(XAPIBase):
     Base xAPI class for forum events.
     """
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -40,7 +41,14 @@ class BaseForum(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(self, event_id, account, course, post_id, create_time):
+    def get_randomized_event(
+        self,
+        event_id: str,
+        account: str,
+        course,
+        post_id: str,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
 
@@ -51,7 +59,7 @@ class BaseForum(XAPIBase):
             "id": event_id,
             "actor": {
                 "objectType": "Agent",
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
             },
             "context": {
                 "contextActivities": {
@@ -69,15 +77,15 @@ class BaseForum(XAPIBase):
                 "extensions": {
                     "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
                     "https://w3id.org/xapi/openedx/extensions/session-id": "054c9ddcb76d2096f862e66bda3bc308",
-                    "https://w3id.org/xapi/acrossx/extensions/type": "discussion"
-                }
+                    "https://w3id.org/xapi/acrossx/extensions/type": "discussion",
+                },
             },
             "object": {
                 "definition": {
                     "type": "http://id.tincanapi.com/activitytype/discussion"
                 },
                 "id": post_id,
-                "objectType": "Activity"
+                "objectType": "Activity",
             },
             "timestamp": create_time.isoformat(),
             "verb": {"display": {"en": self.verb_display}, "id": self.verb},

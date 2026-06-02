@@ -1,3 +1,5 @@
+"""Urwid widgets for the "Load" tab: triggers data generation and shows progress."""
+
 import asyncio
 
 import urwid
@@ -15,6 +17,7 @@ class LoadDisplay:
         self.widget = LoadData(self.app)
 
     def show(self):
+        """Create the ``LoadData`` widget if it doesn't already exist."""
         if self.widget is None:
             self.widget = LoadData(self.app)
 
@@ -82,6 +85,7 @@ class LoadData(urwid.WidgetWrap):
         super().__init__(self.widget)
 
     def go_pressed(self, button):
+        """Handler for the "Create Test Data" button: starts a full data-generation run."""
         self.app.log("Go pressed")
         if self.app.runner.running:
             self.app.log("Already running")
@@ -95,6 +99,7 @@ class LoadData(urwid.WidgetWrap):
         asyncio.create_task(self.app.runner.run())
 
     def load_pressed(self, button):
+        """Handler for the "Load from Object Storage Only" button."""
         # TODO: This can be combined with go_pressed using user data
         self.app.log("Load pressed")
         if self.app.runner.running:
@@ -109,6 +114,7 @@ class LoadData(urwid.WidgetWrap):
         asyncio.create_task(self.app.runner.run(load_db_only=True))
 
     async def update_status(self):
+        """Poll task progress and refresh the progress bars until the run finishes."""
         while True:
             assert len(self.to_do_widgets) == len(self.app.runner.test_data_tasks)
             for i in range(len(self.to_do_widgets)):
@@ -133,7 +139,9 @@ class LoadData(urwid.WidgetWrap):
             await asyncio.sleep(1)
 
     def keypress(self, size, key):
-        if key == "up":
-            App.get_shared_instance().ui.main_display.frame.focus_position = "header"
+        """Move focus to the header on Up arrow; otherwise delegate to the base widget."""
+        ui = App.get_shared_instance().ui
+        if key == "up" and ui is not None:
+            ui.main_display.frame.focus_position = "header"
 
         return super(LoadData, self).keypress(size, key)

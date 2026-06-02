@@ -1,3 +1,7 @@
+"""Urwid widgets implementing the main tab-style display and menu."""
+
+from typing import Union
+
 import urwid
 from urwid import Widget
 
@@ -5,6 +9,8 @@ from xapi_db_load.async_app import App
 from xapi_db_load.ui.config_ui import ConfigDisplay
 from xapi_db_load.ui.load_ui import LoadDisplay
 from xapi_db_load.ui.log_ui import LogDisplay
+
+SubDisplay = Union[LoadDisplay, ConfigDisplay, LogDisplay]
 
 
 class SubDisplays:
@@ -17,9 +23,10 @@ class SubDisplays:
         self.load_display = LoadDisplay(self.app)
         self.config_display = ConfigDisplay(self.app)
         self.log_display = LogDisplay(self.app)
-        self.active_display = self.load_display
+        self.active_display: SubDisplay = self.load_display
 
     def active(self):
+        """Return the currently-active sub-display object."""
         return self.active_display
 
 
@@ -47,6 +54,7 @@ class MainFrame(urwid.Frame):
         super().__init__(body, header, footer)
 
     def mouse_event(self, size, event, button, col, row, focus):
+        """Track current focus on mouse events and delegate to the parent frame."""
         current_focus = self.delegate.widget.get_focus_widgets()[-1]
         self.current_focus = current_focus
         return super(MainFrame, self).mouse_event(size, event, button, col, row, focus)
@@ -66,8 +74,10 @@ class MainDisplay:
         self.menu_display = MenuDisplay(self.app, self)
         self.sub_displays = SubDisplays(self.app)
 
+        active_widget = self.sub_displays.active().widget
+        assert active_widget is not None
         self.frame = MainFrame(
-            self.sub_displays.active().widget,
+            active_widget,
             header=self.menu_display.widget,
             footer=urwid.AttrMap(urwid.Text(""), "shortcutbar"),
             delegate=self,
@@ -103,9 +113,11 @@ class MainDisplay:
         self.update_active_sub_display()
 
     def request_redraw(self, extra_delay=0.0):
+        """Schedule a screen redraw via the urwid main-loop alarm."""
         self.app.ui.loop.set_alarm_in(0.25 + extra_delay, self.redraw_now)
 
     def redraw_now(self, sender=None, data=None):
+        """Clear and force redraw of the screen immediately."""
         self.app.ui.loop.screen.clear()
 
     def quit(self, sender=None):

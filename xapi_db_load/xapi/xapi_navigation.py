@@ -1,6 +1,7 @@
 """
 Fake xAPI statements for various navigation events.
 """
+
 import json
 from uuid import uuid4
 
@@ -23,7 +24,7 @@ class BaseNavigation(XAPIBase):
     # To differentiate between links and other nav events, should be "link" or "nav"
     type = None
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -52,15 +53,21 @@ class BaseNavigation(XAPIBase):
         }
 
     def get_randomized_event(
-        self, event_id, account, course, from_loc, to_loc, create_time
-    ):
+        self,
+        event_id: str,
+        account: str,
+        course,
+        from_loc,
+        to_loc,
+        create_time,
+    ) -> str:
         """
         Given the inputs, return an xAPI statement.
         """
         event = {
             "id": event_id,
             "actor": {
-                "account": {"homePage": "http://localhost:18000", "name": account},
+                "account": {"homePage": course.lms_url, "name": account},
                 "objectType": "Agent",
             },
             "context": {
@@ -78,8 +85,8 @@ class BaseNavigation(XAPIBase):
                 },
                 "extensions": {
                     "https://w3id.org/xapi/openedx/extension/transformer-version": "event-routing-backends@7.0.1",
-                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5"
-                }
+                    "https://w3id.org/xapi/openedx/extensions/session-id": "e4858858443cd99828206e294587dac5",
+                },
             },
             "timestamp": create_time.isoformat(),
             "verb": {"display": {"en": self.verb_display}, "id": self.verb},
@@ -94,7 +101,11 @@ class BaseNavigation(XAPIBase):
                         "definition": {
                             "type": "http://adlnet.gov/expapi/activities/link"
                         },
-                        "id": "http://localhost:18000/courses/course-v1:edX+DemoX+Demo_Course/jump_to/block-v1:edX+DemoX+Demo_Course+type@sequential+block@6ab9c442501d472c8ed200e367b4edfa",  # pylint: disable=line-too-long
+                        "id": (
+                            f"{course.lms_url}/courses/course-v1:edX+DemoX+Demo_Course"
+                            "/jump_to/block-v1:edX+DemoX+Demo_Course+type@sequential"
+                            "+block@6ab9c442501d472c8ed200e367b4edfa"
+                        ),
                         "objectType": "Activity",
                     }
                 }

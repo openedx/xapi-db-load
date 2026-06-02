@@ -1,3 +1,5 @@
+"""Top-level urwid ``TextUI`` that owns the screen, palette, and asyncio main loop."""
+
 import asyncio
 
 import urwid
@@ -15,7 +17,7 @@ class TextUI:
     config: dict
     app: App
     palette: list
-    screen: urwid.raw_display.Screen
+    screen: "urwid.raw_display.Screen"  # type: ignore[name-defined]
     main_display: Main.MainDisplay
     aio_loop: asyncio.AbstractEventLoop
     loop: urwid.MainLoop

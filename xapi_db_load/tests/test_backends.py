@@ -168,8 +168,12 @@ def test_vector_backend(mock_get_logger, _, tmp_path):
     # Quick test to make sure that what's being stored is at least parseable
     for s in (test_str_1, test_str_2):
         try:
-            statement = re.match(msg_regex, s).groups()[0]
-            json.loads(statement)
+            match = re.match(msg_regex, s)
+            if match is not None and match.groups():
+                statement = match.groups()[0]
+                json.loads(statement)
+            else:
+                raise ValueError("No match found")
         except Exception as e:
             print(e)
             print("Exception! Regex testing: ")
@@ -182,7 +186,7 @@ def test_vector_backend(mock_get_logger, _, tmp_path):
     assert "Run duration was" in result.output
 
 
-@patch("xapi_db_load.backends.ralph.requests", new_callable=AsyncMock)
+@patch("xapi_db_load.backends.ralph.requests", new_callable=MagicMock)
 @patch(
     "xapi_db_load.backends.base_async_backend.clickhouse_connect",
     new_callable=AsyncMock,
@@ -192,7 +196,6 @@ def test_ralph_backend(mock_requests, _, tmp_path):
     Run a test through the Ralph backend, currently this just checks that the
     output indicates success.
     """
-    mock_requests.post = MagicMock()
     test_path = "xapi_db_load/tests/fixtures/small_ralph_config.yaml"
     runner = CliRunner()
 

@@ -58,12 +58,22 @@ class InsertXAPIEventsRalph(InsertXAPIEvents):
     Ralph to do the xAPI the insertion.
     """
 
+    # Default timeout (seconds) applied to Ralph POST requests when the config
+    # does not specify one. Generous so legitimately-slow Ralph servers are not
+    # cut off, but finite so a hung endpoint does not stall the whole run.
+    # Set ``lrs_request_timeout: null`` in config to restore unbounded waits.
+    DEFAULT_LRS_REQUEST_TIMEOUT = 120
+
     def __init__(self, config: dict, logger: Logger, event_generator: EventGenerator):
         super().__init__(config, logger, event_generator)
 
         self.lrs_url = config["lrs_url"]
         self.lrs_username = config["lrs_username"]
         self.lrs_password = config["lrs_password"]
+        # ``None`` is a valid value for ``requests`` and means "wait forever".
+        self.lrs_request_timeout = config.get(
+            "lrs_request_timeout", self.DEFAULT_LRS_REQUEST_TIMEOUT
+        )
 
     def _format_row(self, row: dict):
         """
@@ -74,13 +84,31 @@ class InsertXAPIEventsRalph(InsertXAPIEvents):
     async def _do_insert(self, out_data: List):
         """
         POST a batch of rows to Ralph instead of inserting directly to ClickHouse.
+
+        A timeout is applied (configurable via ``lrs_request_timeout``) so a
+        hung Ralph endpoint cannot stall the run indefinitely. ``HTTPError`` and
+        connection-level failures are logged with the offending payload and
+        re-raised so the worker's existing retry/error-count handling applies.
         """
-        resp = requests.post(
-            self.lrs_url,
-            auth=(self.lrs_username, self.lrs_password),
-            json=out_data,
-            headers={"Content-Type": "application/json"},
-        )
+        try:
+            resp = requests.post(
+                self.lrs_url,
+                auth=(self.lrs_username, self.lrs_password),
+                json=out_data,
+                headers={"Content-Type": "application/json"},
+                timeout=self.lrs_request_timeout,
+            )
+        except requests.RequestException as exc:
+            # Connection / timeout / SSL / etc. log the payload
+            # and re-raise so the worker loop records the failure.
+            self.logger.error(
+                "Ralph POST to %s failed before a response was received.",
+                self.lrs_url,
+                exc_info=exc,
+            )
+            self.logger.error(json.dumps(out_data))
+            raise
+
         try:
             resp.raise_for_status()
         except requests.HTTPError:
