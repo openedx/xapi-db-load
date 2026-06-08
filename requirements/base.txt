@@ -6,15 +6,15 @@
 #
 aiohappyeyeballs==2.6.2
     # via aiohttp
-aiohttp==3.13.5
+aiohttp==3.14.1
     # via clickhouse-connect
 aiosignal==1.4.0
     # via aiohttp
 attrs==26.1.0
     # via aiohttp
-boto3==1.43.18
+boto3==1.43.24
     # via smart-open
-botocore==1.43.18
+botocore==1.43.24
     # via
     #   boto3
     #   s3transfer
@@ -36,7 +36,7 @@ frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
-idna==3.17
+idna==3.18
     # via
     #   requests
     #   yarl
@@ -80,17 +80,19 @@ six==1.17.0
 smart-open[s3]==7.6.1
     # via -r requirements/base.in
 typing-extensions==4.15.0
-    # via aiosignal
+    # via
+    #   aiohttp
+    #   aiosignal
 urllib3==2.7.0
     # via
     #   botocore
     #   clickhouse-connect
     #   requests
-urwid==4.0.1
+urwid==4.0.2
     # via -r requirements/base.in
 uvloop==0.22.1
     # via -r requirements/base.in
-wcwidth==0.7.0
+wcwidth==0.8.0
     # via urwid
 wrapt==2.2.1
     # via smart-open

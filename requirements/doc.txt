@@ -10,7 +10,7 @@ aiohappyeyeballs==2.6.2
     # via
     #   -r requirements/test.txt
     #   aiohttp
-aiohttp==3.13.5
+aiohttp==3.14.1
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
@@ -28,13 +28,13 @@ babel==2.18.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
     # via pydata-sphinx-theme
-boto3==1.43.18
+boto3==1.43.24
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.18
+botocore==1.43.24
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -80,7 +80,7 @@ frozenlist==1.8.0
     #   aiosignal
 id==1.6.1
     # via twine
-idna==3.17
+idna==3.18
     # via
     #   -r requirements/test.txt
     #   requests
@@ -221,7 +221,7 @@ six==1.17.0
     #   python-dateutil
 smart-open[s3]==7.6.1
     # via -r requirements/test.txt
-snowballstemmer==3.1.0
+snowballstemmer==3.1.1
     # via sphinx
 soupsieve==2.8.4
     # via beautifulsoup4
@@ -249,6 +249,7 @@ twine==6.2.0
 typing-extensions==4.15.0
     # via
     #   -r requirements/test.txt
+    #   aiohttp
     #   aiosignal
     #   beautifulsoup4
     #   pydata-sphinx-theme
@@ -261,11 +262,11 @@ urllib3==2.7.0
     #   id
     #   requests
     #   twine
-urwid==4.0.1
+urwid==4.0.2
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt
-wcwidth==0.7.0
+wcwidth==0.8.0
     # via
     #   -r requirements/test.txt
     #   urwid
