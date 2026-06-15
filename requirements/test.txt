@@ -20,11 +20,11 @@ attrs==26.1.0
     # via
     #   -r requirements/base.txt
     #   aiohttp
-boto3==1.43.24
+boto3==1.43.29
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.43.24
+botocore==1.43.29
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -38,15 +38,15 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/base.txt
     #   requests
-chdb==4.1.8
+chdb==4.1.9
     # via -r requirements/base.txt
-chdb-core==26.3.0
+chdb-core==26.5.0
     # via
     #   -r requirements/base.txt
     #   chdb
 click==8.4.1
     # via -r requirements/base.txt
-clickhouse-connect[async]==1.1.1
+clickhouse-connect[async]==1.3.0
     # via -r requirements/base.txt
 coverage[toml]==7.14.1
     # via pytest-cov
@@ -103,7 +103,7 @@ pyarrow==24.0.0
     #   chdb-core
 pygments==2.20.0
     # via pytest
-pytest==9.0.3
+pytest==9.1.0
     # via
     #   pytest-asyncio
     #   pytest-cov
@@ -146,7 +146,7 @@ urwid==4.0.2
     # via -r requirements/base.txt
 uvloop==0.22.1
     # via -r requirements/base.txt
-wcwidth==0.8.0
+wcwidth==0.8.1
     # via
     #   -r requirements/base.txt
     #   urwid
