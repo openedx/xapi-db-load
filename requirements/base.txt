@@ -12,9 +12,9 @@ aiosignal==1.4.0
     # via aiohttp
 attrs==26.1.0
     # via aiohttp
-boto3==1.43.34
+boto3==1.43.36
     # via smart-open
-botocore==1.43.34
+botocore==1.43.36
     # via
     #   boto3
     #   s3transfer
@@ -28,7 +28,7 @@ chdb==4.1.9
     # via -r requirements/base.in
 chdb-core==26.5.0
     # via chdb
-click==8.4.1
+click==8.4.2
     # via -r requirements/base.in
 clickhouse-connect[async]==1.3.0
     # via -r requirements/base.in
@@ -52,7 +52,7 @@ multidict==6.7.1
     #   yarl
 numpy==2.5.0
     # via pandas
-pandas==3.0.3
+pandas==3.0.4
     # via
     #   chdb
     #   chdb-core
@@ -77,18 +77,19 @@ s3transfer==0.19.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-smart-open[s3]==7.6.1
+smart-open[s3]==8.0.0
     # via -r requirements/base.in
 typing-extensions==4.15.0
     # via
     #   aiohttp
     #   aiosignal
+    #   urwid
 urllib3==2.7.0
     # via
     #   botocore
     #   clickhouse-connect
     #   requests
-urwid==4.0.2
+urwid==4.0.3
     # via -r requirements/base.in
 uvloop==0.22.1
     # via -r requirements/base.in
