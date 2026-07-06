@@ -6,7 +6,7 @@
 #
 accessible-pygments==0.0.5
     # via pydata-sphinx-theme
-aiohappyeyeballs==2.6.2
+aiohappyeyeballs==2.7.1
     # via
     #   -r requirements/test.txt
     #   aiohttp
@@ -30,11 +30,11 @@ babel==2.18.0
     #   sphinx
 beautifulsoup4==4.15.0
     # via pydata-sphinx-theme
-boto3==1.43.36
+boto3==1.43.40
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.36
+botocore==1.43.40
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -52,7 +52,7 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==4.1.9
+chdb==4.2.0
     # via -r requirements/test.txt
 chdb-core==26.5.0
     # via
@@ -60,9 +60,9 @@ chdb-core==26.5.0
     #   chdb
 click==8.4.2
     # via -r requirements/test.txt
-clickhouse-connect[async]==1.3.0
+clickhouse-connect[async]==1.4.1
     # via -r requirements/test.txt
-coverage[toml]==7.14.3
+coverage[toml]==7.15.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -131,7 +131,7 @@ multidict==6.7.1
     #   yarl
 nh3==0.3.6
     # via readme-renderer
-numpy==2.5.0
+numpy==2.5.1
     # via
     #   -r requirements/test.txt
     #   pandas
@@ -142,7 +142,7 @@ packaging==26.2
     #   pytest
     #   sphinx
     #   twine
-pandas==3.0.4
+pandas==3.0.3
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -246,7 +246,7 @@ sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
 twine==6.2.0
     # via -r requirements/doc.in
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   -r requirements/test.txt
     #   aiohttp
@@ -267,7 +267,7 @@ urwid==4.0.3
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt
-wcwidth==0.8.1
+wcwidth==0.8.2
     # via
     #   -r requirements/test.txt
     #   urwid
