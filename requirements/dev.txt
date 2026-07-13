@@ -29,16 +29,16 @@ attrs==26.1.0
     # via
     #   -r requirements/quality.txt
     #   aiohttp
-boto3==1.43.40
+boto3==1.43.46
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.43.40
+botocore==1.43.46
     # via
     #   -r requirements/quality.txt
     #   boto3
     #   s3transfer
-build==1.5.0
+build==1.5.1
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools
@@ -51,13 +51,13 @@ certifi==2026.6.17
     #   -r requirements/quality.txt
     #   clickhouse-connect
     #   requests
-cffi==2.0.0
+cffi==2.1.0
     # via
     #   -r requirements/quality.txt
     #   cryptography
 chardet==7.4.3
     # via diff-cover
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via
     #   -r requirements/quality.txt
     #   requests
@@ -79,7 +79,7 @@ click-log==0.4.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-clickhouse-connect[async]==1.4.1
+clickhouse-connect[async]==1.4.2
     # via -r requirements/quality.txt
 code-annotations==3.0.0
     # via
@@ -89,7 +89,7 @@ colorama==0.4.6
     # via
     #   -r requirements/ci.txt
     #   tox
-coverage[toml]==7.15.0
+coverage[toml]==7.15.1
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
@@ -113,7 +113,7 @@ docutils==0.23
     #   readme-renderer
 edx-lint==6.1.0
     # via -r requirements/quality.txt
-filelock==3.29.5
+filelock==3.29.7
     # via
     #   -r requirements/ci.txt
     #   python-discovery
@@ -172,7 +172,7 @@ keyring==25.7.0
     # via
     #   -r requirements/quality.txt
     #   twine
-librt==0.12.0
+librt==0.13.0
     # via
     #   -r requirements/quality.txt
     #   mypy
@@ -206,7 +206,7 @@ multidict==6.7.1
     #   -r requirements/quality.txt
     #   aiohttp
     #   yarl
-mypy==2.1.0
+mypy==2.2.0
     # via -r requirements/quality.txt
 mypy-extensions==1.1.0
     # via
@@ -263,7 +263,7 @@ propcache==0.5.2
     #   -r requirements/quality.txt
     #   aiohttp
     #   yarl
-pyarrow==24.0.0
+pyarrow==25.0.0
     # via
     #   -r requirements/quality.txt
     #   chdb
@@ -294,7 +294,7 @@ pylint-celery==0.3
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-pylint-django==2.7.0
+pylint-django==2.8.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -326,7 +326,7 @@ python-dateutil==2.9.0.post0
     #   -r requirements/quality.txt
     #   botocore
     #   pandas
-python-discovery==1.4.3
+python-discovery==1.4.4
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -360,7 +360,7 @@ rich==15.0.0
     # via
     #   -r requirements/quality.txt
     #   twine
-s3transfer==0.19.0
+s3transfer==0.19.1
     # via
     #   -r requirements/quality.txt
     #   boto3
@@ -396,7 +396,7 @@ tomlkit==0.15.0
     #   -r requirements/quality.txt
     #   edx-lint
     #   pylint
-tox==4.56.1
+tox==4.56.4
     # via -r requirements/ci.txt
 twine==6.2.0
     # via -r requirements/quality.txt
@@ -420,7 +420,7 @@ urwid==4.0.3
     # via -r requirements/quality.txt
 uvloop==0.22.1
     # via -r requirements/quality.txt
-virtualenv==21.5.1
+virtualenv==21.6.1
     # via
     #   -r requirements/ci.txt
     #   tox

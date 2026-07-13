@@ -30,25 +30,25 @@ babel==2.18.0
     #   sphinx
 beautifulsoup4==4.15.0
     # via pydata-sphinx-theme
-boto3==1.43.40
+boto3==1.43.46
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.40
+botocore==1.43.46
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
-build==1.5.0
+build==1.5.1
     # via -r requirements/doc.in
 certifi==2026.6.17
     # via
     #   -r requirements/test.txt
     #   clickhouse-connect
     #   requests
-cffi==2.0.0
+cffi==2.1.0
     # via cryptography
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via
     #   -r requirements/test.txt
     #   requests
@@ -60,9 +60,9 @@ chdb-core==26.5.0
     #   chdb
 click==8.4.2
     # via -r requirements/test.txt
-clickhouse-connect[async]==1.4.1
+clickhouse-connect[async]==1.4.2
     # via -r requirements/test.txt
-coverage[toml]==7.15.0
+coverage[toml]==7.15.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -157,7 +157,7 @@ propcache==0.5.2
     #   -r requirements/test.txt
     #   aiohttp
     #   yarl
-pyarrow==24.0.0
+pyarrow==25.0.0
     # via
     #   -r requirements/test.txt
     #   chdb
@@ -209,7 +209,7 @@ rich==15.0.0
     # via twine
 roman-numerals==4.1.0
     # via sphinx
-s3transfer==0.19.0
+s3transfer==0.19.1
     # via
     #   -r requirements/test.txt
     #   boto3
