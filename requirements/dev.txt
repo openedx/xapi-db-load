@@ -29,16 +29,16 @@ attrs==26.1.0
     # via
     #   -r requirements/quality.txt
     #   aiohttp
-boto3==1.43.46
+boto3==1.43.51
     # via
     #   -r requirements/quality.txt
     #   smart-open
-botocore==1.43.46
+botocore==1.43.51
     # via
     #   -r requirements/quality.txt
     #   boto3
     #   s3transfer
-build==1.5.1
+build==1.5.0
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools
@@ -61,7 +61,7 @@ charset-normalizer==3.4.9
     # via
     #   -r requirements/quality.txt
     #   requests
-chdb==4.2.0
+chdb==4.2.1
     # via -r requirements/quality.txt
 chdb-core==26.5.0
     # via
@@ -79,7 +79,7 @@ click-log==0.4.0
     # via
     #   -r requirements/quality.txt
     #   edx-lint
-clickhouse-connect[async]==1.4.2
+clickhouse-connect[async]==1.5.0
     # via -r requirements/quality.txt
 code-annotations==3.0.0
     # via
@@ -89,7 +89,7 @@ colorama==0.4.6
     # via
     #   -r requirements/ci.txt
     #   tox
-coverage[toml]==7.15.1
+coverage[toml]==7.15.2
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
@@ -113,7 +113,7 @@ docutils==0.23
     #   readme-renderer
 edx-lint==6.1.0
     # via -r requirements/quality.txt
-filelock==3.29.7
+filelock==3.31.0
     # via
     #   -r requirements/ci.txt
     #   python-discovery
@@ -149,7 +149,7 @@ jaraco-context==6.1.2
     # via
     #   -r requirements/quality.txt
     #   keyring
-jaraco-functools==4.5.0
+jaraco-functools==4.6.0
     # via
     #   -r requirements/quality.txt
     #   keyring
@@ -206,7 +206,7 @@ multidict==6.7.1
     #   -r requirements/quality.txt
     #   aiohttp
     #   yarl
-mypy==2.2.0
+mypy==2.3.0
     # via -r requirements/quality.txt
 mypy-extensions==1.1.0
     # via
@@ -240,9 +240,9 @@ pathspec==1.1.1
     # via
     #   -r requirements/quality.txt
     #   mypy
-pip-tools==7.5.3
+pip-tools==7.6.0
     # via -r requirements/pip-tools.txt
-platformdirs==4.10.0
+platformdirs==4.10.1
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -373,7 +373,7 @@ six==1.17.0
     #   -r requirements/quality.txt
     #   edx-lint
     #   python-dateutil
-smart-open[s3]==8.0.0
+smart-open[s3]==8.0.1
     # via -r requirements/quality.txt
 snowballstemmer==3.1.1
     # via
@@ -391,12 +391,12 @@ tomli-w==1.2.0
     # via
     #   -r requirements/ci.txt
     #   tox
-tomlkit==0.15.0
+tomlkit==0.15.1
     # via
     #   -r requirements/quality.txt
     #   edx-lint
     #   pylint
-tox==4.56.4
+tox==4.57.0
     # via -r requirements/ci.txt
 twine==6.2.0
     # via -r requirements/quality.txt
@@ -416,7 +416,7 @@ urllib3==2.7.0
     #   id
     #   requests
     #   twine
-urwid==4.0.3
+urwid==4.0.4
     # via -r requirements/quality.txt
 uvloop==0.22.1
     # via -r requirements/quality.txt

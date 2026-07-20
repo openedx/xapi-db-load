@@ -30,16 +30,16 @@ babel==2.18.0
     #   sphinx
 beautifulsoup4==4.15.0
     # via pydata-sphinx-theme
-boto3==1.43.46
+boto3==1.43.51
     # via
     #   -r requirements/test.txt
     #   smart-open
-botocore==1.43.46
+botocore==1.43.51
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
-build==1.5.1
+build==1.5.0
     # via -r requirements/doc.in
 certifi==2026.6.17
     # via
@@ -52,7 +52,7 @@ charset-normalizer==3.4.9
     # via
     #   -r requirements/test.txt
     #   requests
-chdb==4.2.0
+chdb==4.2.1
     # via -r requirements/test.txt
 chdb-core==26.5.0
     # via
@@ -60,9 +60,9 @@ chdb-core==26.5.0
     #   chdb
 click==8.4.2
     # via -r requirements/test.txt
-clickhouse-connect[async]==1.4.2
+clickhouse-connect[async]==1.5.0
     # via -r requirements/test.txt
-coverage[toml]==7.15.1
+coverage[toml]==7.15.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -95,14 +95,16 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.1.2
     # via keyring
-jaraco-functools==4.5.0
+jaraco-functools==4.6.0
     # via keyring
 jeepney==0.9.0
     # via
     #   keyring
     #   secretstorage
 jinja2==3.1.6
-    # via sphinx
+    # via
+    #   pydata-sphinx-theme
+    #   sphinx
 jmespath==1.1.0
     # via
     #   -r requirements/test.txt
@@ -164,7 +166,7 @@ pyarrow==25.0.0
     #   chdb-core
 pycparser==3.0
     # via cffi
-pydata-sphinx-theme==0.16.1
+pydata-sphinx-theme==0.20.0
     # via sphinx-book-theme
 pygments==2.20.0
     # via
@@ -198,6 +200,7 @@ readme-renderer==45.0
 requests==2.34.2
     # via
     #   -r requirements/test.txt
+    #   pydata-sphinx-theme
     #   requests-toolbelt
     #   sphinx
     #   twine
@@ -219,18 +222,18 @@ six==1.17.0
     # via
     #   -r requirements/test.txt
     #   python-dateutil
-smart-open[s3]==8.0.0
+smart-open[s3]==8.0.1
     # via -r requirements/test.txt
 snowballstemmer==3.1.1
     # via sphinx
-soupsieve==2.8.4
+soupsieve==2.9
     # via beautifulsoup4
 sphinx==9.1.0
     # via
     #   -r requirements/doc.in
     #   pydata-sphinx-theme
     #   sphinx-book-theme
-sphinx-book-theme==1.2.0
+sphinx-book-theme==1.4.0
     # via -r requirements/doc.in
 sphinxcontrib-applehelp==2.0.0
     # via sphinx
@@ -252,7 +255,6 @@ typing-extensions==4.16.0
     #   aiohttp
     #   aiosignal
     #   beautifulsoup4
-    #   pydata-sphinx-theme
     #   pytest-asyncio
     #   urwid
 urllib3==2.7.0
@@ -263,7 +265,7 @@ urllib3==2.7.0
     #   id
     #   requests
     #   twine
-urwid==4.0.3
+urwid==4.0.4
     # via -r requirements/test.txt
 uvloop==0.22.1
     # via -r requirements/test.txt
