@@ -20,11 +20,11 @@ attrs==26.1.0
     # via
     #   -r requirements/base.txt
     #   aiohttp
-boto3==1.43.46
+boto3==1.43.51
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.43.46
+botocore==1.43.51
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -38,7 +38,7 @@ charset-normalizer==3.4.9
     # via
     #   -r requirements/base.txt
     #   requests
-chdb==4.2.0
+chdb==4.2.1
     # via -r requirements/base.txt
 chdb-core==26.5.0
     # via
@@ -46,9 +46,9 @@ chdb-core==26.5.0
     #   chdb
 click==8.4.2
     # via -r requirements/base.txt
-clickhouse-connect[async]==1.4.2
+clickhouse-connect[async]==1.5.0
     # via -r requirements/base.txt
-coverage[toml]==7.15.1
+coverage[toml]==7.15.2
     # via pytest-cov
 frozenlist==1.8.0
     # via
@@ -128,7 +128,7 @@ six==1.17.0
     # via
     #   -r requirements/base.txt
     #   python-dateutil
-smart-open[s3]==8.0.0
+smart-open[s3]==8.0.1
     # via -r requirements/base.txt
 typing-extensions==4.16.0
     # via
@@ -143,7 +143,7 @@ urllib3==2.7.0
     #   botocore
     #   clickhouse-connect
     #   requests
-urwid==4.0.3
+urwid==4.0.4
     # via -r requirements/base.txt
 uvloop==0.22.1
     # via -r requirements/base.txt
