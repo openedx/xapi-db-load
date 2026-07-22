@@ -137,7 +137,7 @@ skip = ["migrations"]
 python_version = "3.12"
 ignore_missing_imports = true
 check_untyped_defs = false
-warn_unused_ignores = false
+warn_unused_ignores = true
 exclude = ["^docs/", "^build/", "^dist/"]
 
 [[tool.mypy.overrides]]

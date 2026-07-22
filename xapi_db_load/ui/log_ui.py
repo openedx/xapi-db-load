@@ -28,10 +28,10 @@ class LogTail(urwid.WidgetWrap):
     def __init__(self, app):
         self.app = app
         self.log_tail = urwid.Text("Loading...")
-        self.log = urwid.Scrollable(self.log_tail)  # type: ignore[arg-type]
+        self.log = urwid.Scrollable(self.log_tail)
         # Start scrolled to the bottom
         self.log.set_scrollpos(-1)
-        self.log_scrollbar = urwid.ScrollBar(self.log)  # type: ignore[arg-type]
+        self.log_scrollbar = urwid.ScrollBar(self.log)
         asyncio.create_task(self.update())
         super().__init__(self.log_scrollbar)
 
