@@ -12,9 +12,7 @@ from typing import List
 
 import requests
 
-from xapi_db_load.backends.base_async_backend import (
-    BaseBackendTasks,
-)
+from xapi_db_load.backends.base_async_backend import BaseBackendTasks
 from xapi_db_load.backends.clickhouse import (
     InsertBlocks,
     InsertCourses,

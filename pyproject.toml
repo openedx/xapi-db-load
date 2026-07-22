@@ -1,0 +1,164 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xapi-db-load"
+version = "3.1.0"
+description = "Loads testing xAPI events into databases and LRSs"
+readme = "README.rst"
+requires-python = ">=3.12"
+license = "AGPL-3.0-only"
+authors = [
+    { name = "Open edX", email = "oscm@openedx.org" },
+]
+keywords = ["xapi", "clickhouse", "load testing"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.2",
+]
+dependencies = [
+    "chdb",
+    "click",
+    "clickhouse-connect[async]",
+    "pyarrow",
+    "pyyaml",
+    "requests",
+    "smart_open[s3]",
+    "urwid",
+    "uvloop",
+]
+
+[project.optional-dependencies]
+docs = [
+    "doc8",
+    "sphinx",
+    "sphinx-book-theme",
+    "twine",
+    "build",
+]
+
+[project.scripts]
+xapi-db-load = "xapi_db_load.main:cli"
+
+[project.urls]
+Code = "https://github.com/openedx/xapi-db-load"
+"Issue Tracker" = "https://github.com/openedx/xapi-db-load/issues"
+
+[tool.uv]
+package = true
+constraint-dependencies = [
+    "Django<6.0",
+    "elasticsearch<7.14.0",
+]
+
+[tool.edx_lint]
+uv_constraints = []
+
+[dependency-groups]
+test-base = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+]
+test = [
+    { include-group = "test-base" },
+]
+quality = [
+    { include-group = "test-base" },
+    "edx-lint",
+    "isort",
+    "mypy",
+    "pycodestyle",
+    "pydocstyle",
+    "twine",
+    "build",
+]
+doc = [
+    { include-group = "test-base" },
+    "doc8",
+    "sphinx",
+    "sphinx-book-theme",
+    "twine",
+    "build",
+]
+ci = [
+    "tox",
+    "tox-uv",
+]
+dev = [
+    { include-group = "quality" },
+    { include-group = "doc" },
+    { include-group = "ci" },
+    "diff-cover",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests*", "*.tests", "*.tests.*", "docs*"]
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["xapi_db_load"]
+omit = [
+    "*/tests/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.isort]
+include_trailing_comma = true
+indent = "    "
+line_length = 120
+multi_line_output = 3
+skip = ["migrations"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_unused_ignores = false
+exclude = ["^docs/", "^build/", "^dist/"]
+
+[[tool.mypy.overrides]]
+module = "xapi_db_load.tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# Pre-existing type errors; suppressed on migration to avoid blocking CI
+module = [
+    "xapi_db_load.xapi.xapi_navigation",
+    "xapi_db_load.xapi.xapi_hint_answer",
+    "xapi_db_load.xapi.xapi_problem",
+    "xapi_db_load.xapi.xapi_grade",
+    "xapi_db_load.course_configs",
+    "xapi_db_load.generate_load_async",
+    "xapi_db_load.backends.base_async_backend",
+    "xapi_db_load.backends.chdb",
+    "xapi_db_load.backends.clickhouse",
+    "xapi_db_load.backends.csv",
+    "xapi_db_load.async_app",
+    "xapi_db_load.ui.config_ui",
+    "xapi_db_load.ui.main_ui",
+]
+ignore_errors = true

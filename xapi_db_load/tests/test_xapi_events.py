@@ -16,18 +16,9 @@ import pytest
 
 from xapi_db_load.generate_load_async import EventGenerator
 from xapi_db_load.xapi.xapi_forum import PostCreated
-from xapi_db_load.xapi.xapi_grade import (
-    CourseGradeCalculated,
-    FirstTimePassed,
-    SubsectionGradeCalculated,
-)
+from xapi_db_load.xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed, SubsectionGradeCalculated
 from xapi_db_load.xapi.xapi_hint_answer import ShowAnswer, ShowHint
-from xapi_db_load.xapi.xapi_navigation import (
-    LinkClicked,
-    NextNavigation,
-    PreviousNavigation,
-    TabSelectedNavigation,
-)
+from xapi_db_load.xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
 from xapi_db_load.xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
 from xapi_db_load.xapi.xapi_registration import Registered, Unregistered
 from xapi_db_load.xapi.xapi_video import (

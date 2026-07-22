@@ -23,10 +23,7 @@ from urllib.parse import urljoin
 import boto3
 from smart_open import open as smart
 
-from xapi_db_load.backends.base_async_backend import (
-    BaseBackendTasks,
-    BaseClickhouseBackend,
-)
+from xapi_db_load.backends.base_async_backend import BaseBackendTasks, BaseClickhouseBackend
 from xapi_db_load.waiter import Waiter
 
 

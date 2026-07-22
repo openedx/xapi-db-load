@@ -8,6 +8,9 @@ Subpackages
    :maxdepth: 4
 
    xapi_db_load.backends
+   xapi_db_load.fixtures
+   xapi_db_load.tests
+   xapi_db_load.ui
    xapi_db_load.xapi
 
 Submodules
@@ -17,14 +20,6 @@ xapi\_db\_load.course\_configs module
 -------------------------------------
 
 .. automodule:: xapi_db_load.course_configs
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-xapi\_db\_load.generate\_load module
-------------------------------------
-
-.. automodule:: xapi_db_load.generate_load
    :members:
    :undoc-members:
    :show-inheritance:

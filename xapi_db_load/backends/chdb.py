@@ -20,10 +20,7 @@ from urllib.parse import urljoin
 import boto3
 import chdb
 
-from xapi_db_load.backends.base_async_backend import (
-    BaseBackendTasks,
-    QueueBackend,
-)
+from xapi_db_load.backends.base_async_backend import BaseBackendTasks, QueueBackend
 from xapi_db_load.generate_load_async import EventGenerator
 from xapi_db_load.waiter import Waiter
 

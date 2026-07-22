@@ -25,10 +25,11 @@ def get_config(config_file: str) -> dict:
     Load YAML config and apply environment variable overrides for secrets.
 
     We override this in tests so that we can use temp dirs for logs etc.
-    Environment variables take precedence over values in the config file:
-      XAPI_DB_LOAD_CLICKHOUSE_PASSWORD -> db_password
-      XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY -> s3_secret
-      XAPI_DB_LOAD_RALPH_PASSWORD -> lrs_password
+    Environment variables take precedence over values in the config file::
+
+        XAPI_DB_LOAD_CLICKHOUSE_PASSWORD -> db_password
+        XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY -> s3_secret
+        XAPI_DB_LOAD_RALPH_PASSWORD -> lrs_password
     """
     with open(config_file, "r") as y:
         conf = yaml.safe_load(y)

@@ -12,10 +12,7 @@ from typing import Any, List
 
 from clickhouse_connect.driver.exceptions import DatabaseError, OperationalError
 
-from xapi_db_load.backends.base_async_backend import (
-    BaseBackendTasks,
-    QueueBackend,
-)
+from xapi_db_load.backends.base_async_backend import BaseBackendTasks, QueueBackend
 from xapi_db_load.generate_load_async import EventGenerator
 from xapi_db_load.waiter import Waiter
 

@@ -11,24 +11,14 @@ from logging import Logger
 from random import choice, choices
 from typing import Dict, Generator, List
 
-from xapi_db_load.constants import (
-    COURSE_ID_SHORT_LENGTH,
-    DEFAULT_LMS_URL,
-    MAX_COURSE_RUNS,
-    MIN_COURSE_RUNS,
-)
+from xapi_db_load.constants import COURSE_ID_SHORT_LENGTH, DEFAULT_LMS_URL, MAX_COURSE_RUNS, MIN_COURSE_RUNS
 from xapi_db_load.course_configs import Actor, RandomCourse
 from xapi_db_load.fixtures.music_tags import MUSIC_TAGS
 from xapi_db_load.waiter import Waiter
 from xapi_db_load.xapi.xapi_forum import PostCreated
 from xapi_db_load.xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed
 from xapi_db_load.xapi.xapi_hint_answer import ShowAnswer, ShowHint
-from xapi_db_load.xapi.xapi_navigation import (
-    LinkClicked,
-    NextNavigation,
-    PreviousNavigation,
-    TabSelectedNavigation,
-)
+from xapi_db_load.xapi.xapi_navigation import LinkClicked, NextNavigation, PreviousNavigation, TabSelectedNavigation
 from xapi_db_load.xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
 from xapi_db_load.xapi.xapi_registration import Registered, Unregistered
 from xapi_db_load.xapi.xapi_video import (

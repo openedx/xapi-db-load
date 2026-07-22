@@ -1,6 +1,6 @@
 .PHONY: clean compile_translations coverage diff_cover docs dummy_translations \
         extract_translations fake_translations help \
-        quality requirements selfcheck test test-all upgrade validate
+        mypy quality requirements selfcheck test test-all upgrade validate
 
 .DEFAULT_GOAL := help
 
@@ -26,43 +26,29 @@ coverage: clean ## generate and view HTML coverage report
 	$(BROWSER)htmlcov/index.html
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	tox -e docs
+	uv run tox -e docs
 	$(BROWSER)docs/_build/html/index.html
 
-# Define PIP_COMPILE_OPTS=-v to get more information during make upgrade.
-PIP_COMPILE = pip-compile --upgrade $(PIP_COMPILE_OPTS)
-
-upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
-upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
-	pip install -r requirements/pip-tools.txt
-	pip install -qr requirements/pip.txt
-	# Make sure to compile files after any other files they include!
-	$(PIP_COMPILE) --allow-unsafe --rebuild -o requirements/pip.txt requirements/pip.in
-	$(PIP_COMPILE) -o requirements/pip-tools.txt requirements/pip-tools.in
-	pip install -qr requirements/pip.txt
-	pip install -r requirements/pip-tools.txt
-	$(PIP_COMPILE) -o requirements/base.txt requirements/base.in
-	$(PIP_COMPILE) -o requirements/test.txt requirements/test.in
-	$(PIP_COMPILE) -o requirements/doc.txt requirements/doc.in
-	$(PIP_COMPILE) -o requirements/quality.txt requirements/quality.in
-	$(PIP_COMPILE) -o requirements/ci.txt requirements/ci.in
-	$(PIP_COMPILE) -o requirements/dev.txt requirements/dev.in
+upgrade: ## update the uv.lock file with the latest packages satisfying pyproject.toml
+	uv run --with edx-lint edx_lint write_uv_constraints pyproject.toml
+	uv lock --upgrade
 
 quality: ## check coding style with pycodestyle and pylint
-	pylint xapi_db_load *.py
-	pycodestyle xapi_db_load  *.py
-	pydocstyle xapi_db_load *.py
+	pylint --ignore=tests xapi_db_load
+	pycodestyle xapi_db_load
+	pydocstyle xapi_db_load
 	mypy xapi_db_load
-	isort --check-only --diff --recursive xapi_db_load *.py test_settings.py
-	python setup.py bdist_wheel
+	isort --check-only --diff xapi_db_load
+	python -m build
 	twine check dist/*
 	make selfcheck
 
+mypy: ## run mypy type checking
+	uv run tox -e mypy
 
 requirements: ## install development environment requirements
-	pip install -r requirements/pip.txt
-	pip install -r requirements/pip-tools.txt
-	pip-sync requirements/dev.txt requirements/private.*
+	uv sync --group dev
+	uv tool install tox --with tox-uv
 
 test: clean ## run tests in the current virtualenv
 	pytest
@@ -70,8 +56,8 @@ test: clean ## run tests in the current virtualenv
 diff_cover: test ## find diff lines that need test coverage
 	diff-cover coverage.xml
 
-test-all: quality ## run tests on every supported Python/Django combination
-	tox
+test-all: quality ## run tests on every supported Python combination
+	uv run tox
 
 validate: quality test ## run tests and quality checks
 

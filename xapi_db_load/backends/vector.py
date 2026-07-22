@@ -10,9 +10,7 @@ import sys
 from logging import Logger, getLogger
 from typing import List
 
-from xapi_db_load.backends.base_async_backend import (
-    BaseBackendTasks,
-)
+from xapi_db_load.backends.base_async_backend import BaseBackendTasks
 from xapi_db_load.backends.clickhouse import (
     InsertBlocks,
     InsertCourses,
