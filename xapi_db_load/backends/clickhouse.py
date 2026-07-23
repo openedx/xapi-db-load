@@ -6,11 +6,20 @@ compared to the others, but has the fewest dependencies.
 """
 
 import uuid
-from datetime import UTC, datetime
+from datetime import (
+    UTC,
+    datetime,
+)
 from logging import Logger
-from typing import Any, List
+from typing import (
+    Any,
+    List,
+)
 
-from clickhouse_connect.driver.exceptions import DatabaseError, OperationalError
+from clickhouse_connect.driver.exceptions import (
+    DatabaseError,
+    OperationalError,
+)
 
 from xapi_db_load.backends.base_async_backend import (
     BaseBackendTasks,
@@ -21,6 +30,8 @@ from xapi_db_load.waiter import Waiter
 
 
 class AsyncClickHouseTasks(BaseBackendTasks):
+    """Backend task manager for direct ClickHouse inserts."""
+
     def __repr__(self) -> str:
         return f"AsyncClickHouseTasks: {self.config['db_host']}"
 
@@ -42,9 +53,12 @@ class AsyncClickHouseTasks(BaseBackendTasks):
         ]
 
 
-class XAPILakeClickhouseAsync(QueueBackend):
+class XAPILakeClickhouseAsync(QueueBackend):  # pylint: disable=abstract-method
     """
     Abstract implementation for ClickHouse async.
+
+    Intentionally partial implementation: subclasses provide _populate_queue and
+    _process_queue_item.
     """
 
     async def _insert_rows(
@@ -75,7 +89,7 @@ class XAPILakeClickhouseAsync(QueueBackend):
             raise
 
 
-class InsertXAPIEvents(XAPILakeClickhouseAsync):
+class InsertXAPIEvents(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
     """
     Handles inserting the xAPI events.
 
@@ -142,7 +156,7 @@ class InsertXAPIEvents(XAPILakeClickhouseAsync):
         return (row["event_id"], row["emission_time"], row["event"])
 
 
-class InsertInitialEnrollments(InsertXAPIEvents):
+class InsertInitialEnrollments(InsertXAPIEvents):  # pylint: disable=abstract-method
     """
     A separate task that writes initial xAPI enrollment events.
 
@@ -215,7 +229,9 @@ class InsertInitialEnrollments(InsertXAPIEvents):
         self.logger.info(f"   {self.task_name} worker queue populated")
 
 
-class InsertCourses(XAPILakeClickhouseAsync):
+class InsertCourses(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts course overview data to ClickHouse."""
+
     task_name = "Insert Courses"
 
     async def _run_task(self):
@@ -262,7 +278,9 @@ class InsertCourses(XAPILakeClickhouseAsync):
             self.update_completed_task_count(increment_by=1)
 
 
-class InsertBlocks(XAPILakeClickhouseAsync):
+class InsertBlocks(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts course block data to ClickHouse."""
+
     task_name = "Insert Blocks"
 
     async def _run_task(self):
@@ -280,7 +298,7 @@ class InsertBlocks(XAPILakeClickhouseAsync):
             out_data = []
             blocks = course.serialize_block_data_for_event_sink()
 
-            for i in range(num_course_publishes):
+            for _ in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for b in blocks:
@@ -305,7 +323,9 @@ class InsertBlocks(XAPILakeClickhouseAsync):
                 self.update_completed_task_count(increment_by=1)
 
 
-class InsertObjectTags(XAPILakeClickhouseAsync):
+class InsertObjectTags(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts object tag data to ClickHouse."""
+
     task_name = "Insert ObjectTags"
 
     async def _run_task(self):
@@ -320,7 +340,7 @@ class InsertObjectTags(XAPILakeClickhouseAsync):
             )
             object_tags = course.serialize_object_tag_data_for_event_sink()
 
-            for i in range(num_course_publishes):
+            for _ in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 obj_tag_out_data = []
@@ -346,7 +366,9 @@ class InsertObjectTags(XAPILakeClickhouseAsync):
                 self.update_completed_task_count(increment_by=1)
 
 
-class InsertTaxonomies(XAPILakeClickhouseAsync):
+class InsertTaxonomies(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts taxonomy data to ClickHouse."""
+
     task_name = "Insert Taxonomies"
 
     async def _run_task(self):
@@ -360,16 +382,18 @@ class InsertTaxonomies(XAPILakeClickhouseAsync):
         self.update_total_task_count(len(taxonomies))
 
         out_data = []
-        id = 0
+        tag_id = 0
         for taxonomy in taxonomies.keys():
-            id += 1
-            out_data.append((id, taxonomy, dump_id, dump_time))
+            tag_id += 1
+            out_data.append((tag_id, taxonomy, dump_id, dump_time))
             self.update_completed_task_count(increment_by=1)
 
         await self._insert_rows("taxonomy", out_data)
 
 
-class InsertTags(XAPILakeClickhouseAsync):
+class InsertTags(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts tag data to ClickHouse."""
+
     task_name = "Insert Tags"
 
     async def _run_task(self):
@@ -403,7 +427,9 @@ class InsertTags(XAPILakeClickhouseAsync):
         self.update_completed_task_count(increment_by=1)
 
 
-class InsertExternalIDs(XAPILakeClickhouseAsync):
+class InsertExternalIDs(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts external ID data to ClickHouse."""
+
     task_name = "Insert ExternalIDs"
 
     async def _run_task(self):
@@ -443,12 +469,14 @@ class InsertExternalIDs(XAPILakeClickhouseAsync):
                 out_external_id = []
 
         # Catch any stragglers from the last batch
-        if len(out_external_id):
+        if out_external_id:
             await self._insert_rows("external_id", out_external_id)
             self.update_completed_task_count(increment_by=len(out_external_id))
 
 
-class InsertProfiles(XAPILakeClickhouseAsync):
+class InsertProfiles(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts user profile data to ClickHouse."""
+
     task_name = "Insert Profiles"
 
     async def _run_task(self):
@@ -508,6 +536,6 @@ class InsertProfiles(XAPILakeClickhouseAsync):
                     out_profile = []
 
         # Catch any stragglers from the last batch
-        if len(out_profile):
+        if out_profile:
             await self._insert_rows("user_profile", out_profile)
             self.update_completed_task_count(increment_by=len(out_profile))

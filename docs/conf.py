@@ -12,32 +12,15 @@ All configuration values have a default; values that are commented out
 serve to show the default.
 """
 import os
-import re
 import sys
 from datetime import datetime, UTC
+from importlib.metadata import PackageNotFoundError, version
 from subprocess import check_call
 
-
-def get_version(*file_paths):
-    """
-    Extract the version string from the file.
-
-    Input:
-     - file_paths: relative path fragments to file with
-                   version string
-    """
-    filename = os.path.join(os.path.dirname(__file__), *file_paths)
-    version_file = open(filename, encoding="utf8").read()
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
-
-
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(REPO_ROOT)
-
-VERSION = get_version("../xapi_db_load", "__init__.py")
+try:
+    VERSION = version("xapi-db-load")
+except PackageNotFoundError:
+    VERSION = "unknown"
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -69,6 +52,9 @@ extensions = [
 suppress_warnings = [
     "image.nonlocal_uri",
 ]
+
+# Mock imports that fail at module level in the docs environment.
+autodoc_mock_imports = ["chdb"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -187,7 +173,6 @@ html_theme_options = {
     "repository_url": "https://github.com/openedx/xapi-db-load",
     "repository_branch": "main",
     "path_to_docs": "docs/",
-    "logo_only": True,
     "home_page_in_toc": True,
     "use_repository_button": True,
     "use_issues_button": True,
@@ -538,7 +523,7 @@ def on_init(app):  # pylint: disable=unused-argument
         # If we are, assemble the path manually
         bin_path = os.path.abspath(os.path.join(sys.prefix, "bin"))
         apidoc_path = os.path.join(bin_path, apidoc_path)
-    check_call([apidoc_path, "-o", docs_path, os.path.join(root_path, "xapi_db_load")])
+    check_call([apidoc_path, "-f", "-o", docs_path, os.path.join(root_path, "xapi_db_load")])
 
 
 def setup(app):

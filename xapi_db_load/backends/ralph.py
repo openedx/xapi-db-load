@@ -12,9 +12,7 @@ from typing import List
 
 import requests
 
-from xapi_db_load.backends.base_async_backend import (
-    BaseBackendTasks,
-)
+from xapi_db_load.backends.base_async_backend import BaseBackendTasks
 from xapi_db_load.backends.clickhouse import (
     InsertBlocks,
     InsertCourses,
@@ -30,6 +28,8 @@ from xapi_db_load.generate_load_async import EventGenerator
 
 
 class AsyncRalphTasks(BaseBackendTasks):
+    """Backend task manager that posts xAPI events to Ralph instead of inserting directly."""
+
     def __repr__(self) -> str:
         return f"AsyncRalphTasks: {self.config['lrs_url']} -> {self.config['db_host']}"
 
@@ -52,10 +52,12 @@ class AsyncRalphTasks(BaseBackendTasks):
         ]
 
 
-class InsertXAPIEventsRalph(InsertXAPIEvents):
+class InsertXAPIEventsRalph(InsertXAPIEvents):  # pylint: disable=abstract-method
     """
     Wraps the ClickHouse direct backend so that the rest of the metadata can be sent while using
     Ralph to do the xAPI the insertion.
+
+    Intentionally partial implementation: inherits queue/worker system from InsertXAPIEvents.
     """
 
     # Default timeout (seconds) applied to Ralph POST requests when the config

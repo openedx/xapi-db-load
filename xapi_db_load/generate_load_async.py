@@ -8,8 +8,15 @@ import os
 import random
 import uuid
 from logging import Logger
-from random import choice, choices
-from typing import Dict, Generator, List
+from random import (
+    choice,
+    choices,
+)
+from typing import (
+    Dict,
+    Generator,
+    List,
+)
 
 from xapi_db_load.constants import (
     COURSE_ID_SHORT_LENGTH,
@@ -17,20 +24,35 @@ from xapi_db_load.constants import (
     MAX_COURSE_RUNS,
     MIN_COURSE_RUNS,
 )
-from xapi_db_load.course_configs import Actor, RandomCourse
+from xapi_db_load.course_configs import (
+    Actor,
+    RandomCourse,
+)
 from xapi_db_load.fixtures.music_tags import MUSIC_TAGS
 from xapi_db_load.waiter import Waiter
 from xapi_db_load.xapi.xapi_forum import PostCreated
-from xapi_db_load.xapi.xapi_grade import CourseGradeCalculated, FirstTimePassed
-from xapi_db_load.xapi.xapi_hint_answer import ShowAnswer, ShowHint
+from xapi_db_load.xapi.xapi_grade import (
+    CourseGradeCalculated,
+    FirstTimePassed,
+)
+from xapi_db_load.xapi.xapi_hint_answer import (
+    ShowAnswer,
+    ShowHint,
+)
 from xapi_db_load.xapi.xapi_navigation import (
     LinkClicked,
     NextNavigation,
     PreviousNavigation,
     TabSelectedNavigation,
 )
-from xapi_db_load.xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
-from xapi_db_load.xapi.xapi_registration import Registered, Unregistered
+from xapi_db_load.xapi.xapi_problem import (
+    BrowserProblemCheck,
+    ServerProblemCheck,
+)
+from xapi_db_load.xapi.xapi_registration import (
+    Registered,
+    Unregistered,
+)
 from xapi_db_load.xapi.xapi_video import (
     CompletedVideo,
     LoadedVideo,
@@ -78,9 +100,12 @@ def _get_uuid() -> str:
     return str(uuid.uuid4())
 
 
-class EventGenerator(Waiter):
+class EventGenerator(Waiter):  # pylint: disable=abstract-method
     """
     Generates a batch of random xAPI events based on the EVENT_WEIGHTS proportions.
+
+    Intentionally partial implementation: overrides run_task/run_db_load_task at the top level
+    instead of the _run_task/_run_db_load_task hooks used by other Waiter subclasses.
     """
 
     setup_complete: bool = False
@@ -310,7 +335,7 @@ class EventGenerator(Waiter):
         """
         Return the number of enrollment events we should generate.
         """
-        return sum([len(course.actors) for course in self.courses])
+        return sum(len(course.actors) for course in self.courses)
 
     def get_enrollment_events(self) -> Generator[Dict, None, None]:
         """

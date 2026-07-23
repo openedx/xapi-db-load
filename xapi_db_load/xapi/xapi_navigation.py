@@ -24,7 +24,7 @@ class BaseNavigation(XAPIBase):
     # To differentiate between links and other nav events, should be "link" or "nav"
     type = None
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -52,7 +52,7 @@ class BaseNavigation(XAPIBase):
             "event": e,
         }
 
-    def get_randomized_event(
+    def get_randomized_event(  # pylint: disable=too-many-positional-arguments
         self,
         event_id: str,
         account: str,

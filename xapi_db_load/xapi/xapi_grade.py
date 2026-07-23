@@ -17,7 +17,7 @@ class FirstTimePassed(XAPIBase):
     verb = "http://adlnet.gov/expapi/verbs/passed"
     verb_display = "passed"
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """
@@ -87,7 +87,7 @@ class GradeCalculated(XAPIBase):
     verb_display = "earned"
     object_type = None
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """

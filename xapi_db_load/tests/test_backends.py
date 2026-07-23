@@ -7,7 +7,11 @@ import json
 import os
 import re
 from contextlib import contextmanager
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import (
+    AsyncMock,
+    MagicMock,
+    patch,
+)
 
 import yaml
 from click.testing import CliRunner
@@ -154,11 +158,14 @@ def test_vector_backend(mock_get_logger, _, tmp_path):
     # We check to make sure Vector's regex will parse what we're sending. We want it to match both
     # the LMS and our local logger formatter.
     # This is how things are generally formatted in the LMS
-    test_str_1 = f"2026-02-24 20:26:13,006 INFO 42 [xapi_tracking] [user None] [ip 172.19.0.1] logger.py:41 - {last_logged_statement}"
+    test_str_1 = (
+        "2026-02-24 20:26:13,006 INFO 42 [xapi_tracking] [user None] "
+        f"[ip 172.19.0.1] logger.py:41 - {last_logged_statement}"
+    )
 
     # This returns our message formatted with the abbreviated version we use for size and speed purposes
     formatter = mock_get_logger.return_value.addHandler.call_args.args[0].formatter
-    test_str_2 = formatter._fmt.format(
+    test_str_2 = formatter._fmt.format(  # pylint: disable=protected-access
         name="xapi_tracking", message=last_logged_statement
     )
 
@@ -191,7 +198,7 @@ def test_vector_backend(mock_get_logger, _, tmp_path):
     "xapi_db_load.backends.base_async_backend.clickhouse_connect",
     new_callable=AsyncMock,
 )
-def test_ralph_backend(mock_requests, _, tmp_path):
+def test_ralph_backend(_mock_requests, _, tmp_path):
     """
     Run a test through the Ralph backend, currently this just checks that the
     output indicates success.
@@ -223,7 +230,7 @@ def test_ralph_backend(mock_requests, _, tmp_path):
     "xapi_db_load.backends.chdb.boto3",
     new_callable=AsyncMock,
 )
-def test_chdb_backend(mock_ch, mock_chdb, mock_boto, tmp_path):
+def test_chdb_backend(_mock_ch, _mock_chdb, _mock_boto, tmp_path):
     """
     Run a test through the CHDB backend, currently this just checks that the
     output indicates success.

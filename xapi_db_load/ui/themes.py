@@ -2,7 +2,7 @@
 
 THEMES = {
     "default": [
-        # Style name                    # 16-color style                        # Monochrome style          # 88, 256 and true-color style
+        # Style name         # 16-color style         # Monochrome style   # 88, 256, true-color style
         (
             "heading",
             "light gray,underline",

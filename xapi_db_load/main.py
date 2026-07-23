@@ -5,6 +5,7 @@ Top level script to generate random xAPI events against various backends.
 import asyncio
 import datetime
 import os
+import sys
 
 import click
 import uvloop
@@ -25,7 +26,8 @@ def get_config(config_file: str) -> dict:
     Load YAML config and apply environment variable overrides for secrets.
 
     We override this in tests so that we can use temp dirs for logs etc.
-    Environment variables take precedence over values in the config file:
+    Environment variables take precedence over values in the config file::
+
       XAPI_DB_LOAD_CLICKHOUSE_PASSWORD -> db_password
       XAPI_DB_LOAD_AWS_SECRET_ACCESS_KEY -> s3_secret
       XAPI_DB_LOAD_RALPH_PASSWORD -> lrs_password
@@ -84,7 +86,10 @@ def ui(config_file: str):
 )
 @click.option(
     "--load_db_only",
-    help="If this option is passed we will try to load from the configured block storage, no new data will be generated.",
+    help=(
+        "If this option is passed we will try to load from the configured block storage, "
+        "no new data will be generated."
+    ),
     is_flag=True,
 )
 def load_db(config_file: str, load_db_only: bool):
@@ -92,7 +97,7 @@ def load_db(config_file: str, load_db_only: bool):
     Execute a database load by performing inserts.
     """
     # Import here to avoid circular imports in the UI path.
-    from xapi_db_load.async_app import App
+    from xapi_db_load.async_app import App  # pylint: disable=import-outside-toplevel
 
     # Use UVLoop to speed up asyncio operations
     # https://uvloop.readthedocs.io/
@@ -103,7 +108,7 @@ def load_db(config_file: str, load_db_only: bool):
     app = App(config)
     asyncio.run(app.runner.run(load_db_only))
     app.log(f"Total duration: {datetime.datetime.now() - start}")
-    exit(0)
+    sys.exit(0)
 
 
 cli.add_command(load_db)

@@ -21,7 +21,7 @@ class BaseVideo(XAPIBase):
     has_event_time = False
     has_time_from_to = False
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """

@@ -1,6 +1,7 @@
 """
 Unit tests for the ``Waiter`` base class used by every backend task.
 """
+# pylint: disable=redefined-outer-name
 
 import logging
 from unittest.mock import MagicMock
@@ -10,8 +11,12 @@ import pytest
 from xapi_db_load.waiter import Waiter
 
 
-class _TestWaiter(Waiter):
-    """Concrete subclass that sets ``task_name`` so ``__init__`` succeeds."""
+class _TestWaiter(Waiter):  # pylint: disable=abstract-method
+    """Concrete subclass that sets ``task_name`` so ``__init__`` succeeds.
+
+    Intentionally partial implementation: only task_name is set; _run_task and
+    _run_db_load_task are tested via the abstract-method test below.
+    """
 
     task_name = "test"
 

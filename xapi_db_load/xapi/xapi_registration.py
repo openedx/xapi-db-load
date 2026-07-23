@@ -14,7 +14,7 @@ class BaseRegistration(XAPIBase):
     Base xAPI class for registration events.
     """
 
-    def get_data(self, course=None, enrolled_actor=None) -> dict:
+    def get_data(self, course=None, enrolled_actor=None) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """

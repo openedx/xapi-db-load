@@ -8,6 +8,8 @@ from xapi_db_load.async_app import App
 
 
 class ConfigDisplay:
+    """Lazy container for the config display widget; instantiates it on first show."""
+
     def __init__(self, app: App):
         self.app = app
         self.widget = ConfigWidget(self.app)
@@ -24,6 +26,8 @@ class ConfigDisplay:
 
 
 class ConfigWidget(urwid.WidgetWrap):
+    """Urwid widget that displays the current YAML configuration file contents."""
+
     def __init__(self, app: App):
         self.app = app
         self.config_text = urwid.Text(self._get_config_contents())
