@@ -1,0 +1,162 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xapi-db-load"
+version = "3.1.0"
+description = "Loads testing xAPI events into databases and LRSs"
+readme = "README.rst"
+requires-python = ">=3.12"
+license = "AGPL-3.0"
+license-files = ["LICENSE.txt"]
+authors = [
+    {name = "Open edX Project", email = "oscm@openedx.org"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = ["Python", "edx"]
+dependencies = [
+    "chdb",
+    "click",
+    "clickhouse-connect[async]",
+    "pyarrow",
+    "pyyaml",
+    "requests",
+    "smart_open[s3]",
+    "urwid",
+    "uvloop",
+]
+
+[project.scripts]
+xapi-db-load = "xapi_db_load.main:cli"
+
+[project.urls]
+Repository = "https://github.com/openedx/xapi-db-load"
+"Issue tracker" = "https://github.com/openedx/xapi-db-load/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+exclude = ["tests*", "*.tests", "*.tests.*"]
+
+[tool.setuptools.package-data]
+"*" = [
+    "conf/**/*",
+    "public/**/*",
+    "static/**/*",
+    "templates/**/*",
+    "translations/**/*",
+]
+
+[dependency-groups]
+# Each group mirrors its requirements/*.in file exactly.
+# "-r other.in" in the .in file → {include-group = "other"} here.
+
+# From requirements/test.in
+test = [
+    {include-group = "base"},
+    "pytest-asyncio",
+    "pytest-cov",
+]
+
+# From requirements/quality.in
+quality = [
+    {include-group = "test"},
+    "edx-lint",
+    "isort",
+    "mypy",
+    "pycodestyle",
+    "pydocstyle",
+    "twine",
+]
+
+# From requirements/doc.in
+doc = [
+    {include-group = "test"},
+    "build",
+    "Sphinx",
+    "sphinx-book-theme",
+    "twine",
+]
+
+# From requirements/ci.in
+ci = [
+    "tox",
+    "tox-uv",
+]
+
+# From requirements/dev.in (without pip-tools since that's replaced by uv)
+dev = [
+    {include-group = "quality"},
+    {include-group = "ci"},
+    "diff-cover",
+]
+
+# base group (mirrors base.in — used via include-group from test)
+base = [
+    "chdb",
+    "click",
+    "clickhouse-connect[async]",
+    "pyarrow",
+    "pyyaml",
+    "requests",
+    "smart_open[s3]",
+    "urwid",
+    "uvloop",
+]
+
+[tool.edx_lint]
+uv_constraints = []
+
+[tool.uv]
+package = true
+
+#  DO NOT EDIT constraint-dependencies DIRECTLY.
+#  This list is managed by `edx_lint write_uv_constraints`
+#  and will be overwritten the next time `make upgrade` is run.
+#  - GLOBAL constraints: edit edx_lint/files/common_constraints.txt
+#  - REPO-SPECIFIC constraints: edit [tool.edx_lint].uv_constraints in this file
+constraint-dependencies = [
+    "Django<6.0",
+    "elasticsearch<7.14.0",
+]
+[tool.coverage.run]
+branch = true
+data_file = ".coverage"
+source = ["xapi_db_load"]
+omit = [
+    "tests",
+]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.pytest.ini_options]
+addopts = "--cov xapi_db_load --cov-report term-missing --cov-report xml --log-level=INFO"
+norecursedirs = [".* docs requirements site-packages"]
+
+[tool.isort]
+include_trailing_comma = true
+indent = "    "
+line_length = 120
+multi_line_output = 3
+skip = ["migrations"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_unused_ignores = true
+exclude = ["^docs/", "^build/", "^dist/"]
+
+[[tool.mypy.overrides]]
+module = "xapi_db_load.tests.*"
+ignore_errors = true
