@@ -34,11 +34,11 @@ upgrade: ## update the uv.lock file with the latest packages satisfying pyprojec
 	uv lock --upgrade
 
 quality: ## check coding style with pycodestyle and pylint
-	pylint xapi_db_load *.py
-	pycodestyle xapi_db_load  *.py
-	pydocstyle xapi_db_load *.py
+	pylint xapi_db_load
+	pycodestyle xapi_db_load
+	pydocstyle xapi_db_load
 	mypy xapi_db_load
-	isort --check-only --diff --recursive xapi_db_load *.py
+	isort --check-only --diff xapi_db_load
 	uv run python -m build
 	twine check dist/*
 	make selfcheck

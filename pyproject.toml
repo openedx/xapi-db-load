@@ -82,6 +82,7 @@ quality = [
 doc = [
     {include-group = "test"},
     "build",
+    "doc8",
     "Sphinx",
     "sphinx-book-theme",
     "twine",
