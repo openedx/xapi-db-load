@@ -8,7 +8,7 @@ aiohappyeyeballs==2.7.1
     # via
     #   -r requirements/base.txt
     #   aiohttp
-aiohttp==3.14.1
+aiohttp==3.14.3
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
@@ -20,16 +20,20 @@ attrs==26.1.0
     # via
     #   -r requirements/base.txt
     #   aiohttp
-boto3==1.43.51
+backports-zstd==1.6.0
+    # via
+    #   -r requirements/base.txt
+    #   clickhouse-connect
+boto3==1.43.56
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.43.51
+botocore==1.43.56
     # via
     #   -r requirements/base.txt
     #   boto3
     #   s3transfer
-certifi==2026.6.17
+certifi==2026.7.22
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
@@ -46,7 +50,7 @@ chdb-core==26.5.0
     #   chdb
 click==8.4.2
     # via -r requirements/base.txt
-clickhouse-connect[async]==1.5.0
+clickhouse-connect[async]==1.6.0
     # via -r requirements/base.txt
 coverage[toml]==7.15.2
     # via pytest-cov
@@ -82,7 +86,7 @@ numpy==2.5.1
     #   pandas
 packaging==26.2
     # via pytest
-pandas==3.0.3
+pandas==3.0.5
     # via
     #   -r requirements/base.txt
     #   chdb
@@ -120,7 +124,7 @@ pyyaml==6.0.3
     # via -r requirements/base.txt
 requests==2.34.2
     # via -r requirements/base.txt
-s3transfer==0.19.1
+s3transfer==0.19.2
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -143,7 +147,7 @@ urllib3==2.7.0
     #   botocore
     #   clickhouse-connect
     #   requests
-urwid==4.0.4
+urwid==4.0.8
     # via -r requirements/base.txt
 uvloop==0.22.1
     # via -r requirements/base.txt
@@ -155,11 +159,7 @@ wrapt==2.2.2
     # via
     #   -r requirements/base.txt
     #   smart-open
-yarl==1.24.2
+yarl==1.24.5
     # via
     #   -r requirements/base.txt
     #   aiohttp
-zstandard==0.25.0
-    # via
-    #   -r requirements/base.txt
-    #   clickhouse-connect
