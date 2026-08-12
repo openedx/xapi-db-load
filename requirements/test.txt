@@ -24,11 +24,11 @@ backports-zstd==1.6.0
     # via
     #   -r requirements/base.txt
     #   clickhouse-connect
-boto3==1.43.56
+boto3==1.43.69
     # via
     #   -r requirements/base.txt
     #   smart-open
-botocore==1.43.56
+botocore==1.43.69
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -50,9 +50,9 @@ chdb-core==26.5.0
     #   chdb
 click==8.4.2
     # via -r requirements/base.txt
-clickhouse-connect[async]==1.6.0
+clickhouse-connect[async]==1.7.0
     # via -r requirements/base.txt
-coverage[toml]==7.15.2
+coverage[toml]==7.15.4
     # via pytest-cov
 frozenlist==1.8.0
     # via
@@ -80,11 +80,11 @@ multidict==6.7.1
     #   -r requirements/base.txt
     #   aiohttp
     #   yarl
-numpy==2.5.1
+numpy==2.5.2
     # via
     #   -r requirements/base.txt
     #   pandas
-packaging==26.2
+packaging==26.3
     # via pytest
 pandas==3.0.5
     # via
@@ -100,7 +100,7 @@ propcache==0.5.2
     #   -r requirements/base.txt
     #   aiohttp
     #   yarl
-pyarrow==25.0.0
+pyarrow==25.0.1
     # via
     #   -r requirements/base.txt
     #   chdb
@@ -155,7 +155,7 @@ wcwidth==0.8.2
     # via
     #   -r requirements/base.txt
     #   urwid
-wrapt==2.2.2
+wrapt==2.3.0
     # via
     #   -r requirements/base.txt
     #   smart-open
