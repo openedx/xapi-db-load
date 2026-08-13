@@ -7,12 +7,13 @@ All other tasks use the raw Clickhouse inserts.
 
 import logging
 import sys
-from logging import Logger, getLogger
+from logging import (
+    Logger,
+    getLogger,
+)
 from typing import List
 
-from xapi_db_load.backends.base_async_backend import (
-    BaseBackendTasks,
-)
+from xapi_db_load.backends.base_async_backend import BaseBackendTasks
 from xapi_db_load.backends.clickhouse import (
     InsertBlocks,
     InsertCourses,
@@ -28,6 +29,8 @@ from xapi_db_load.generate_load_async import EventGenerator
 
 
 class AsyncVectorTasks(BaseBackendTasks):
+    """Backend task manager that logs xAPI events via Vector instead of inserting directly."""
+
     def __repr__(self) -> str:
         return f"AsyncVectorTasks: {self.config['db_host']}"
 
@@ -50,10 +53,12 @@ class AsyncVectorTasks(BaseBackendTasks):
         ]
 
 
-class InsertXAPIEventsVector(InsertXAPIEvents):
+class InsertXAPIEventsVector(InsertXAPIEvents):  # pylint: disable=abstract-method
     """
     Wraps the ClickHouse direct backend so that the rest of the metadata can be sent while using
     Ralph to do the xAPI the insertion.
+
+    Intentionally partial implementation: inherits queue/worker from InsertXAPIEvents.
     """
 
     def __init__(self, config: dict, logger: Logger, event_generator: EventGenerator):

@@ -25,6 +25,8 @@ class LogDisplay:
 
 
 class LogTail(urwid.WidgetWrap):
+    """Urwid widget that tails the application log file and updates the display continuously."""
+
     def __init__(self, app):
         self.app = app
         self.log_tail = urwid.Text("Loading...")

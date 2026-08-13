@@ -1,6 +1,7 @@
 """
 Tests for ``xapi_db_load.main.get_config``: env-var overrides and defaults.
 """
+# pylint: disable=redefined-outer-name
 
 import textwrap
 

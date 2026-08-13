@@ -12,6 +12,8 @@ RUNNING_TEXT = "Running"
 
 
 class LoadDisplay:
+    """Lazy container for the load-progress widget; instantiates it on first show."""
+
     def __init__(self, app):
         self.app = app
         self.widget = LoadData(self.app)
@@ -23,6 +25,8 @@ class LoadDisplay:
 
 
 class LoadData(urwid.WidgetWrap):
+    """Urwid widget for the Load tab: shows progress bars and action buttons."""
+
     def __init__(self, app):
         self.app = app
         self.title = urwid.BigText(
@@ -84,7 +88,7 @@ class LoadData(urwid.WidgetWrap):
 
         super().__init__(self.widget)
 
-    def go_pressed(self, button):
+    def go_pressed(self, _button):
         """Handler for the "Create Test Data" button: starts a full data-generation run."""
         self.app.log("Go pressed")
         if self.app.runner.running:
@@ -98,7 +102,7 @@ class LoadData(urwid.WidgetWrap):
         asyncio.create_task(self.update_status())
         asyncio.create_task(self.app.runner.run())
 
-    def load_pressed(self, button):
+    def load_pressed(self, _button):
         """Handler for the "Load from Object Storage Only" button."""
         # TODO: This can be combined with go_pressed using user data
         self.app.log("Load pressed")
@@ -117,8 +121,7 @@ class LoadData(urwid.WidgetWrap):
         """Poll task progress and refresh the progress bars until the run finishes."""
         while True:
             assert len(self.to_do_widgets) == len(self.app.runner.test_data_tasks)
-            for i in range(len(self.to_do_widgets)):
-                item = self.to_do_widgets[i]
+            for i, item in enumerate(self.to_do_widgets):
                 item.set_completion(self.app.runner.test_data_tasks[i].get_complete())
 
             self.logger.info("Updating status")
@@ -144,4 +147,4 @@ class LoadData(urwid.WidgetWrap):
         if key == "up" and ui is not None:
             ui.main_display.frame.focus_position = "header"
 
-        return super(LoadData, self).keypress(size, key)
+        return super().keypress(size, key)

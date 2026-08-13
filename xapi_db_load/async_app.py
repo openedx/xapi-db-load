@@ -108,7 +108,8 @@ class App:
         """
         Set the main loop.
 
-        The main loop is an asyncio loop, or uvloop if we are not in UI mode. It drives the async tasks and manages context switching.
+        The main loop is an asyncio loop, or uvloop if we are not in UI mode.
+        It drives the async tasks and manages context switching.
         """
         self.main_loop = loop
 

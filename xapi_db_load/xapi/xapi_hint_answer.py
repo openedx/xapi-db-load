@@ -19,7 +19,7 @@ class HintAnswerBase(XAPIBase):
     # Whether this is a hint or an answer, "hint" or "answer" are valid values
     type = None
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """

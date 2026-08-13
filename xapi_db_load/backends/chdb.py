@@ -11,10 +11,17 @@ datasets.
 import asyncio
 import uuid
 from concurrent.futures import ProcessPoolExecutor
-from datetime import UTC, datetime
+from datetime import (
+    UTC,
+    datetime,
+)
 from logging import Logger
 from threading import Lock
-from typing import Any, Dict, List
+from typing import (
+    Any,
+    Dict,
+    List,
+)
 from urllib.parse import urljoin
 
 import boto3
@@ -29,6 +36,8 @@ from xapi_db_load.waiter import Waiter
 
 
 class AsyncCHDBTasks(BaseBackendTasks):
+    """Backend task manager that writes data via CHDB to S3 then loads it into ClickHouse."""
+
     def __init__(
         self,
         config: dict,
@@ -114,7 +123,7 @@ class AsyncCHDBTasks(BaseBackendTasks):
         ]
 
 
-class XAPILakeCHDBAsync(QueueBackend):
+class XAPILakeCHDBAsync(QueueBackend):  # pylint: disable=abstract-method
     """
     Abstract base class for CHDB async jobs.
 
@@ -275,7 +284,7 @@ class XAPILakeCHDBAsync(QueueBackend):
         loop = asyncio.get_event_loop()
         try:
             await loop.run_in_executor(None, chdb.query, sql)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.info(f"Retrying due to CHDB error: {e}")
             self.logger.info(f"SQL: {sql}")
             await loop.run_in_executor(None, chdb.query, sql)
@@ -464,7 +473,7 @@ class WriteInitialEnrollments(WriteXAPIEvents):
         )
 
 
-class WriteCourses(XAPILakeCHDBAsync):
+class WriteCourses(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     This task is fairly simple, it just takes the course data from the event generator and saves it
     to S3 once for each "num_course_publishes" in the config. Each publish gets its own file.
@@ -536,7 +545,7 @@ class WriteCourses(XAPILakeCHDBAsync):
             self.update_completed_task_count(increment_by=1)
 
 
-class WriteBlocks(XAPILakeCHDBAsync):
+class WriteBlocks(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the course block data to S3 using CHDB.
     """
@@ -575,7 +584,7 @@ class WriteBlocks(XAPILakeCHDBAsync):
             out_data = []
             blocks = course.serialize_block_data_for_event_sink()
 
-            for i in range(num_course_publishes):
+            for _ in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for b in blocks:
@@ -604,7 +613,7 @@ class WriteBlocks(XAPILakeCHDBAsync):
             self.update_completed_task_count(increment_by=1)
 
 
-class WriteObjectTags(XAPILakeCHDBAsync):
+class WriteObjectTags(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the tags for each block / object to S3 using CHDB.
     """
@@ -645,7 +654,7 @@ class WriteObjectTags(XAPILakeCHDBAsync):
             object_tags = course.serialize_object_tag_data_for_event_sink()
 
             row_id = 0
-            for i in range(num_course_publishes):
+            for _ in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for obj_tag in object_tags:
@@ -673,7 +682,7 @@ class WriteObjectTags(XAPILakeCHDBAsync):
             self.update_completed_task_count(increment_by=1)
 
 
-class WriteTaxonomies(XAPILakeCHDBAsync):
+class WriteTaxonomies(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the taxonomies to S3 using CHDB.
     """
@@ -714,7 +723,7 @@ class WriteTaxonomies(XAPILakeCHDBAsync):
         await self._write_list_sql_retry(out_data, "taxonomy")
 
 
-class WriteTags(XAPILakeCHDBAsync):
+class WriteTags(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the tags for each taxonomy to S3 using CHDB.
     """
@@ -763,7 +772,7 @@ class WriteTags(XAPILakeCHDBAsync):
         await self._write_list_sql_retry(tag_out_data, "tag")
 
 
-class WriteExternalIDs(XAPILakeCHDBAsync):
+class WriteExternalIDs(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the user external IDs to S3 using CHDB.
     """
@@ -808,7 +817,7 @@ class WriteExternalIDs(XAPILakeCHDBAsync):
         await self._write_list_sql_retry(out_external_id, "external_id")
 
 
-class WriteUserProfiles(XAPILakeCHDBAsync):
+class WriteUserProfiles(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the user profile data to S3 using CHDB.
     """
@@ -978,7 +987,7 @@ class LoadFromS3(XAPILakeCHDBAsync):
 
         while not self.shutting_down:
             # Just idle until all of the tasks that may be feeding us files are done
-            if all([t.finished for t in self.registered_tasks]):
+            if all(t.finished for t in self.registered_tasks):
                 self.logger.info("All LoadFromS3 tasks complete, shutting down.")
                 self.shutting_down = True
 
@@ -996,7 +1005,7 @@ class LoadFromS3(XAPILakeCHDBAsync):
             await self._load_file_to_clickhouse(
                 batch["schema"], batch["table_name"], batch["file_path"]
             )
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self.update_error_count()
             self.logger.error(batch)
             self.logger.error(

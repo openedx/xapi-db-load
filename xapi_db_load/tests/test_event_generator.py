@@ -111,5 +111,5 @@ def test_instances_have_isolated_state():
     a.actors.append("sentinel")  # type: ignore[arg-type]
     a.orgs.append("sentinel")
 
-    assert b.actors == []
-    assert b.orgs == []
+    assert not b.actors
+    assert not b.orgs

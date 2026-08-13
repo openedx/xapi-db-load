@@ -19,6 +19,8 @@ from xapi_db_load.generate_load_async import EventGenerator
 
 
 class Runner:
+    """Wires together backends, tasks, and the event generator to drive the async task loop."""
+
     start_time = None
     end_time = None
 
@@ -153,7 +155,8 @@ class Runner:
 
                 if completion > 1.0:
                     self.logger.error(
-                        f"{task.task_name}: Over 100% complete! {completion} of {task.total_task_count} tasks supposedly complete."
+                        f"{task.task_name}: Over 100% complete! "
+                        f"{completion} of {task.total_task_count} tasks supposedly complete."
                     )
             overall_progress = self.get_overall_progress()
             if overall_progress == 1.0:

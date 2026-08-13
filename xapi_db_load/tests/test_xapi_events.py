@@ -6,6 +6,7 @@ These tests guard against regressions in the dict layout returned by
 and verify that the configurable ``lms_url`` propagates through to the
 generated statements (i.e. nothing is silently hardcoded back to localhost).
 """
+# pylint: disable=redefined-outer-name
 
 import asyncio
 import datetime
@@ -21,15 +22,24 @@ from xapi_db_load.xapi.xapi_grade import (
     FirstTimePassed,
     SubsectionGradeCalculated,
 )
-from xapi_db_load.xapi.xapi_hint_answer import ShowAnswer, ShowHint
+from xapi_db_load.xapi.xapi_hint_answer import (
+    ShowAnswer,
+    ShowHint,
+)
 from xapi_db_load.xapi.xapi_navigation import (
     LinkClicked,
     NextNavigation,
     PreviousNavigation,
     TabSelectedNavigation,
 )
-from xapi_db_load.xapi.xapi_problem import BrowserProblemCheck, ServerProblemCheck
-from xapi_db_load.xapi.xapi_registration import Registered, Unregistered
+from xapi_db_load.xapi.xapi_problem import (
+    BrowserProblemCheck,
+    ServerProblemCheck,
+)
+from xapi_db_load.xapi.xapi_registration import (
+    Registered,
+    Unregistered,
+)
 from xapi_db_load.xapi.xapi_video import (
     CompletedVideo,
     LoadedVideo,

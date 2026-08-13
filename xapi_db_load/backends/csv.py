@@ -16,7 +16,10 @@ import csv
 import os
 import uuid
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import (
+    UTC,
+    datetime,
+)
 from typing import List
 from urllib.parse import urljoin
 
@@ -31,8 +34,12 @@ from xapi_db_load.waiter import Waiter
 
 
 class AsyncCSVTasks(BaseBackendTasks):
+    """Backend task manager that writes data to gzipped CSV files."""
+
     def __repr__(self) -> str:
-        return f"AsyncCSVTasks: {self.config.get('csv_output_destination')} -> {self.config.get('db_host', 'No ClickHouse configured')}"
+        dest = self.config.get('csv_output_destination')
+        host = self.config.get('db_host', 'No ClickHouse configured')
+        return f"AsyncCSVTasks: {dest} -> {host}"
 
     def get_test_data_tasks(self) -> List[Waiter]:
         """
@@ -126,6 +133,8 @@ class XAPILakeCSVAsync(BaseClickhouseBackend):
 
 
 class WriteCSVXAPIEvents(XAPILakeCSVAsync):
+    """Writes xAPI events to a gzipped CSV file."""
+
     task_name = "Write CSV xAPI"
     schema = "xapi"
     table = "xapi_events_all"
@@ -171,6 +180,8 @@ class WriteCSVXAPIEvents(XAPILakeCSVAsync):
 
 
 class WriteCSVCourses(XAPILakeCSVAsync):
+    """Writes course overview data to a gzipped CSV file."""
+
     task_name = "Write CSV Courses"
     schema = "event_sink"
     table = "course_overviews"
@@ -214,6 +225,8 @@ class WriteCSVCourses(XAPILakeCSVAsync):
 
 
 class WriteCSVBlocks(XAPILakeCSVAsync):
+    """Writes course block data to a gzipped CSV file."""
+
     task_name = "Write CSV Blocks"
     schema = "event_sink"
     table = "course_blocks"
@@ -231,7 +244,7 @@ class WriteCSVBlocks(XAPILakeCSVAsync):
             for course in courses:
                 blocks = course.serialize_block_data_for_event_sink()
 
-                for i in range(num_course_publishes):
+                for _ in range(num_course_publishes):
                     dump_id = str(uuid.uuid4())
                     dump_time = datetime.now(UTC)
                     for b in blocks:
@@ -253,6 +266,8 @@ class WriteCSVBlocks(XAPILakeCSVAsync):
 
 
 class WriteCSVObjectTags(XAPILakeCSVAsync):
+    """Writes object tag data to a gzipped CSV file."""
+
     task_name = "Write CSV ObjectTags"
     schema = "event_sink"
     table = "object_tag"
@@ -272,7 +287,7 @@ class WriteCSVObjectTags(XAPILakeCSVAsync):
             for course in self.event_generator.courses:
                 object_tags = course.serialize_object_tag_data_for_event_sink()
 
-                for i in range(num_course_publishes):
+                for _ in range(num_course_publishes):
                     dump_id = str(uuid.uuid4())
                     dump_time = datetime.now(UTC)
                     for obj_tag in object_tags:
@@ -295,6 +310,8 @@ class WriteCSVObjectTags(XAPILakeCSVAsync):
 
 
 class WriteCSVTaxonomies(XAPILakeCSVAsync):
+    """Writes taxonomy data to a gzipped CSV file."""
+
     task_name = "Write CSV Taxonomies"
     schema = "event_sink"
     table = "taxonomy"
@@ -311,14 +328,16 @@ class WriteCSVTaxonomies(XAPILakeCSVAsync):
             dump_id = str(uuid.uuid4())
             dump_time = datetime.now(UTC)
 
-            id = 1
+            tag_id = 1
             for taxonomy in taxonomies.keys():
-                id += 1
-                taxonomy_csv_writer.writerow((id, taxonomy, dump_id, dump_time))
+                tag_id += 1
+                taxonomy_csv_writer.writerow((tag_id, taxonomy, dump_id, dump_time))
                 self.update_completed_task_count(increment_by=1)
 
 
 class WriteCSVTags(XAPILakeCSVAsync):
+    """Writes tag data to a gzipped CSV file."""
+
     task_name = "Write CSV Tags"
     schema = "event_sink"
     table = "tag"
@@ -352,6 +371,8 @@ class WriteCSVTags(XAPILakeCSVAsync):
 
 
 class WriteCSVExternalIds(XAPILakeCSVAsync):
+    """Writes external ID data to a gzipped CSV file."""
+
     task_name = "Write CSV Actors"
     schema = "event_sink"
     table = "external_id"
@@ -383,6 +404,8 @@ class WriteCSVExternalIds(XAPILakeCSVAsync):
 
 
 class WriteCSVProfiles(XAPILakeCSVAsync):
+    """Writes user profile data to a gzipped CSV file."""
+
     task_name = "Write CSV Profiles"
     schema = "event_sink"
     table = "user_profile"

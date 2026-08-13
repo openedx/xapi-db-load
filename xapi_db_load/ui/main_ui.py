@@ -53,11 +53,11 @@ class MainFrame(urwid.Frame):
         self.current_focus = None
         super().__init__(body, header, footer)
 
-    def mouse_event(self, size, event, button, col, row, focus):
+    def mouse_event(self, size, event, button, col, row, focus):  # pylint: disable=too-many-positional-arguments
         """Track current focus on mouse events and delegate to the parent frame."""
         current_focus = self.delegate.widget.get_focus_widgets()[-1]
         self.current_focus = current_focus
-        return super(MainFrame, self).mouse_event(size, event, button, col, row, focus)
+        return super().mouse_event(size, event, button, col, row, focus)
 
 
 class MainDisplay:
@@ -90,21 +90,21 @@ class MainDisplay:
         """
         self.frame.contents["body"] = (self.sub_displays.active().widget, None)
 
-    def show_load(self, user_data):
+    def show_load(self, _user_data):
         """
         Shows the data load sub-display.
         """
         self.sub_displays.active_display = self.sub_displays.load_display
         self.update_active_sub_display()
 
-    def show_config(self, user_data):
+    def show_config(self, _user_data):
         """
         Shows the data config sub-display.
         """
         self.sub_displays.active_display = self.sub_displays.config_display
         self.update_active_sub_display()
 
-    def show_log(self, user_data):
+    def show_log(self, _user_data):
         """
         Shows the data log tailer sub-display.
         """
@@ -116,11 +116,11 @@ class MainDisplay:
         """Schedule a screen redraw via the urwid main-loop alarm."""
         self.app.ui.loop.set_alarm_in(0.25 + extra_delay, self.redraw_now)
 
-    def redraw_now(self, sender=None, data=None):
+    def redraw_now(self, _sender=None, _data=None):
         """Clear and force redraw of the screen immediately."""
         self.app.ui.loop.screen.clear()
 
-    def quit(self, sender=None):
+    def quit(self, _sender=None):
         """
         Quit the application.
         """
@@ -128,16 +128,18 @@ class MainDisplay:
 
 
 class MenuColumns(urwid.Columns):
+    """Urwid Columns subclass that intercepts tab/down keys to shift focus to the body."""
+
     handler: MainDisplay
 
     def keypress(self, size, key):
         """
         Moves us from the menu bar to the body of the screen on keypress.
         """
-        if key == "tab" or key == "down":
+        if key in ("tab", "down"):
             self.handler.frame.focus_position = "body"
 
-        return super(MenuColumns, self).keypress(size, key)
+        return super().keypress(size, key)
 
 
 class MenuDisplay:

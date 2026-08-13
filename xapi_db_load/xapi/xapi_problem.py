@@ -18,7 +18,7 @@ class BaseProblemCheck(XAPIBase):
 
     problem_type = None  # "browser" or "server"
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """

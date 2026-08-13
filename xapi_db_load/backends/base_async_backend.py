@@ -5,13 +5,22 @@ Base asynchronous backend, abstract classes that other backends inherit from.
 import asyncio
 from abc import abstractmethod
 from logging import Logger
-from typing import Dict, List
+from typing import (
+    Dict,
+    List,
+)
 
 import clickhouse_connect
 from clickhouse_connect.driver.asyncclient import AsyncClient
-from clickhouse_connect.driver.exceptions import DatabaseError, OperationalError
+from clickhouse_connect.driver.exceptions import (
+    DatabaseError,
+    OperationalError,
+)
 
-from xapi_db_load.generate_load_async import EventGenerator, Waiter
+from xapi_db_load.generate_load_async import (
+    EventGenerator,
+    Waiter,
+)
 
 
 class BaseBackendTasks:
@@ -57,11 +66,12 @@ class BaseBackendTasks:
         }
 
 
-class BaseClickhouseBackend(Waiter):
+class BaseClickhouseBackend(Waiter):  # pylint: disable=abstract-method
     """
     Abstract implementation for ClickHouse backends.
 
     Handles ClickHouse client configuration and connection management.
+    Intentionally partial implementation: _run_task/_run_db_load_task are left to subclasses.
     """
 
     client: AsyncClient | None = None
@@ -194,7 +204,7 @@ class QueueBackend(BaseClickhouseBackend):
 
             try:
                 await self._process_queue_item(worker_id, batch_id, batch)
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 self.logger.error(
                     f"   {self.task_name} worker {worker_id} found an error in batch {batch_id}.",
                     exc_info=e,

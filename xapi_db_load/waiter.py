@@ -3,7 +3,11 @@
 import asyncio
 from logging import Logger
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Dict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+)
 
 if TYPE_CHECKING:
     from xapi_db_load.generate_load_async import EventGenerator

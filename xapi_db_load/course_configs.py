@@ -7,10 +7,20 @@ import datetime
 import json
 import random
 import uuid
-from random import choice, randrange
-from typing import Dict, List, NamedTuple
+from random import (
+    choice,
+    randrange,
+)
+from typing import (
+    Dict,
+    List,
+    NamedTuple,
+)
 
-from xapi_db_load.constants import DEFAULT_LMS_URL, UUID_SHORT_LENGTH
+from xapi_db_load.constants import (
+    DEFAULT_LMS_URL,
+    UUID_SHORT_LENGTH,
+)
 
 
 class Actor:
@@ -80,7 +90,7 @@ class RandomCourse:
         self.start_date: datetime.datetime | None = None
         self.end_date: datetime.datetime | None = None
 
-    async def populate(
+    async def populate(  # pylint: disable=too-many-positional-arguments
         self,
         org: str,
         course_uuid: str,
@@ -95,6 +105,7 @@ class RandomCourse:
         lms_url: str = DEFAULT_LMS_URL,
     ) -> "RandomCourse":
         """Populate this course with randomized blocks, dates, actors, and tags."""
+        # pylint: disable=attribute-defined-outside-init
         self.course_uuid = course_uuid
         self.course_run = course_run
         # It's important that the course name stay the same between runs

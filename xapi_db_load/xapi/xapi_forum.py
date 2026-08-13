@@ -13,7 +13,7 @@ class BaseForum(XAPIBase):
     Base xAPI class for forum events.
     """
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict:  # pylint: disable=arguments-differ
         """
         Generate and return the event dict, including xAPI statement as "event".
         """

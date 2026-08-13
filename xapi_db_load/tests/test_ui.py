@@ -1,3 +1,6 @@
+"""Tests for the urwid text UI: starts the app and verifies it launches without errors."""
+# pylint: disable=redefined-outer-name
+
 import asyncio
 import os
 

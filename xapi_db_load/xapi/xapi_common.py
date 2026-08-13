@@ -2,7 +2,10 @@
 Base class for all fake xAPI events.
 """
 
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 
 
 class XAPIBase(ABC):
