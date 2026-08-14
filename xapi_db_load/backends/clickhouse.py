@@ -261,16 +261,16 @@ class InsertCourses(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
                         c["org"],
                         c["course_key"],
                         c["display_name"],
-                        c["course_start"],
-                        c["course_end"],
-                        c["enrollment_start"],
-                        c["enrollment_end"],
+                        str(c["course_start"]),
+                        str(c["course_end"]),
+                        str(c["enrollment_start"]),
+                        str(c["enrollment_end"]),
                         c["self_paced"],
                         c["course_data_json"],
-                        c["created"],
-                        c["modified"],
+                        str(c["created"]),
+                        str(c["modified"]),
                         dump_id,
-                        dump_time,
+                        str(dump_time),
                     )
                 )
 
@@ -310,9 +310,9 @@ class InsertBlocks(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
                             b["display_name"],
                             b["xblock_data_json"],
                             b["order"],
-                            b["edited_on"],
+                            str(b["edited_on"]),
                             dump_id,
-                            dump_time,
+                            str(dump_time),
                         )
                     )
 
@@ -358,7 +358,7 @@ class InsertObjectTags(XAPILakeClickhouseAsync):  # pylint: disable=abstract-met
                             "fake export id",
                             obj_tag["hierarchy"],
                             dump_id,
-                            dump_time,
+                            str(dump_time),
                         )
                     )
 
@@ -385,7 +385,7 @@ class InsertTaxonomies(XAPILakeClickhouseAsync):  # pylint: disable=abstract-met
         tag_id = 0
         for taxonomy in taxonomies.keys():
             tag_id += 1
-            out_data.append((tag_id, taxonomy, dump_id, dump_time))
+            out_data.append((tag_id, taxonomy, dump_id, str(dump_time)))
             self.update_completed_task_count(increment_by=1)
 
         await self._insert_rows("taxonomy", out_data)
@@ -419,7 +419,7 @@ class InsertTags(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
                     tag["id"],
                     tag["hierarchy"],
                     dump_id,
-                    dump_time,
+                    str(dump_time),
                 )
             )
 
@@ -455,7 +455,7 @@ class InsertExternalIDs(XAPILakeClickhouseAsync):  # pylint: disable=abstract-me
                     actor.username,
                     actor.user_id,
                     dump_id,
-                    dump_time,
+                    str(dump_time),
                 )
             )
 
@@ -514,7 +514,7 @@ class InsertProfiles(XAPILakeClickhouseAsync):  # pylint: disable=abstract-metho
                         actor.courseware,
                         actor.language,
                         actor.location,
-                        actor.year_of_birth,
+                        str(actor.year_of_birth),
                         actor.gender,
                         actor.level_of_education,
                         actor.mailing_address,
@@ -526,7 +526,7 @@ class InsertProfiles(XAPILakeClickhouseAsync):  # pylint: disable=abstract-metho
                         actor.profile_image_uploaded_at,
                         actor.phone_number,
                         dump_id,
-                        dump_time,
+                        str(dump_time),
                     )
                 )
 
