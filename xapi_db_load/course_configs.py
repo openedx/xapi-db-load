@@ -15,11 +15,17 @@ from typing import (
     Dict,
     List,
     NamedTuple,
+    Tuple,
 )
 
 from xapi_db_load.constants import (
     DEFAULT_LMS_URL,
+    DEFAULT_VIDEO_LENGTH_SECONDS,
     UUID_SHORT_LENGTH,
+    VIDEO_CLIP_FRACTION,
+    VIDEO_CLIP_MAX_START_SECONDS,
+    VIDEO_CLIP_MIN_LENGTH_SECONDS,
+    VIDEO_CLIP_MIN_START_SECONDS,
 )
 
 
@@ -84,6 +90,7 @@ class RandomCourse:
         self.vertical_ids: List[str] = []
         self.problem_ids: List[str] = []
         self.video_ids: List[str] = []
+        self.video_clips: Dict[str, Tuple[float, float]] = {}
         self.forum_post_ids: List[str] = []
         self.actors: list[EnrolledActor] = []
         self.all_tags: list = []
@@ -172,6 +179,12 @@ class RandomCourse:
             for _ in range(self.course_config["videos"])
         ]
 
+        self.video_clips = {
+            v: self._generate_random_video_clip()
+            for v in self.video_ids
+            if random.random() < VIDEO_CLIP_FRACTION
+        }
+
         self.forum_post_ids = [
             self._generate_random_forum_post_id()
             for _ in range(self.course_config["forum_posts"])
@@ -243,6 +256,30 @@ class RandomCourse:
         Return a video id from our list of known video ids.
         """
         return choice(self.video_ids)
+
+    def get_video_clip(self, video_id: str) -> Tuple[float, float]:
+        """
+        Return the (start, end) times of the clip a video plays, in seconds.
+
+        Both are 0.0 if the video plays the full source video.
+        """
+        return self.video_clips.get(video_id, (0.0, 0.0))
+
+    @staticmethod
+    def _generate_random_video_clip() -> Tuple[float, float]:
+        """
+        Return random (start, end) times of a clip of the source video, in seconds.
+        """
+        start = float(
+            randrange(VIDEO_CLIP_MIN_START_SECONDS, VIDEO_CLIP_MAX_START_SECONDS)
+        )
+        end = float(
+            randrange(
+                int(start) + VIDEO_CLIP_MIN_LENGTH_SECONDS,
+                int(DEFAULT_VIDEO_LENGTH_SECONDS),
+            )
+        )
+        return start, end
 
     def _generate_random_block_type_id(self, block_type: str) -> str:
         block_uuid = str(uuid.uuid4())[:UUID_SHORT_LENGTH]
@@ -331,7 +368,12 @@ class RandomCourse:
 
         # Get all of our blocks in order
         for v in self.video_ids:
-            blocks.append(self._serialize_block("video", v, cnt))
+            block = self._serialize_block("video", v, cnt)
+            start, end = self.get_video_clip(v)
+            block["xblock_data_json"].update(
+                {"video_start_time": start, "video_end_time": end}
+            )
+            blocks.append(block)
             cnt += 1
         for p in self.problem_ids:
             blocks.append(self._serialize_block("problem", p, cnt))

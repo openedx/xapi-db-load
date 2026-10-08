@@ -25,6 +25,17 @@ SESSION_ID_PLACEHOLDER = "e4858858443cd99828206e294587dac5"
 # Default length (in seconds) used for synthetic video events.
 DEFAULT_VIDEO_LENGTH_SECONDS = 195.0
 
+# Fraction of generated videos configured to play only a clip of the source
+# video, using a start and end time. The video player reports positions against
+# the full source video but the length of only the clip.
+VIDEO_CLIP_FRACTION = 0.25
+
+# Bounds (in seconds) for the start time of generated video clips, and the
+# shortest clip generated.
+VIDEO_CLIP_MIN_START_SECONDS = 10
+VIDEO_CLIP_MAX_START_SECONDS = 60
+VIDEO_CLIP_MIN_LENGTH_SECONDS = 60
+
 # Lengths used when truncating UUIDs into short, human-readable identifiers.
 UUID_SHORT_LENGTH = 8
 COURSE_ID_SHORT_LENGTH = 6

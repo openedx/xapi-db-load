@@ -15,6 +15,8 @@ import logging
 
 import pytest
 
+from xapi_db_load.constants import DEFAULT_VIDEO_LENGTH_SECONDS
+from xapi_db_load.course_configs import RandomCourse
 from xapi_db_load.generate_load_async import EventGenerator
 from xapi_db_load.xapi.xapi_forum import PostCreated
 from xapi_db_load.xapi.xapi_grade import (
@@ -158,3 +160,45 @@ def test_event_respects_configured_lms_url(event_generator, event_class):
         f"{event_class.__name__} generated homePage={home_page!r}, "
         f"expected {TEST_LMS_URL!r}"
     )
+
+
+VIDEO_TIME_EXT = "https://w3id.org/xapi/video/extensions/time"
+VIDEO_LENGTH_EXT = "https://w3id.org/xapi/video/extensions/length"
+
+
+@pytest.mark.parametrize("clip", [(30.0, 150.0), None], ids=["clipped", "full"])
+def test_video_clip_times(event_generator, monkeypatch, clip):
+    """
+    Clipped videos report the clip length but positions in the source video.
+
+    The course block data for the video carries the clip times.
+    """
+    course = event_generator.courses[0]
+    video_id = course.video_ids[0]
+    monkeypatch.setattr(course, "video_clips", {video_id: clip} if clip else {})
+    monkeypatch.setattr(event_generator, "get_course", lambda: course)
+    monkeypatch.setattr(course, "get_video_id", lambda: video_id)
+
+    start, end = clip or (0.0, DEFAULT_VIDEO_LENGTH_SECONDS)
+
+    for _ in range(20):
+        statement = json.loads(PlayedVideo(event_generator).get_data()["event"])
+        assert statement["context"]["extensions"][VIDEO_LENGTH_EXT] == end - start
+        assert start <= statement["result"]["extensions"][VIDEO_TIME_EXT] < end
+
+    location = video_id.split("/xblock/")[-1]
+    block = next(
+        b
+        for b in course.serialize_block_data_for_event_sink()
+        if b["location"] == location
+    )
+    xblock_data = json.loads(block["xblock_data_json"])
+    assert xblock_data["video_start_time"] == (clip[0] if clip else 0.0)
+    assert xblock_data["video_end_time"] == (clip[1] if clip else 0.0)
+
+
+def test_generated_video_clips_are_valid():
+    """Generated clips start within bounds and end within the source video."""
+    for _ in range(100):
+        start, end = RandomCourse._generate_random_video_clip()  # pylint: disable=protected-access
+        assert 0 < start < end <= DEFAULT_VIDEO_LENGTH_SECONDS

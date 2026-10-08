@@ -58,16 +58,20 @@ class BaseVideo(XAPIBase):
         """
         Given the inputs, return an xAPI statement.
         """
-        video_length = DEFAULT_VIDEO_LENGTH_SECONDS
-        max_offset = int(DEFAULT_VIDEO_LENGTH_SECONDS)
+        # Videos that play a clip of the source video report the length of
+        # the clip, but positions against the full source video.
+        clip_start, clip_end = course.get_video_clip(video_id)
+        min_offset = int(clip_start)
+        max_offset = int(clip_end or DEFAULT_VIDEO_LENGTH_SECONDS)
+        video_length = float(max_offset - min_offset)
         video_event_time = video_event_time_to = video_event_time_from = None
 
         if self.has_event_time:
-            video_event_time = float(randrange(0, max_offset))
+            video_event_time = float(randrange(min_offset, max_offset))
 
         if self.has_time_from_to:
-            video_event_time_from = float(randrange(0, max_offset))
-            video_event_time_to = float(randrange(0, max_offset))
+            video_event_time_from = float(randrange(min_offset, max_offset))
+            video_event_time_to = float(randrange(min_offset, max_offset))
 
         event = {
             "id": event_id,
