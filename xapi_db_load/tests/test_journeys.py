@@ -7,17 +7,31 @@ the simulator's bookkeeping and the events it emits can't drift apart.
 
 import collections
 import csv
+import datetime
 import gzip
 import json
 import logging
 import pathlib
+import random
 
 import pytest
 import yaml
+from click.testing import CliRunner
 
 from xapi_db_load.journeys import statements as st
 from xapi_db_load.journeys.generate import JourneyGenerator
 from xapi_db_load.journeys.oracle import status
+from xapi_db_load.journeys.simulate import (
+    Behavior,
+    EnrollmentTruth,
+    Simulator,
+    VideoTruth,
+)
+from xapi_db_load.journeys.structure import (
+    CourseTemplate,
+    JourneyCourse,
+)
+from xapi_db_load.main import journeys
 
 CONFIG = pathlib.Path(__file__).parents[2] / "example_configs" / "journeys_oracle.yaml"
 NOW = "2026-10-08 12:00:00"
@@ -40,8 +54,8 @@ def _dict_rows(path: pathlib.Path):
         yield from csv.DictReader(f)
 
 
-@pytest.fixture(scope="module")
-def dataset(tmp_path_factory):
+@pytest.fixture(name="dataset", scope="module")
+def fixture_dataset(tmp_path_factory):
     out = tmp_path_factory.mktemp("journeys")
     manifest = _generate(out)
     return out, manifest
@@ -204,3 +218,132 @@ def test_observable_video_seconds_match_events(dataset):
     }
     mismatches = {k: (derived.get(k, 0), v) for k, v in expected.items() if derived.get(k, 0) != v}
     assert not mismatches, list(mismatches.items())[:5]
+
+
+def test_unsorted_output_has_same_events(dataset, tmp_path):
+    """sort_events only changes the order of xapi.csv, not what is generated."""
+    out, _ = dataset
+    _generate(tmp_path, sort_events=False)
+    for name in ("xapi", "expected_engagement", "expected_video_seconds"):
+        assert sorted(_rows(out / f"{name}.csv.gz")) == sorted(_rows(tmp_path / f"{name}.csv.gz"))
+
+
+def test_status_labels():
+    assert status("pages", 0, 3) == "No pages viewed yet"
+    assert status("problems", 1, 3) == "At least one problem attempted"
+    assert status("videos", 3, 3) == "All videos viewed"
+
+
+def test_unknown_behavior_setting():
+    with pytest.raises(ValueError, match="Unknown behavior setting: typo"):
+        Behavior.from_config({"typo": 1})
+
+
+def _stream(*events):
+    """Build a video event stream from (second, verb, position) tuples."""
+    t0 = datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC)
+    return [
+        (t0 + datetime.timedelta(seconds=sec), f"id{i}", verb, pos)
+        for i, (sec, verb, pos) in enumerate(events)
+    ]
+
+
+def test_observable_segments_pause_and_resume_at_same_time():
+    """A pause and a resume with the same timestamp still pair in the order they happened."""
+    vt = VideoTruth(
+        truth=[(0, 40), (40, 60)],
+        # The resume is listed first to show that ordering doesn't depend on input order.
+        stream=_stream(
+            (40, st.VERB_PLAYED, 40),
+            (0, st.VERB_PLAYED, 0),
+            (40, st.VERB_PAUSED, 40),
+            (60, st.VERB_TERMINATED, 60),
+        ),
+    )
+    assert vt.observable_segments() == [(0, 40), (40, 60)]
+    assert vt.summary() == {
+        "truth_seconds": 60,
+        "truth_distinct_seconds": 60,
+        "observable_seconds": 60,
+        "observable_distinct_seconds": 60,
+    }
+
+
+def test_observable_segments_seek_back_and_close():
+    """Seeking back re-watches seconds; closing the tab leaves the last play unpaired."""
+    vt = VideoTruth(
+        truth=[(0, 30), (10, 25)],
+        stream=_stream(
+            (0, st.VERB_PLAYED, 0),
+            (30, st.VERB_SEEKED, 30),  # from 30 back to 10
+            (31, st.VERB_PLAYED, 10),
+        ),
+    )
+    assert vt.observable_segments() == [(0, 30)]
+    assert vt.summary() == {
+        "truth_seconds": 45,
+        "truth_distinct_seconds": 30,
+        "observable_seconds": 30,
+        "observable_distinct_seconds": 30,
+    }
+
+
+def test_video_truth_stops_at_now():
+    """A video still playing at "now" only counts the seconds played so far, and has no end event."""
+    rng = random.Random(1)
+    template = CourseTemplate.from_config({
+        "chapters": [1, 1], "sequentials_per_chapter": [1, 1], "verticals_per_sequential": [1, 1],
+        "problems_per_vertical": [1], "videos_per_vertical": [0, 1], "video_length": [600, 600],
+    })
+    course = JourneyCourse(rng, "Org", "C", "run", "t", template, "http://lms")
+    video = next(b for b in course.all_blocks() if b.block_type == "video")
+    start = datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC)
+    sim = Simulator(rng, Behavior(video_actions={"to_end": 1}), start + datetime.timedelta(seconds=100))
+    sim._course = course  # pylint: disable=protected-access
+    truth = EnrollmentTruth()
+    sim._watch_video(video, start, truth)  # pylint: disable=protected-access
+
+    vt = truth.videos[video.location]
+    (begin, end), = vt.truth
+    assert begin == 0 and 80 <= end < 100  # play starts 1-10 s after loading
+    assert [verb for _, _, verb, _ in vt.stream] == [st.VERB_PLAYED]
+    assert vt.observable_segments() == []
+
+
+def test_cli(tmp_path):
+    out = tmp_path / "out"
+    result = CliRunner().invoke(
+        journeys,
+        ["--config_file", str(CONFIG), "--output_dir", str(out), "--now", NOW, "--seed", "7"],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+    assert "xAPI events for" in result.output
+    manifest = json.loads((out / "manifest.json").read_text())
+    assert manifest["seed"] == 7
+    assert manifest["now"].startswith(NOW)
+    for name in ("courses", "blocks", "external_ids", "user_profiles", "xapi",
+                 "expected_engagement", "expected_video_seconds"):
+        assert (out / f"{name}.csv.gz").exists()
+
+
+@pytest.mark.parametrize(
+    "journeys_conf, message",
+    [
+        (None, "has no 'journeys' section"),
+        ({"window_days": 400}, "window_days must be under 365"),
+        ({"window_days": 30, "course_length_days": 60}, "course_length_days"),
+        ({"output_dir": None}, "Set --output_dir"),
+    ],
+)
+def test_cli_config_errors(tmp_path, journeys_conf, message):
+    conf = yaml.safe_load(CONFIG.read_text())
+    if journeys_conf is None:
+        del conf["journeys"]
+    else:
+        conf["journeys"].update(journeys_conf)
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text(yaml.safe_dump(conf))
+    result = CliRunner().invoke(journeys, ["--config_file", str(config_file)])
+    assert result.exit_code == 2
+    assert message in result.output

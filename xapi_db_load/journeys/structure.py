@@ -42,11 +42,6 @@ class Block:
     length: int = 0  # Video length in seconds, 0 for other blocks
     children: List["Block"] = field(default_factory=list)
 
-    @property
-    def hierarchy(self) -> str:
-        """Return the ``section:subsection:unit`` location string used by Aspects."""
-        return f"{self.section}:{self.subsection}:{self.unit}"
-
 
 @dataclass
 class CourseTemplate:
@@ -76,7 +71,7 @@ class CourseTemplate:
         )
 
 
-class JourneyCourse:  # pylint: disable=too-many-instance-attributes
+class JourneyCourse:
     """A course run with a fixed, nested structure."""
 
     def __init__(  # pylint: disable=too-many-positional-arguments
@@ -93,7 +88,6 @@ class JourneyCourse:  # pylint: disable=too-many-instance-attributes
         self.course_key = f"course-v1:{org}+{course_code}+{run}"
         self.url = f"{lms_url}/course/{self.course_key}"
         self.name = f"{course_code} ({template_name})"
-        self.template_name = template_name
         self.lms_url = lms_url
         self.learner_count = 0
         self._order = 0
@@ -113,6 +107,7 @@ class JourneyCourse:  # pylint: disable=too-many-instance-attributes
         graded: bool = False,
         length: int = 0,
     ) -> Block:
+        """Create a block with the next position in course order."""
         self._order += 1
         key = self.course_key.replace("course-v1:", "")
         block_id = seeded_uuid(rng).replace("-", "")[:16]
@@ -131,6 +126,7 @@ class JourneyCourse:  # pylint: disable=too-many-instance-attributes
         )
 
     def _build(self, rng: random.Random, t: CourseTemplate) -> None:
+        """Build the outline, drawing each level's size from the template's ranges."""
         for s in range(1, rng.randint(*t.chapters) + 1):
             chapter = self._new_block(rng, "chapter", f"Section {s}", s, 0, 0)
             self.chapters.append(chapter)

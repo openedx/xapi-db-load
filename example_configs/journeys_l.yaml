@@ -1,4 +1,4 @@
-# Large learner-journey dataset (~50M xAPI events, 100k learners) for benchmarks.
+# Large learner-journey dataset (~75M xAPI events, 100k learners) for benchmarks.
 # Generate: xapi-db-load journeys --config_file example_configs/journeys_l.yaml
 lms_url: http://localhost:18000
 

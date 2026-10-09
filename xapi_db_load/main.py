@@ -4,6 +4,7 @@ Top level script to generate random xAPI events against various backends.
 
 import asyncio
 import datetime
+import logging
 import os
 import sys
 
@@ -12,6 +13,7 @@ import uvloop
 import yaml
 
 from xapi_db_load.constants import DEFAULT_LMS_URL
+from xapi_db_load.journeys.generate import JourneyGenerator
 from xapi_db_load.ui.text_ui import TextUI
 
 _ENV_VAR_OVERRIDES = {
@@ -133,20 +135,24 @@ def journeys(config_file: str, output_dir: str | None, seed: int | None, now: st
     """
     Generate a learner-journey dataset with known expected results, as CSV files.
     """
-    import logging  # pylint: disable=import-outside-toplevel
-
-    from xapi_db_load.journeys.generate import JourneyGenerator  # pylint: disable=import-outside-toplevel
-
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     config = get_config(config_file)
-    conf = config["journeys"]
+    conf = config.get("journeys")
+    if not conf:
+        raise click.UsageError(f"{config_file} has no 'journeys' section.")
     if seed is not None:
         conf["seed"] = seed
     if now is not None:
         conf["now"] = now
-    out = output_dir or conf["output_dir"]
+    out = output_dir or conf.get("output_dir")
+    if not out:
+        raise click.UsageError("Set --output_dir or journeys.output_dir in the config.")
+    try:
+        generator = JourneyGenerator(conf, config["lms_url"], logging.getLogger("journeys"))
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
     start = datetime.datetime.now()
-    manifest = JourneyGenerator(conf, config["lms_url"], logging.getLogger("journeys")).run(out)
+    manifest = generator.run(out)
     click.echo(
         f"Wrote {manifest['num_xapi_events']} xAPI events for {manifest['num_enrollments']} "
         f"enrollments in {manifest['num_course_runs']} course runs to {out} "
