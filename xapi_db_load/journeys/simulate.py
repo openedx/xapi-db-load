@@ -51,7 +51,7 @@ class JourneyActor:
 
 
 @dataclass
-class Behavior:  # pylint: disable=too-many-instance-attributes
+class Behavior:
     """Probabilities that shape learner behavior; see example_configs/journeys_*.yaml."""
 
     start_prob: float = 0.8
@@ -127,10 +127,12 @@ class VideoTruth:
 
     @staticmethod
     def _total(segments) -> int:
+        """Return the seconds covered by ``segments``, counting overlaps again."""
         return sum(b - a for a, b in segments)
 
     @staticmethod
     def _distinct(segments) -> int:
+        """Return the seconds covered by ``segments``, counting each second once."""
         seconds: Set[int] = set()
         for a, b in segments:
             seconds.update(range(a + 1, b + 1))
@@ -191,8 +193,8 @@ class Simulator:
             self.events.append(dict(row))
         return event_id
 
-    def _clamp(self, when: datetime.datetime) -> bool:
-        """Return True when ``when`` is still in the past, i.e. activity can happen then."""
+    def _is_past(self, when: datetime.datetime) -> bool:
+        """Return True when ``when`` is not after "now", i.e. activity can happen then."""
         return when <= self.now
 
     # ---- journeys ---------------------------------------------------------------------------
@@ -234,6 +236,7 @@ class Simulator:
         actor: JourneyActor,
         enroll_time: datetime.datetime,
     ) -> Tuple[List[Dict], EnrollmentTruth]:
+        """Enroll, then work through the subsections in order until the learner stops."""
         self.events = []
         self._actor = actor.xapi_actor(course.lms_url)
         self._course = course
@@ -250,7 +253,7 @@ class Simulator:
         sequentials = list(course.sequentials())
 
         for i, seq in enumerate(sequentials):
-            if not self._clamp(t):
+            if not self._is_past(t):
                 break
             last = i == len(sequentials) - 1
             stopping = last or (not completer and self.rng.random() >= self.b.continue_prob)
@@ -298,8 +301,9 @@ class Simulator:
     def _nav(  # pylint: disable=too-many-positional-arguments
         self, unit: Block, units: List[Block], index: int, ending: str, t, truth: EnrollmentTruth
     ) -> None:
+        """Navigate away from ``unit``, which counts it as viewed."""
         assert self._course
-        if not self._clamp(t):
+        if not self._is_past(t):
             return
         self._emit(t, st.navigated, self._course.url, unit.url, len(units), index + 1, ending)
         truth.pages_viewed.add(unit.location)
@@ -308,7 +312,7 @@ class Simulator:
         """Spend time on a unit: read, watch its videos, attempt its problems."""
         t += datetime.timedelta(seconds=self.rng.randint(15, 240))
         for child in unit.children:
-            if not self._clamp(t):
+            if not self._is_past(t):
                 break
             if child.block_type == "video" and self.rng.random() < self.b.video_watch_prob:
                 t = self._watch_video(child, t, truth)
@@ -319,11 +323,12 @@ class Simulator:
         return t
 
     def _attempt_problem(self, problem: Block, t, truth: EnrollmentTruth):
+        """Submit the problem until it's correct or the learner runs out of attempts."""
         assert self._course
         max_score = self.rng.randint(1, 10)
         for attempt in range(1, self.rng.randint(1, self.b.max_attempts) + 1):
             t += datetime.timedelta(seconds=self.rng.randint(20, 300))
-            if not self._clamp(t):
+            if not self._is_past(t):
                 break
             success = self.rng.random() < 0.4 + 0.2 * attempt
             raw = max_score if success else self.rng.randint(0, max_score - 1)
@@ -333,7 +338,7 @@ class Simulator:
                 t, st.problem_evaluated, self._course.url, problem.url,
                 attempt, success, raw, max_score,
             )
-            if self._clamp(t):
+            if self._is_past(t):
                 truth.problems_attempted.add(problem.location)
             if success:
                 break
@@ -362,7 +367,7 @@ class Simulator:
             if event_id and verb != st.VERB_INITIALIZED:
                 vt.stream.append((when, event_id, verb, position))
 
-        if not self._clamp(t):
+        if not self._is_past(t):
             return t
         emit(st.VERB_INITIALIZED, t)
         pos = 0
@@ -377,7 +382,10 @@ class Simulator:
                 stop = self.rng.randint(pos + 1, length - 1)
             start_t = t
             t = start_t + datetime.timedelta(seconds=stop - pos)
-            vt.truth.append((pos, stop))
+            # Playback that would run past "now" hasn't happened yet: only count up to now.
+            played = min(stop - pos, int((self.now - start_t).total_seconds()))
+            if played > 0:
+                vt.truth.append((pos, pos + played))
             if not completed_sent and stop >= threshold:
                 # Strictly before the event that ends this stretch: two closing events at the
                 # same instant would have no defined order.
@@ -387,7 +395,7 @@ class Simulator:
                 )
                 emit(st.VERB_COMPLETED, done_t, length, time=float(length))
                 completed_sent = True
-            if not self._clamp(t):
+            if not self._is_past(t):
                 break  # Still playing right now; nothing marks the end yet.
 
             if stop == length:

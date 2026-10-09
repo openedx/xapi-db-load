@@ -21,6 +21,7 @@ from contextlib import ExitStack
 from typing import (
     Dict,
     List,
+    Optional,
 )
 
 from xapi_db_load.journeys import oracle
@@ -51,7 +52,7 @@ def _fmt(t: datetime.datetime) -> str:
     return t.astimezone(datetime.UTC).strftime(TIME_FORMAT)
 
 
-class JourneyGenerator:  # pylint: disable=too-many-instance-attributes
+class JourneyGenerator:
     """Builds a journey dataset from the ``journeys`` section of a config file."""
 
     def __init__(self, conf: Dict, lms_url: str, logger: logging.Logger):
@@ -65,9 +66,12 @@ class JourneyGenerator:  # pylint: disable=too-many-instance-attributes
             if now
             else datetime.datetime.now(datetime.UTC).replace(microsecond=0)
         )
-        if conf.get("window_days", 300) >= 365:
+        window_days = conf.get("window_days", 300)
+        if window_days >= 365:
             # Aspects' default TTL drops events older than a year.
             raise ValueError("window_days must be under 365 to survive the xAPI data TTL.")
+        if conf.get("course_length_days", 120) > window_days:
+            raise ValueError("course_length_days must not be more than window_days.")
         self.behavior = Behavior.from_config(conf.get("behavior"))
         self.templates = {
             name: CourseTemplate.from_config(t)
@@ -167,6 +171,7 @@ class JourneyGenerator:  # pylint: disable=too-many-instance-attributes
         return manifest
 
     def _write_actors(self, writers) -> None:
+        """Write external ids and user profiles, dumped before any course starts."""
         dump_time = self.now - datetime.timedelta(days=400)
         for a in self.actors:
             writers["external_ids"].writerow(
@@ -183,6 +188,9 @@ class JourneyGenerator:  # pylint: disable=too-many-instance-attributes
                 )
 
     def _write_courses(self, writers) -> None:
+        """
+        Write every publish of every course; deleted units are only in the earlier publishes.
+        """
         publishes = self.conf.get("course_publishes", 1)
         for course in self.courses:
             start, end = self.course_windows[course.course_key]
@@ -211,6 +219,7 @@ class JourneyGenerator:  # pylint: disable=too-many-instance-attributes
                     )
 
     def _write_journeys(self, writers) -> Dict:  # pylint: disable=too-many-locals
+        """Simulate every enrollment, writing its events and expected results."""
         sim = Simulator(self.rng, self.behavior, self.now)
         sort_events = self.conf.get("sort_events", False)
         buffered: List[Dict] = []
@@ -225,11 +234,10 @@ class JourneyGenerator:  # pylint: disable=too-many-instance-attributes
             }
             total_pages = sum(len(seq.children) for seq in course.sequentials())
             learners = self.rng.sample(self.actors, min(course.learner_count, len(self.actors)))
-            best = None
+            best_actor: Optional[JourneyActor] = None
+            best_pages = 0
             for actor in learners:
                 enroll_time = start + (end - start) * self.rng.random() * 0.6
-                if enroll_time > self.now:
-                    continue
                 events, truth = sim.run_enrollment(course, actor, enroll_time, running=end == self.now)
                 n_enrollments += 1
                 n_events += len(events)
@@ -244,16 +252,16 @@ class JourneyGenerator:  # pylint: disable=too-many-instance-attributes
                     writers["expected_engagement"].writerow(row)
                 for row in oracle.video_seconds_rows(course, actor.actor_id, truth, lengths):
                     writers["expected_video_seconds"].writerow(row)
-                if total_pages and (best is None or len(truth.pages_viewed) > best[1]):
-                    best = (actor, len(truth.pages_viewed))
+                if total_pages and (best_actor is None or len(truth.pages_viewed) > best_pages):
+                    best_actor, best_pages = actor, len(truth.pages_viewed)
 
-            if best:
+            if best_actor:
                 heavy.append(
                     {
                         "course_key": course.course_key,
-                        "actor_id": best[0].actor_id,
-                        "username": best[0].username,
-                        "pages_viewed_fraction": round(best[1] / total_pages, 3),
+                        "actor_id": best_actor.actor_id,
+                        "username": best_actor.username,
+                        "pages_viewed_fraction": round(best_pages / total_pages, 3),
                     }
                 )
             if ci % 50 == 0:
