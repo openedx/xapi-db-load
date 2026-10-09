@@ -9,6 +9,7 @@ Subpackages
 
    xapi_db_load.backends
    xapi_db_load.fixtures
+   xapi_db_load.journeys
    xapi_db_load.tests
    xapi_db_load.ui
    xapi_db_load.xapi

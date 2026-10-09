@@ -1,4 +1,4 @@
-# Medium learner-journey dataset (~10M xAPI events, 25k learners) for benchmarks.
+# Medium learner-journey dataset (~15M xAPI events, 25k learners) for benchmarks.
 # Generate: xapi-db-load journeys --config_file example_configs/journeys_m.yaml
 lms_url: http://localhost:18000
 
