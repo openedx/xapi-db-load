@@ -1,0 +1,206 @@
+"""
+Tests for learner-journey generation.
+
+The key check re-derives the expected engagement results from the generated xAPI events alone, so
+the simulator's bookkeeping and the events it emits can't drift apart.
+"""
+
+import collections
+import csv
+import gzip
+import json
+import logging
+import pathlib
+
+import pytest
+import yaml
+
+from xapi_db_load.journeys import statements as st
+from xapi_db_load.journeys.generate import JourneyGenerator
+from xapi_db_load.journeys.oracle import status
+
+CONFIG = pathlib.Path(__file__).parents[2] / "example_configs" / "journeys_oracle.yaml"
+NOW = "2026-10-08 12:00:00"
+
+
+def _generate(out: pathlib.Path, **overrides) -> dict:
+    conf = yaml.safe_load(CONFIG.read_text())["journeys"]
+    conf["now"] = NOW
+    conf.update(overrides)
+    return JourneyGenerator(conf, "http://localhost:18000", logging.getLogger()).run(str(out))
+
+
+def _rows(path: pathlib.Path):
+    with gzip.open(path, "rt", newline="") as f:
+        yield from csv.reader(f)
+
+
+def _dict_rows(path: pathlib.Path):
+    with gzip.open(path, "rt", newline="") as f:
+        yield from csv.DictReader(f)
+
+
+@pytest.fixture(scope="module")
+def dataset(tmp_path_factory):
+    out = tmp_path_factory.mktemp("journeys")
+    manifest = _generate(out)
+    return out, manifest
+
+
+def _actor_id(event: dict) -> str:
+    actor = event["actor"]
+    return actor["mbox"] if "mbox" in actor else actor["account"]["name"]
+
+
+def _location(url: str) -> str:
+    return url.split("/xblock/")[-1]
+
+
+def _events(out):
+    """
+    Unique events (duplicates removed by id), in time order.
+
+    On equal timestamps any other event sorts before a video play, so a pause and the resume at
+    the same instant pair up in the order they happened.
+    """
+    seen = {}
+    for event_id, emission_time, raw in _rows(out / "xapi.csv.gz"):
+        seen[event_id] = (emission_time, json.loads(raw))
+    return sorted(
+        seen.values(),
+        key=lambda e: (e[0], e[1]["verb"]["id"] == st.VERB_PLAYED, e[1]["id"]),
+    )
+
+
+def _structure(out):
+    """Return {course_key: {block location: (type, section, subsection, unit)}}, final publish."""
+    latest = {}
+    for row in _rows(out / "blocks.csv.gz"):
+        _org, course_key, location, _name, data, _order, _edited, _dump, dumped = row
+        if location not in latest or dumped > latest[location][0]:
+            latest[location] = (dumped, course_key, json.loads(data))
+    final_dump = {}
+    for dumped, course_key, _ in latest.values():
+        final_dump[course_key] = max(final_dump.get(course_key, ""), dumped)
+    courses = collections.defaultdict(dict)
+    for location, (dumped, course_key, d) in latest.items():
+        if dumped == final_dump[course_key]:  # blocks missing from the final publish are deleted
+            courses[course_key][location] = (
+                d["block_type"], d["section"], d["subsection"], d["unit"]
+            )
+    return courses
+
+
+def test_reproducible(tmp_path):
+    _generate(tmp_path / "a")
+    _generate(tmp_path / "b")
+    for name in ("xapi", "blocks", "expected_engagement", "expected_video_seconds"):
+        a = gzip.open(tmp_path / "a" / f"{name}.csv.gz").read()
+        b = gzip.open(tmp_path / "b" / f"{name}.csv.gz").read()
+        assert a == b, name
+
+
+def test_ttl_guard(tmp_path):
+    with pytest.raises(ValueError, match="window_days"):
+        _generate(tmp_path, window_days=400)
+
+
+def test_events_sorted_and_recent(dataset):
+    out, manifest = dataset
+    times = [t for _, t, _ in _rows(out / "xapi.csv.gz")]
+    assert times == sorted(times)
+    assert max(times) <= manifest["now"]
+    # Some activity falls inside a 1-day refresh lookback window.
+    assert any(t >= "2026-10-07 12:00:00" for t in times)
+
+
+def test_structure_is_nested(dataset):
+    out, _ = dataset
+    for blocks in _structure(out).values():
+        units = {(s, ss, u) for t, s, ss, u in blocks.values() if t == "vertical"}
+        subsections = {(s, ss) for t, s, ss, _ in blocks.values() if t == "sequential"}
+        for t, s, ss, u in blocks.values():
+            if t in ("problem", "video"):
+                assert (s, ss, u) in units
+            if t == "vertical":
+                assert (s, ss) in subsections
+
+
+def test_edge_cases_present(dataset):
+    out, manifest = dataset
+    assert manifest["mbox_actors"] > 0
+    assert manifest["courses_with_deleted_unit"] > 0
+    ids = collections.Counter(r[0] for r in _rows(out / "xapi.csv.gz"))
+    assert any(c > 1 for c in ids.values()), "expected duplicated events"
+    # Pause and resume at the same instant.
+    by_time = collections.defaultdict(set)
+    for t, e in _events(out):
+        by_time[(t, _actor_id(e), e["object"]["id"])].add(e["verb"]["id"])
+    assert any({st.VERB_PAUSED, st.VERB_PLAYED} <= v for v in by_time.values())
+
+
+def test_expected_engagement_matches_events(dataset):  # pylint: disable=too-many-locals
+    """Rebuild every expected subsection/section row from the raw events and structure."""
+    out, _ = dataset
+    structure = _structure(out)
+    pages = collections.defaultdict(set)
+    problems = collections.defaultdict(set)
+    for _, e in _events(out):
+        verb = e["verb"]["id"]
+        key = (e["context"]["contextActivities"]["parent"][0]["id"].split("/course/")[-1]
+               if "contextActivities" in e.get("context", {}) else None, _actor_id(e))
+        if verb == st.VERB_NAVIGATED:
+            pages[key].add(_location(e["object"]["id"]))
+        elif verb == st.VERB_EVALUATED:
+            problems[key].add(_location(e["object"]["id"]))
+
+    checked = 0
+    for row in _dict_rows(out / "expected_engagement.csv.gz"):
+        if row["metric"] == "videos":
+            continue
+        blocks = structure[row["course_key"]]
+        _, s, ss, _ = blocks[row["block_id"]]
+        level = row["content_level"]
+        item_type = "vertical" if row["metric"] == "pages" else "problem"
+        items = {
+            loc for loc, (t, bs, bss, _) in blocks.items()
+            if t == item_type and bs == s and (level == "section" or bss == ss)
+        }
+        seen = (pages if row["metric"] == "pages" else problems)[
+            (row["course_key"], row["actor_id"])
+        ]
+        done = len(items & seen)
+        assert (done, len(items)) == (int(row["done"]), int(row["total"])), row
+        assert row["status"] == status(row["metric"], done, len(items))
+        checked += 1
+    assert checked > 1000
+
+
+def test_observable_video_seconds_match_events(dataset):
+    """
+    Pair each play with the next event for the same learner and video; the forward progress of
+    those pairs is what the events can show, and must equal the expected observable seconds.
+    """
+    out, _ = dataset
+    streams = collections.defaultdict(list)
+    for _, e in _events(out):
+        if e["verb"]["id"] in st.VIDEO_VERB_DISPLAY and e["verb"]["id"] != st.VERB_INITIALIZED:
+            course = e["context"]["contextActivities"]["parent"][0]["id"].split("/course/")[-1]
+            streams[(course, _actor_id(e), _location(e["object"]["id"]))].append(e)
+
+    def position(e):
+        ext = e["result"]["extensions"]
+        return ext.get(st.EXT_VIDEO_TIME, ext.get(st.EXT_VIDEO_TIME_FROM))
+
+    derived = collections.Counter()
+    for key, events in streams.items():
+        for cur, nxt in zip(events, events[1:]):
+            if cur["verb"]["id"] == st.VERB_PLAYED and position(nxt) > position(cur):
+                derived[key] += int(position(nxt) - position(cur))
+
+    expected = {
+        (r["course_key"], r["actor_id"], r["video_block_id"]): int(r["observable_seconds"])
+        for r in _dict_rows(out / "expected_video_seconds.csv.gz")
+    }
+    mismatches = {k: (derived.get(k, 0), v) for k, v in expected.items() if derived.get(k, 0) != v}
+    assert not mismatches, list(mismatches.items())[:5]

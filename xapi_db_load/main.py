@@ -111,7 +111,51 @@ def load_db(config_file: str, load_db_only: bool):
     sys.exit(0)
 
 
+@click.command()
+@click.option(
+    "--config_file",
+    help="Configuration file with a 'journeys' section.",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, file_okay=True, writable=False),
+)
+@click.option(
+    "--output_dir",
+    help="Where to write the dataset. Defaults to journeys.output_dir from the config.",
+    default=None,
+)
+@click.option("--seed", help="Override journeys.seed.", type=int, default=None)
+@click.option(
+    "--now",
+    help="Override journeys.now (UTC, e.g. '2026-10-08 12:00:00'); pin it for identical output.",
+    default=None,
+)
+def journeys(config_file: str, output_dir: str | None, seed: int | None, now: str | None):
+    """
+    Generate a learner-journey dataset with known expected results, as CSV files.
+    """
+    import logging  # pylint: disable=import-outside-toplevel
+
+    from xapi_db_load.journeys.generate import JourneyGenerator  # pylint: disable=import-outside-toplevel
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    config = get_config(config_file)
+    conf = config["journeys"]
+    if seed is not None:
+        conf["seed"] = seed
+    if now is not None:
+        conf["now"] = now
+    out = output_dir or conf["output_dir"]
+    start = datetime.datetime.now()
+    manifest = JourneyGenerator(conf, config["lms_url"], logging.getLogger("journeys")).run(out)
+    click.echo(
+        f"Wrote {manifest['num_xapi_events']} xAPI events for {manifest['num_enrollments']} "
+        f"enrollments in {manifest['num_course_runs']} course runs to {out} "
+        f"in {datetime.datetime.now() - start}"
+    )
+
+
 cli.add_command(load_db)
+cli.add_command(journeys)
 cli.add_command(ui)
 
 if __name__ == "__main__":
