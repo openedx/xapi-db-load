@@ -170,7 +170,7 @@ class Simulator:
 
     def __init__(self, rng: random.Random, behavior: Behavior, now: datetime.datetime):
         self.rng = rng
-        self.b = behavior
+        self.behavior = behavior
         self.now = now
         self.events: List[Dict] = []
         self._actor: Dict = {}
@@ -189,11 +189,11 @@ class Simulator:
             "event": statement_fn(event_id, self._actor, *args, when=when, **kwargs),
         }
         self.events.append(row)
-        if self.rng.random() < self.b.duplicate_event_prob:
+        if self.rng.random() < self.behavior.duplicate_event_prob:
             self.events.append(dict(row))
         return event_id
 
-    def _is_past(self, when: datetime.datetime) -> bool:
+    def _has_happened(self, when: datetime.datetime) -> bool:
         """Return True when ``when`` is not after "now", i.e. activity can happen then."""
         return when <= self.now
 
@@ -212,7 +212,7 @@ class Simulator:
         In a ``running`` course some learners are still active: their whole journey is moved
         later so the last event lands within the last ``recent_hours``.
         """
-        recent = running and self.rng.random() < self.b.recent_activity_fraction
+        recent = running and self.rng.random() < self.behavior.recent_activity_fraction
         if not recent:
             return self._journey(course, actor, enroll_time)
         # Simulate as if "now" were far away so nothing is cut off, then shift into place.
@@ -223,7 +223,7 @@ class Simulator:
         finally:
             self.now = real_now
         last = max(e["emission_time"] for e in events)
-        target = real_now - datetime.timedelta(hours=self.rng.random() * self.b.recent_hours)
+        target = real_now - datetime.timedelta(hours=self.rng.random() * self.behavior.recent_hours)
         shift = target - last
         for e in events:
             e["emission_time"] += shift
@@ -245,22 +245,22 @@ class Simulator:
         mode = self.rng.choice(("audit", "honor", "verified"))
         self._emit(enroll_time, st.registered, course.url, mode)
 
-        if self.rng.random() >= self.b.start_prob:
+        if self.rng.random() >= self.behavior.start_prob:
             return self.events, truth
 
-        completer = self.rng.random() < self.b.completer_fraction
+        completer = self.rng.random() < self.behavior.completer_fraction
         t = enroll_time + datetime.timedelta(minutes=self.rng.randint(1, 600))
         sequentials = list(course.sequentials())
 
         for i, seq in enumerate(sequentials):
-            if not self._is_past(t):
+            if not self._has_happened(t):
                 break
             last = i == len(sequentials) - 1
-            stopping = last or (not completer and self.rng.random() >= self.b.continue_prob)
+            stopping = last or (not completer and self.rng.random() >= self.behavior.continue_prob)
             t = self._run_subsection(seq, t, truth, stopping)
             if stopping:
                 break
-            gap_days = self.rng.expovariate(1 / self.b.days_between_subsections)
+            gap_days = self.rng.expovariate(1 / self.behavior.days_between_subsections)
             t += datetime.timedelta(days=gap_days)
 
         return self.events, truth
@@ -278,18 +278,18 @@ class Simulator:
 
             # Leaving the unit emits a navigation event for it, except when the learner just
             # closes the page at the end of their study session.
-            if final_unit and stopping and self.rng.random() < self.b.exit_without_nav_prob:
+            if final_unit and stopping and self.rng.random() < self.behavior.exit_without_nav_prob:
                 break
 
             t += datetime.timedelta(seconds=self.rng.randint(2, 20))
-            if not final_unit and self.rng.random() < self.b.revisit_prob and u > 0:
+            if not final_unit and self.rng.random() < self.behavior.revisit_prob and u > 0:
                 # Go back one unit and come forward again: two more nav events, one of them
                 # for the previous unit.
                 self._nav(unit, units, u, "previous unit", t, truth)
                 t += datetime.timedelta(seconds=self.rng.randint(10, 120))
                 self._nav(units[u - 1], units, u - 1, "next unit", t, truth)
                 t += datetime.timedelta(seconds=self.rng.randint(2, 20))
-            if not final_unit and self.rng.random() < self.b.unit_skip_prob and u + 2 < len(units):
+            if not final_unit and self.rng.random() < self.behavior.unit_skip_prob and u + 2 < len(units):
                 # Jump ahead with the unit tabs, skipping the next unit entirely.
                 self._nav(unit, units, u, str(u + 3), t, truth)
                 u += 2
@@ -303,7 +303,7 @@ class Simulator:
     ) -> None:
         """Navigate away from ``unit``, which counts it as viewed."""
         assert self._course
-        if not self._is_past(t):
+        if not self._has_happened(t):
             return
         self._emit(t, st.navigated, self._course.url, unit.url, len(units), index + 1, ending)
         truth.pages_viewed.add(unit.location)
@@ -312,13 +312,13 @@ class Simulator:
         """Spend time on a unit: read, watch its videos, attempt its problems."""
         t += datetime.timedelta(seconds=self.rng.randint(15, 240))
         for child in unit.children:
-            if not self._is_past(t):
+            if not self._has_happened(t):
                 break
-            if child.block_type == "video" and self.rng.random() < self.b.video_watch_prob:
+            if child.block_type == "video" and self.rng.random() < self.behavior.video_watch_prob:
                 t = self._watch_video(child, t, truth)
-                if self.rng.random() < self.b.second_session_prob:
+                if self.rng.random() < self.behavior.second_session_prob:
                     t = self._watch_video(child, t + datetime.timedelta(minutes=5), truth)
-            elif child.block_type == "problem" and self.rng.random() < self.b.problem_attempt_prob:
+            elif child.block_type == "problem" and self.rng.random() < self.behavior.problem_attempt_prob:
                 t = self._attempt_problem(child, t, truth)
         return t
 
@@ -326,9 +326,9 @@ class Simulator:
         """Submit the problem until it's correct or the learner runs out of attempts."""
         assert self._course
         max_score = self.rng.randint(1, 10)
-        for attempt in range(1, self.rng.randint(1, self.b.max_attempts) + 1):
+        for attempt in range(1, self.rng.randint(1, self.behavior.max_attempts) + 1):
             t += datetime.timedelta(seconds=self.rng.randint(20, 300))
-            if not self._is_past(t):
+            if not self._has_happened(t):
                 break
             success = self.rng.random() < 0.4 + 0.2 * attempt
             raw = max_score if success else self.rng.randint(0, max_score - 1)
@@ -338,7 +338,7 @@ class Simulator:
                 t, st.problem_evaluated, self._course.url, problem.url,
                 attempt, success, raw, max_score,
             )
-            if self._is_past(t):
+            if self._has_happened(t):
                 truth.problems_attempted.add(problem.location)
             if success:
                 break
@@ -356,18 +356,18 @@ class Simulator:
         length = vid.length
         threshold = math.ceil(length * 0.95)
         vt = truth.videos.setdefault(vid.location, VideoTruth())
-        actions = list(self.b.video_actions)
-        weights = list(self.b.video_actions.values())
+        actions = list(self.behavior.video_actions)
+        weights = list(self.behavior.video_actions.values())
         completed_sent = False
 
         def emit(verb, when, position=None, **kw):
             event_id = self._emit(
-                when, st.video, course_url, vid.url, float(length), verb, **kw
+                when, st.video_statement, course_url, vid.url, float(length), verb, **kw
             )
             if event_id and verb != st.VERB_INITIALIZED:
                 vt.stream.append((when, event_id, verb, position))
 
-        if not self._is_past(t):
+        if not self._has_happened(t):
             return t
         emit(st.VERB_INITIALIZED, t)
         pos = 0
@@ -395,7 +395,7 @@ class Simulator:
                 )
                 emit(st.VERB_COMPLETED, done_t, length, time=float(length))
                 completed_sent = True
-            if not self._is_past(t):
+            if not self._has_happened(t):
                 break  # Still playing right now; nothing marks the end yet.
 
             if stop == length:
@@ -408,9 +408,9 @@ class Simulator:
                 break
             if action == "pause":
                 emit(st.VERB_PAUSED, t, stop, time=float(stop))
-                if self.rng.random() >= self.b.resume_after_pause_prob:
+                if self.rng.random() >= self.behavior.resume_after_pause_prob:
                     break
-                if self.rng.random() >= self.b.same_time_resume_prob:
+                if self.rng.random() >= self.behavior.same_time_resume_prob:
                     t += datetime.timedelta(seconds=self.rng.randint(2, 120))
                 pos = stop
                 emit(st.VERB_PLAYED, t, pos, time=float(pos))

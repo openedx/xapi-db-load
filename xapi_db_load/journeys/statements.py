@@ -191,7 +191,7 @@ def problem_evaluated(  # pylint: disable=too-many-positional-arguments
     return json.dumps(e)
 
 
-def video(  # pylint: disable=too-many-positional-arguments
+def video_statement(  # pylint: disable=too-many-positional-arguments
     event_id: str,
     actor: Dict,
     course_url: str,
