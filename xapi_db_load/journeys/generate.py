@@ -133,6 +133,10 @@ class JourneyGenerator:
         """Generate everything into ``output_dir`` and return the manifest."""
         self.setup()
         os.makedirs(output_dir, exist_ok=True)
+        # A run that stops partway must not leave an earlier run's manifest describing it.
+        manifest_path = os.path.join(output_dir, "manifest.json")
+        if os.path.exists(manifest_path):
+            os.remove(manifest_path)
         with ExitStack() as stack:
             handles = {
                 name: stack.enter_context(
@@ -166,7 +170,7 @@ class JourneyGenerator:
                 "config": self.conf,
             }
         )
-        with open(os.path.join(output_dir, "manifest.json"), "w") as f:
+        with open(manifest_path, "w") as f:
             json.dump(manifest, f, indent=2, default=str)
         return manifest
 
@@ -255,7 +259,7 @@ class JourneyGenerator:
                 if total_pages and (best_actor is None or len(truth.pages_viewed) > best_pages):
                     best_actor, best_pages = actor, len(truth.pages_viewed)
 
-            if best_actor:
+            if best_actor and best_pages:
                 most_active.append(
                     {
                         "course_key": course.course_key,

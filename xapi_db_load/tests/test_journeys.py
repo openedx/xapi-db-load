@@ -239,6 +239,26 @@ def test_unknown_behavior_setting():
         Behavior.from_config({"typo": 1})
 
 
+
+def test_failed_run_removes_old_manifest(tmp_path, monkeypatch):
+    _generate(tmp_path)
+    assert (tmp_path / "manifest.json").exists()
+
+    def fail(self, writers):
+        raise RuntimeError("stopped partway")
+
+    monkeypatch.setattr(JourneyGenerator, "_write_journeys", fail)
+    with pytest.raises(RuntimeError):
+        _generate(tmp_path)
+    assert not (tmp_path / "manifest.json").exists()
+
+
+def test_most_active_learner_skips_courses_without_page_views(dataset, tmp_path):
+    _, manifest = dataset
+    assert manifest["most_active_learner_per_course"]
+    assert all(m["pages_viewed_fraction"] > 0 for m in manifest["most_active_learner_per_course"])
+    assert not _generate(tmp_path, behavior={"start_prob": 0.0})["most_active_learner_per_course"]
+
 def _stream(*events):
     """Build a video event stream from (second, verb, position) tuples."""
     t0 = datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC)
