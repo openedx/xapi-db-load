@@ -18,6 +18,7 @@ from typing import (
     Tuple,
 )
 
+from xapi_db_load.journeys import config as cfg
 from xapi_db_load.journeys import statements as st
 from xapi_db_load.journeys.structure import (
     Block,
@@ -50,22 +51,44 @@ class JourneyActor:
         )
 
 
+VIDEO_ACTIONS = ("to_end", "pause", "seek", "abandon", "terminate")
+
+
 @dataclass
 class Behavior:
-    """Probabilities that shape learner behavior; see example_configs/journeys_*.yaml."""
+    """
+    Settings that shape learner behavior: the ``behavior`` section of a journeys config.
 
+    Every field can be set there; missing ones keep these defaults. ``*_prob`` and
+    ``*_fraction`` values are between 0 and 1.
+    """
+
+    # Chance an enrolled learner opens the course at all; the rest only register.
     start_prob: float = 0.8
+    # Share of learners who work through every subsection, ignoring continue_prob.
     completer_fraction: float = 0.15
+    # Chance a non-completer goes on to the next subsection after finishing one.
     continue_prob: float = 0.9
+    # Chance of jumping over the next unit with the unit tabs instead of "next unit".
     unit_skip_prob: float = 0.08
+    # Chance of going back one unit and forward again before moving on.
     revisit_prob: float = 0.05
+    # Chance the learner closes the page on the last unit of a session instead of navigating
+    # away, so that unit gets no navigation event and doesn't count as viewed.
     exit_without_nav_prob: float = 0.7
+    # Chance of attempting each problem in a unit.
     problem_attempt_prob: float = 0.8
+    # Most submissions per problem; each learner stops at a random count up to this, or when
+    # they get it right.
     max_attempts: int = 3
+    # Chance of watching each video in a unit.
     video_watch_prob: float = 0.75
+    # Chance of watching the same video again 5 minutes later.
     second_session_prob: float = 0.15
+    # Mean days between subsections (exponentially distributed).
     days_between_subsections: float = 2.0
-    # Weights for what ends each stretch of video playback.
+    # Weights for what ends each stretch of video playback: play to the end, pause, seek,
+    # close the tab with no event (abandon), or stop the player (terminate).
     video_actions: Dict[str, float] = field(
         default_factory=lambda: {
             "to_end": 0.35,
@@ -75,24 +98,46 @@ class Behavior:
             "terminate": 0.15,
         }
     )
+    # Chance of pressing play again after a pause.
     resume_after_pause_prob: float = 0.6
     # Share of learners in still-running courses whose activity is moved so it ends within the
     # last ``recent_hours``, giving refreshable views something inside their lookback window.
     recent_activity_fraction: float = 0.05
     recent_hours: float = 12.0
-    # Edge cases, mainly for the known-answer scenario.
+    # Edge cases, mainly for the known-answer (oracle) scenario:
+    # chance a resume after a pause happens at the same instant as the pause,
     same_time_resume_prob: float = 0.0
+    # and chance each event is emitted twice with the same event id.
     duplicate_event_prob: float = 0.0
 
     @classmethod
     def from_config(cls, conf: Optional[Dict]) -> "Behavior":
         """Build from the YAML ``behavior`` section; missing keys keep their defaults."""
-        b = cls()
-        for k, v in (conf or {}).items():
-            if not hasattr(b, k):
-                raise ValueError(f"Unknown behavior setting: {k}")
-            setattr(b, k, v)
-        return b
+        behavior = cls()
+        if conf is not None and not isinstance(conf, dict):
+            raise ValueError(f"behavior must be a mapping, got {conf!r}.")
+        for key, value in (conf or {}).items():
+            if not hasattr(behavior, key):
+                raise ValueError(f"Unknown behavior setting: {key}")
+            name = f"behavior.{key}"
+            if key == "video_actions":
+                if not isinstance(value, dict) or not set(value) <= set(VIDEO_ACTIONS):
+                    raise ValueError(
+                        f"{name} must map some of {', '.join(VIDEO_ACTIONS)} to weights, "
+                        f"got {value!r}."
+                    )
+                weights = cfg.check_weights(name, list(value.values()))
+                value = dict(zip(value, weights))
+            elif key == "max_attempts":
+                value = cfg.check_int(name, value, 1)
+            elif key.endswith(("_prob", "_fraction")):
+                value = cfg.check_fraction(name, value)
+            elif key == "days_between_subsections":
+                value = cfg.check_number(name, value, 0.001)
+            else:
+                value = cfg.check_number(name, value)
+            setattr(behavior, key, value)
+        return behavior
 
 
 @dataclass
