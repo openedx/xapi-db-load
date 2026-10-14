@@ -52,8 +52,8 @@ class CourseTemplate:
     verticals_per_sequential: Tuple[int, int]
     # Each vertical gets a random count of these, drawn from the given weights
     # (index = count), e.g. [0.4, 0.4, 0.2] -> 40% none, 40% one, 20% two.
-    problems_per_vertical: List[float]
-    videos_per_vertical: List[float]
+    problems_per_vertical_weights: List[float]
+    videos_per_vertical_weights: List[float]
     graded_sequential_fraction: float
     video_length: Tuple[int, int]
 
@@ -64,8 +64,8 @@ class CourseTemplate:
             chapters=tuple(conf["chapters"]),
             sequentials_per_chapter=tuple(conf["sequentials_per_chapter"]),
             verticals_per_sequential=tuple(conf["verticals_per_sequential"]),
-            problems_per_vertical=list(conf["problems_per_vertical"]),
-            videos_per_vertical=list(conf["videos_per_vertical"]),
+            problems_per_vertical_weights=list(conf["problems_per_vertical_weights"]),
+            videos_per_vertical_weights=list(conf["videos_per_vertical_weights"]),
             graded_sequential_fraction=conf.get("graded_sequential_fraction", 0.3),
             video_length=tuple(conf.get("video_length", [60, 900])),
         )
@@ -142,10 +142,10 @@ class JourneyCourse:
                     )
                     seq.children.append(vert)
                     n_videos = rng.choices(
-                        range(len(t.videos_per_vertical)), t.videos_per_vertical
+                        range(len(t.videos_per_vertical_weights)), t.videos_per_vertical_weights
                     )[0]
                     n_problems = rng.choices(
-                        range(len(t.problems_per_vertical)), t.problems_per_vertical
+                        range(len(t.problems_per_vertical_weights)), t.problems_per_vertical_weights
                     )[0]
                     for v in range(n_videos):
                         vert.children.append(

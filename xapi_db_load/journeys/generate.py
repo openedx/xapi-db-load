@@ -225,7 +225,7 @@ class JourneyGenerator:
         buffered: List[Dict] = []
         n_events = 0
         n_enrollments = 0
-        heavy: List[Dict] = []
+        most_active: List[Dict] = []
 
         for ci, course in enumerate(self.courses):
             start, end = self.course_windows[course.course_key]
@@ -256,7 +256,7 @@ class JourneyGenerator:
                     best_actor, best_pages = actor, len(truth.pages_viewed)
 
             if best_actor:
-                heavy.append(
+                most_active.append(
                     {
                         "course_key": course.course_key,
                         "actor_id": best_actor.actor_id,
@@ -273,4 +273,4 @@ class JourneyGenerator:
                 writers["xapi"].writerow((e["event_id"], _fmt(e["emission_time"]), e["event"]))
 
         return {"num_enrollments": n_enrollments, "num_xapi_events": n_events,
-                "heavy_learners": heavy}
+                "most_active_learner_per_course": most_active}

@@ -293,7 +293,7 @@ def test_video_truth_stops_at_now():
     rng = random.Random(1)
     template = CourseTemplate.from_config({
         "chapters": [1, 1], "sequentials_per_chapter": [1, 1], "verticals_per_sequential": [1, 1],
-        "problems_per_vertical": [1], "videos_per_vertical": [0, 1], "video_length": [600, 600],
+        "problems_per_vertical_weights": [1], "videos_per_vertical_weights": [0, 1], "video_length": [600, 600],
     })
     course = JourneyCourse(rng, "Org", "C", "run", "t", template, "http://lms")
     video = next(b for b in course.all_blocks() if b.block_type == "video")

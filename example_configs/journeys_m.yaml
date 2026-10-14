@@ -25,24 +25,24 @@ journeys:
       chapters: [3, 5]
       sequentials_per_chapter: [2, 4]
       verticals_per_sequential: [2, 5]
-      problems_per_vertical: [0.5, 0.3, 0.2]
-      videos_per_vertical: [0.5, 0.45, 0.05]
+      problems_per_vertical_weights: [0.5, 0.3, 0.2]
+      videos_per_vertical_weights: [0.5, 0.45, 0.05]
       graded_sequential_fraction: 0.3
       video_length: [60, 600]
     medium:
       chapters: [5, 8]
       sequentials_per_chapter: [3, 5]
       verticals_per_sequential: [3, 6]
-      problems_per_vertical: [0.4, 0.35, 0.2, 0.05]
-      videos_per_vertical: [0.45, 0.5, 0.05]
+      problems_per_vertical_weights: [0.4, 0.35, 0.2, 0.05]
+      videos_per_vertical_weights: [0.45, 0.5, 0.05]
       graded_sequential_fraction: 0.3
       video_length: [60, 900]
     large:
       chapters: [8, 14]
       sequentials_per_chapter: [3, 6]
       verticals_per_sequential: [3, 8]
-      problems_per_vertical: [0.35, 0.35, 0.2, 0.1]
-      videos_per_vertical: [0.4, 0.55, 0.05]
+      problems_per_vertical_weights: [0.35, 0.35, 0.2, 0.1]
+      videos_per_vertical_weights: [0.4, 0.55, 0.05]
       graded_sequential_fraction: 0.3
       video_length: [60, 1200]
   behavior:
