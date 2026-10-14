@@ -156,7 +156,8 @@ means nobody knows what the reports *should* show. The ``journeys`` command
 instead simulates each enrolled learner moving through a properly nested course
 (sections > subsections > units > problems and videos) in time-ordered
 sessions, and writes the expected engagement results alongside the data, so
-report numbers can be checked against a known answer:
+report numbers can be checked against a known answer (the "oracle", computed in
+``xapi_db_load/journeys/oracle.py``):
 
 ::
 
@@ -200,8 +201,11 @@ min_insert_block_size_rows = 20000, min_insert_block_size_bytes = 0,
 max_insert_threads = 1, max_threads = 1``.
 
 ``window_days`` must stay under 365, because Aspects drops xAPI events older than
-a year. Behavior probabilities (``behavior`` section) are documented in
-``xapi_db_load/journeys/simulate.py``.
+a year. Every ``behavior`` setting is described on the ``Behavior`` class in
+``xapi_db_load/journeys/simulate.py``. Course template sizes are ``[low, high]``
+ranges, except ``problems_per_vertical_weights`` and
+``videos_per_vertical_weights``, which weight how many problems and videos each
+unit gets: ``[0.4, 0.4, 0.2]`` means 40% none, 40% one and 20% two.
 
 Secrets and environment variable overrides
 ------------------------------------------

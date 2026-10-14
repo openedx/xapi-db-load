@@ -239,6 +239,57 @@ def test_unknown_behavior_setting():
         Behavior.from_config({"typo": 1})
 
 
+def _set_template(key, value):
+    def change(conf):
+        conf["course_templates"]["small"][key] = value
+    return change
+
+
+def _set_behavior(key, value):
+    def change(conf):
+        conf.setdefault("behavior", {})[key] = value
+    return change
+
+
+def _set_course(key, value):
+    def change(conf):
+        conf["courses"][0][key] = value
+    return change
+
+
+def _drop(key):
+    def change(conf):
+        del conf[key]
+    return change
+
+
+@pytest.mark.parametrize(
+    "change, message",
+    [
+        (lambda c: c.update(window_days="300"), "window_days must be a number"),
+        (lambda c: c.update(num_actors=0), "num_actors must be an integer of at least 1"),
+        (lambda c: c.update(sort_events="yes"), "sort_events must be true or false"),
+        (lambda c: c.update(mbox_actor_fraction=1.5), "mbox_actor_fraction must be a number"),
+        (lambda c: c.update(now="tomorrow"), "now must be a UTC time"),
+        (_drop("num_actors"), "Missing required setting: num_actors"),
+        (_set_behavior("days_between_subsections", "2.0"),
+         "behavior.days_between_subsections must be a number"),
+        (_set_behavior("max_attempts", 0), "behavior.max_attempts must be an integer"),
+        (_set_behavior("video_actions", {"rewind": 1}), "behavior.video_actions must map"),
+        (_set_template("problems_per_vertical_weights", [0, 0]),
+         "course_templates.small.problems_per_vertical_weights must be a list"),
+        (_set_template("chapters", [3, 1]), "course_templates.small.chapters must be [low, high]"),
+        (_set_course("template", "huge"), "courses[0].template 'huge' is not in course_templates"),
+        (_set_course("learners", [5]), "courses[0].learners must be [low, high]"),
+    ],
+)
+def test_config_errors(change, message):
+    conf = yaml.safe_load(CONFIG.read_text())["journeys"]
+    change(conf)
+    with pytest.raises(ValueError) as e:
+        JourneyGenerator(conf, "http://localhost:18000", logging.getLogger())
+    assert message in str(e.value)
+
 
 def test_failed_run_removes_old_manifest(tmp_path, monkeypatch):
     _generate(tmp_path)
@@ -258,6 +309,7 @@ def test_most_active_learner_skips_courses_without_page_views(dataset, tmp_path)
     assert manifest["most_active_learner_per_course"]
     assert all(m["pages_viewed_fraction"] > 0 for m in manifest["most_active_learner_per_course"])
     assert not _generate(tmp_path, behavior={"start_prob": 0.0})["most_active_learner_per_course"]
+
 
 def _stream(*events):
     """Build a video event stream from (second, verb, position) tuples."""
@@ -352,6 +404,7 @@ def test_cli(tmp_path):
     [
         (None, "has no 'journeys' section"),
         ({"window_days": 400}, "window_days must be under 365"),
+        ({"window_days": "300"}, "window_days must be a number"),
         ({"window_days": 30, "course_length_days": 60}, "course_length_days"),
         ({"output_dir": None}, "Set --output_dir"),
     ],

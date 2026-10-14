@@ -20,6 +20,8 @@ from typing import (
     Tuple,
 )
 
+from xapi_db_load.journeys import config as cfg
+
 
 def seeded_uuid(rng: random.Random) -> str:
     """Return a UUID4 string drawn from ``rng`` so runs with the same seed are reproducible."""
@@ -58,16 +60,28 @@ class CourseTemplate:
     video_length: Tuple[int, int]
 
     @classmethod
-    def from_config(cls, conf: Dict) -> "CourseTemplate":
-        """Build a template from a YAML ``course_templates`` entry."""
+    def from_config(cls, conf: Dict, name: str = "") -> "CourseTemplate":
+        """Build a template from a YAML ``course_templates`` entry, checking every value."""
+        prefix = f"course_templates.{name}." if name else ""
+
+        def required_range(key: str, minimum: int) -> Tuple[int, int]:
+            return cfg.check_range(prefix + key, cfg.require(conf, key, prefix), minimum)
+
+        def required_weights(key: str) -> List[float]:
+            return cfg.check_weights(prefix + key, cfg.require(conf, key, prefix))
+
         return cls(
-            chapters=tuple(conf["chapters"]),
-            sequentials_per_chapter=tuple(conf["sequentials_per_chapter"]),
-            verticals_per_sequential=tuple(conf["verticals_per_sequential"]),
-            problems_per_vertical_weights=list(conf["problems_per_vertical_weights"]),
-            videos_per_vertical_weights=list(conf["videos_per_vertical_weights"]),
-            graded_sequential_fraction=conf.get("graded_sequential_fraction", 0.3),
-            video_length=tuple(conf.get("video_length", [60, 900])),
+            chapters=required_range("chapters", 1),
+            sequentials_per_chapter=required_range("sequentials_per_chapter", 1),
+            verticals_per_sequential=required_range("verticals_per_sequential", 1),
+            problems_per_vertical_weights=required_weights("problems_per_vertical_weights"),
+            videos_per_vertical_weights=required_weights("videos_per_vertical_weights"),
+            graded_sequential_fraction=cfg.check_fraction(
+                prefix + "graded_sequential_fraction", conf.get("graded_sequential_fraction", 0.3)
+            ),
+            video_length=cfg.check_range(
+                prefix + "video_length", conf.get("video_length", [60, 900]), 1
+            ),
         )
 
 

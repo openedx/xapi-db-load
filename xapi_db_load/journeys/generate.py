@@ -24,6 +24,7 @@ from typing import (
     Optional,
 )
 
+from xapi_db_load.journeys import config as cfg
 from xapi_db_load.journeys import oracle
 from xapi_db_load.journeys.simulate import (
     Behavior,
@@ -59,27 +60,64 @@ class JourneyGenerator:
         self.conf = conf
         self.lms_url = lms_url
         self.log = logger
+        self._check_config()
         self.rng = random.Random(conf.get("seed", 0))
         now = conf.get("now")
-        self.now = (
-            datetime.datetime.fromisoformat(str(now)).replace(tzinfo=datetime.UTC)
-            if now
-            else datetime.datetime.now(datetime.UTC).replace(microsecond=0)
-        )
-        window_days = conf.get("window_days", 300)
-        if window_days >= 365:
-            # Aspects' default TTL drops events older than a year.
-            raise ValueError("window_days must be under 365 to survive the xAPI data TTL.")
-        if conf.get("course_length_days", 120) > window_days:
-            raise ValueError("course_length_days must not be more than window_days.")
+        try:
+            self.now = (
+                datetime.datetime.fromisoformat(str(now)).replace(tzinfo=datetime.UTC)
+                if now
+                else datetime.datetime.now(datetime.UTC).replace(microsecond=0)
+            )
+        except ValueError as e:
+            raise ValueError(f"now must be a UTC time like '2026-10-08 12:00:00': {e}") from e
         self.behavior = Behavior.from_config(conf.get("behavior"))
         self.templates = {
-            name: CourseTemplate.from_config(t)
+            name: CourseTemplate.from_config(t, name)
             for name, t in conf["course_templates"].items()
         }
         self.actors: List[JourneyActor] = []
         self.courses: List[JourneyCourse] = []
         self.course_windows: Dict[str, tuple] = {}
+
+    def _check_config(self) -> None:
+        """Check the top-level settings, so a bad value fails before any file is written."""
+        conf = self.conf
+        cfg.check_int("seed", conf.get("seed", 0))
+        cfg.check_int("num_actors", cfg.require(conf, "num_actors"), 1)
+        cfg.check_int("num_organizations", conf.get("num_organizations", 3), 1)
+        cfg.check_int("num_actor_profile_changes", conf.get("num_actor_profile_changes", 1))
+        cfg.check_int("course_publishes", conf.get("course_publishes", 1), 1)
+        for key in ("mbox_actor_fraction", "running_course_fraction",
+                    "deleted_unit_course_fraction"):
+            if key in conf:
+                cfg.check_fraction(key, conf[key])
+        cfg.check_bool("sort_events", conf.get("sort_events", False))
+        window_days = cfg.check_number("window_days", conf.get("window_days", 300), 1)
+        if window_days >= 365:
+            # Aspects' default TTL drops events older than a year.
+            raise ValueError("window_days must be under 365 to survive the xAPI data TTL.")
+        length_days = cfg.check_number(
+            "course_length_days", conf.get("course_length_days", 120), 1
+        )
+        if length_days > window_days:
+            raise ValueError("course_length_days must not be more than window_days.")
+
+        templates = cfg.require(conf, "course_templates")
+        if not isinstance(templates, dict) or not templates:
+            raise ValueError("course_templates must map template names to templates.")
+        courses = cfg.require(conf, "courses")
+        if not isinstance(courses, list) or not courses:
+            raise ValueError("courses must be a list of {template, count, learners} entries.")
+        for i, entry in enumerate(courses):
+            prefix = f"courses[{i}]."
+            if not isinstance(entry, dict):
+                raise ValueError(f"courses[{i}] must be a mapping, got {entry!r}.")
+            if cfg.require(entry, "template", prefix) not in templates:
+                raise ValueError(f"{prefix}template {entry['template']!r} is not in course_templates.")
+            cfg.check_int(prefix + "count", cfg.require(entry, "count", prefix))
+            cfg.check_range(prefix + "learners", cfg.require(entry, "learners", prefix))
+            cfg.check_range(prefix + "runs", entry.get("runs", [1, 1]), 1)
 
     # ---- setup ------------------------------------------------------------------------------
 
