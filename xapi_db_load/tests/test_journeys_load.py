@@ -74,6 +74,7 @@ def test_clickhouse_backend_loads_everything(dataset):
     assert client.inserts["journeys.expected_engagement"][2] == "CSVWithNames"
     assert len(client.inserts["journeys.event_ids"][1].decode().splitlines()) == dataset[2]
     assert f"Loaded {dataset[2]} xAPI events" in summary
+    assert "system reload dictionaries" in client.commands
 
 
 def test_database_names_come_from_config(dataset):

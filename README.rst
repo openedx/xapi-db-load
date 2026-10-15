@@ -200,8 +200,10 @@ them to ``lrs_url`` (without the duplicate events, which an LRS rejects), and
 ``vector`` logs them to stdout for Vector to pick up. The expected results go
 into the ``expected_db_name`` database (default ``journeys``). Ralph and Vector
 insert asynchronously, so the command waits, up to ``--wait_seconds``, until
-every event has arrived. Use ``org_prefix`` in the ``journeys`` section to keep
-the journeys organizations apart from data loaded by ``load-db``.
+every event has arrived. To load journeys next to data from ``load-db``, set
+``org_prefix`` and ``first_user_id`` in the ``journeys`` section so the
+organizations and users don't collide with ``load-db``'s ``Org0``... and user
+ids from 0.
 
 To load the files by hand instead, copy the directory under the ClickHouse
 ``user_files`` path and insert with the ``file()`` table function, for example::
