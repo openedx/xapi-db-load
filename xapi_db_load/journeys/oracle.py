@@ -61,6 +61,7 @@ VIDEO_SECONDS_COLUMNS = [
     "truth_distinct_seconds",
     "observable_seconds",
     "observable_distinct_seconds",
+    "observable_max_views",
 ]
 
 

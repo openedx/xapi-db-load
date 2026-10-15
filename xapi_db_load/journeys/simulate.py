@@ -6,6 +6,7 @@ import datetime
 import json
 import math
 import random
+from collections import Counter
 from dataclasses import (
     dataclass,
     field,
@@ -183,14 +184,23 @@ class VideoTruth:
             seconds.update(range(a + 1, b + 1))
         return len(seconds)
 
+    @staticmethod
+    def _max_views(segments) -> int:
+        """Return how many times the most-watched second was watched, 0 if none was."""
+        views: Counter = Counter()
+        for a, b in segments:
+            views.update(range(a + 1, b + 1))
+        return max(views.values(), default=0)
+
     def summary(self) -> Dict[str, int]:
-        """Return total and distinct watched seconds, actual and observable from events."""
+        """Return watched seconds, actual and observable from events, and the most views."""
         observable = self.observable_segments()
         return {
             "truth_seconds": self._total(self.truth),
             "truth_distinct_seconds": self._distinct(self.truth),
             "observable_seconds": self._total(observable),
             "observable_distinct_seconds": self._distinct(observable),
+            "observable_max_views": self._max_views(observable),
         }
 
 

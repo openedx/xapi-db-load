@@ -49,7 +49,7 @@ EXPECTED_TABLES = {
     ),
     "expected_video_seconds": (
         oracle.VIDEO_SECONDS_COLUMNS,
-        {c: "UInt32" for c in oracle.VIDEO_SECONDS_COLUMNS if c.endswith(("seconds", "duration"))},
+        {c: "UInt32" for c in oracle.VIDEO_SECONDS_COLUMNS if c.endswith(("seconds", "duration", "views"))},
     ),
 }
 RALPH_BATCH_SIZE = 500
