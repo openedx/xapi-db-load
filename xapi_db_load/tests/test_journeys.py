@@ -271,6 +271,7 @@ def _drop(key):
         (lambda c: c.update(sort_events="yes"), "sort_events must be true or false"),
         (lambda c: c.update(mbox_actor_fraction=1.5), "mbox_actor_fraction must be a number"),
         (lambda c: c.update(now="tomorrow"), "now must be a UTC time"),
+        (lambda c: c.update(org_prefix="Org-"), "org_prefix must be letters and digits"),
         (_drop("num_actors"), "Missing required setting: num_actors"),
         (_set_behavior("days_between_subsections", "2.0"),
          "behavior.days_between_subsections must be a number"),
@@ -289,6 +290,12 @@ def test_config_errors(change, message):
     with pytest.raises(ValueError) as e:
         JourneyGenerator(conf, "http://localhost:18000", logging.getLogger())
     assert message in str(e.value)
+
+
+def test_org_prefix(tmp_path):
+    _generate(tmp_path, org_prefix="Journey")
+    orgs = {row[0] for row in _rows(tmp_path / "courses.csv.gz")}
+    assert orgs and all(o.startswith("Journey") for o in orgs)
 
 
 def test_failed_run_removes_old_manifest(tmp_path, monkeypatch):

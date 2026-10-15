@@ -93,6 +93,9 @@ class JourneyGenerator:
             if key in conf:
                 cfg.check_fraction(key, conf[key])
         cfg.check_bool("sort_events", conf.get("sort_events", False))
+        prefix = conf.get("org_prefix", "Org")
+        if not isinstance(prefix, str) or not prefix.isalnum():
+            raise ValueError(f"org_prefix must be letters and digits, got {prefix!r}.")
         window_days = cfg.check_number("window_days", conf.get("window_days", 300), 1)
         if window_days >= 365:
             # Aspects' default TTL drops events older than a year.
@@ -137,7 +140,8 @@ class JourneyGenerator:
                 )
             )
 
-        orgs = [f"Org{i}" for i in range(self.conf.get("num_organizations", 3))]
+        prefix = self.conf.get("org_prefix", "Org")
+        orgs = [f"{prefix}{i}" for i in range(self.conf.get("num_organizations", 3))]
         window = datetime.timedelta(days=self.conf.get("window_days", 300))
         length = datetime.timedelta(days=self.conf.get("course_length_days", 120))
         running_fraction = self.conf.get("running_course_fraction", 0.5)
