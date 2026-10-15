@@ -195,6 +195,20 @@ class JourneyLoader:
             sys.stdout.write(f" [xapi_tracking] [] {event}\n")
         sys.stdout.flush()
 
+    def _log_missing(self, limit: int = 10) -> None:
+        """Log the first events that never arrived, as sent, to help find where they were lost."""
+        missing = self.client.query(
+            f"select toString(event_id) from {self.expected_db}.event_ids where event_id not in "
+            f"(select event_id from {self.xapi_db}.xapi_events_all) order by event_id limit {limit}"
+        ).result_rows
+        missing_ids = {row[0] for row in missing}
+        for event_id, emission_time, event in _xapi_rows(self._path("xapi.csv.gz")):
+            if event_id in missing_ids:
+                missing_ids.discard(event_id)
+                self.log.error(
+                    f"Missing event {event_id} ({emission_time}, {len(event)} characters): {event}"
+                )
+
     def wait(self, n_events: int, wait_seconds: float, poll_seconds: float = 5) -> None:
         """Wait until every event in the dataset is in xapi_events_all."""
         deadline = time.monotonic() + wait_seconds
@@ -207,6 +221,7 @@ class JourneyLoader:
                 self.log.info(f"All {n_events} xAPI events are in {self.xapi_db}.xapi_events_all")
                 return
             if time.monotonic() >= deadline:
+                self._log_missing()
                 raise TimeoutError(
                     f"Only {arrived} of {n_events} xAPI events reached "
                     f"{self.xapi_db}.xapi_events_all within {wait_seconds} s."

@@ -23,10 +23,16 @@ NOW = "2026-10-08 12:00:00"
 class FakeClient:
     """Records inserts and commands; reports ``arrived`` events as present."""
 
-    def __init__(self, arrived=None):
+    def __init__(self, arrived=None, missing=()):
         self.inserts = {}
         self.commands = []
         self.arrived = arrived
+        self.missing = missing
+
+    def query(self, sql):
+        """Return the ``missing`` event ids."""
+        assert "not in" in sql
+        return type("Result", (), {"result_rows": [(m,) for m in self.missing]})
 
     def raw_insert(self, table, column_names=None, insert_block=None, fmt=None):
         self.inserts[table] = (column_names, insert_block, fmt)
@@ -119,10 +125,14 @@ def test_vector_backend_logs_every_event(dataset, capsys):
     json.loads(lines[0].split("[] ", 1)[1])
 
 
-def test_wait_times_out_when_events_are_missing(dataset):
-    loader, _ = _loader(dataset, arrived=3)
+def test_wait_times_out_when_events_are_missing(dataset, caplog):
+    loader, client = _loader(dataset, arrived=3)
+    with gzip.open(dataset[0] / "xapi.csv.gz", "rt") as f:
+        missing_id = f.readline().split(",", 1)[0]
+    client.missing = [missing_id]
     with pytest.raises(TimeoutError, match=f"Only 3 of {dataset[2]}"):
         loader.wait(dataset[2], wait_seconds=0)
+    assert f"Missing event {missing_id}" in caplog.text
 
 
 def test_wait_polls_until_events_arrive(dataset, monkeypatch):
