@@ -114,13 +114,16 @@ class JourneyLoader:
         )
 
     def load_event_sink(self) -> None:
-        """Insert the course, block, user and profile rows."""
+        """Insert the course, block, user and profile rows, and reload the dictionaries on them."""
         for name, table in SINK_FILES.items():
             self.log.info(f"Inserting {name} into {self.sink_db}.{table}")
             self.client.raw_insert(
                 f"{self.sink_db}.{table}", insert_block=_read_gz(self._path(f"{name}.csv.gz")),
                 fmt="CSV",
             )
+        # Aspects looks up course names and users through dictionaries that otherwise only
+        # refresh every few minutes.
+        self.client.command("system reload dictionaries")
 
     def load_expected(self) -> int:
         """Replace the expected-results tables; return the number of distinct events."""

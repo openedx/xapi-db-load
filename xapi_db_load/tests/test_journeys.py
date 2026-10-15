@@ -281,6 +281,7 @@ def _drop(key):
         (lambda c: c.update(mbox_actor_fraction=1.5), "mbox_actor_fraction must be a number"),
         (lambda c: c.update(now="tomorrow"), "now must be a UTC time"),
         (lambda c: c.update(org_prefix="Org-"), "org_prefix must be letters and digits"),
+        (lambda c: c.update(first_user_id=0), "first_user_id must be an integer of at least 1"),
         (_drop("num_actors"), "Missing required setting: num_actors"),
         (_set_behavior("days_between_subsections", "2.0"),
          "behavior.days_between_subsections must be a number"),
@@ -301,10 +302,13 @@ def test_config_errors(change, message):
     assert message in str(e.value)
 
 
-def test_org_prefix(tmp_path):
-    _generate(tmp_path, org_prefix="Journey")
+def test_org_prefix_and_first_user_id(tmp_path):
+    _generate(tmp_path, org_prefix="Journey", first_user_id=100001)
     orgs = {row[0] for row in _rows(tmp_path / "courses.csv.gz")}
     assert orgs and all(o.startswith("Journey") for o in orgs)
+    users = [(int(r[3]), r[2]) for r in _rows(tmp_path / "external_ids.csv.gz")]
+    assert users[0] == (100001, "actor_100000")
+    assert min(u for u, _ in users) == 100001
 
 
 def test_failed_run_removes_old_manifest(tmp_path, monkeypatch):

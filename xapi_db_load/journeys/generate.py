@@ -85,6 +85,7 @@ class JourneyGenerator:
         conf = self.conf
         cfg.check_int("seed", conf.get("seed", 0))
         cfg.check_int("num_actors", cfg.require(conf, "num_actors"), 1)
+        cfg.check_int("first_user_id", conf.get("first_user_id", 1), 1)
         cfg.check_int("num_organizations", conf.get("num_organizations", 3), 1)
         cfg.check_int("num_actor_profile_changes", conf.get("num_actor_profile_changes", 1))
         cfg.check_int("course_publishes", conf.get("course_publishes", 1), 1)
@@ -127,14 +128,15 @@ class JourneyGenerator:
     def setup(self) -> None:
         """Create actors and courses."""
         mbox_fraction = self.conf.get("mbox_actor_fraction", 0.0)
+        first_user_id = self.conf.get("first_user_id", 1)
         for i in range(self.conf["num_actors"]):
-            username = f"actor_{i}"
+            username = f"actor_{first_user_id - 1 + i}"
             self.actors.append(
                 JourneyActor(
-                    user_id=i + 1,
+                    user_id=first_user_id + i,
                     external_id=seeded_uuid(self.rng),
                     username=username,
-                    name=f"Actor {i}",
+                    name=f"Actor {first_user_id - 1 + i}",
                     email=f"{username}@aspects.invalid",
                     uses_mbox=self.rng.random() < mbox_fraction,
                 )
