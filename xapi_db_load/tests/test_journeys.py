@@ -207,15 +207,24 @@ def test_observable_video_seconds_match_events(dataset):
         return ext.get(st.EXT_VIDEO_TIME, ext.get(st.EXT_VIDEO_TIME_FROM))
 
     derived = collections.Counter()
+    views = collections.defaultdict(collections.Counter)
     for key, events in streams.items():
         for cur, nxt in zip(events, events[1:]):
             if cur["verb"]["id"] == st.VERB_PLAYED and position(nxt) > position(cur):
                 derived[key] += int(position(nxt) - position(cur))
+                views[key].update(range(int(position(cur)) + 1, int(position(nxt)) + 1))
 
+    rows = list(_dict_rows(out / "expected_video_seconds.csv.gz"))
     expected = {
         (r["course_key"], r["actor_id"], r["video_block_id"]): int(r["observable_seconds"])
-        for r in _dict_rows(out / "expected_video_seconds.csv.gz")
+        for r in rows
     }
+    max_views = {
+        (r["course_key"], r["actor_id"], r["video_block_id"]): int(r["observable_max_views"])
+        for r in rows
+    }
+    assert max_views == {k: max(views[k].values(), default=0) for k in max_views}
+    assert any(v > 1 for v in max_views.values()), "some learner should rewatch a second"
     mismatches = {k: (derived.get(k, 0), v) for k, v in expected.items() if derived.get(k, 0) != v}
     assert not mismatches, list(mismatches.items())[:5]
 
@@ -345,6 +354,7 @@ def test_observable_segments_pause_and_resume_at_same_time():
         "truth_distinct_seconds": 60,
         "observable_seconds": 60,
         "observable_distinct_seconds": 60,
+        "observable_max_views": 1,
     }
 
 
@@ -364,6 +374,7 @@ def test_observable_segments_seek_back_and_close():
         "truth_distinct_seconds": 30,
         "observable_seconds": 30,
         "observable_distinct_seconds": 30,
+        "observable_max_views": 1,
     }
 
 
