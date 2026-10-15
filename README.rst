@@ -186,9 +186,25 @@ Output, in ``journeys.output_dir`` or ``--output_dir``:
 - ``manifest.json``: counts, settings, and the most active learner in each
   course, for the learner dashboard.
 
-Files are gzipped CSV (the expected results have a header row). To load them,
-copy the directory under the ClickHouse ``user_files`` path and insert with the
-``file()`` table function, for example::
+Files are gzipped CSV (the expected results have a header row). To load a
+dataset into an Aspects install, use ``load-journeys`` with a config that has
+the same ClickHouse settings as ``load-db``, plus the ``journeys`` section or
+``--dataset_dir``::
+
+    ❯ xapi-db-load load-journeys --config_file my_config.yaml --dataset_dir logs/journeys_oracle
+
+It inserts the event sink rows straight into ClickHouse (``event_sink_db_name``,
+default ``event_sink``) and sends the xAPI events through ``backend``:
+``clickhouse`` inserts them into ``db_name``.``xapi_events_all``, ``ralph`` POSTs
+them to ``lrs_url`` (without the duplicate events, which an LRS rejects), and
+``vector`` logs them to stdout for Vector to pick up. The expected results go
+into the ``expected_db_name`` database (default ``journeys``). Ralph and Vector
+insert asynchronously, so the command waits, up to ``--wait_seconds``, until
+every event has arrived. Use ``org_prefix`` in the ``journeys`` section to keep
+the journeys organizations apart from data loaded by ``load-db``.
+
+To load the files by hand instead, copy the directory under the ClickHouse
+``user_files`` path and insert with the ``file()`` table function, for example::
 
     insert into xapi.xapi_events_all
     select * from file('journeys/xapi.csv.gz', 'CSV',

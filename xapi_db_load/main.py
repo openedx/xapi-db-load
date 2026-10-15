@@ -14,6 +14,7 @@ import yaml
 
 from xapi_db_load.constants import DEFAULT_LMS_URL
 from xapi_db_load.journeys.generate import JourneyGenerator
+from xapi_db_load.journeys.load import JourneyLoader
 from xapi_db_load.ui.text_ui import TextUI
 
 _ENV_VAR_OVERRIDES = {
@@ -160,8 +161,47 @@ def journeys(config_file: str, output_dir: str | None, seed: int | None, now: st
     )
 
 
+@click.command()
+@click.option(
+    "--config_file",
+    help=(
+        "Configuration file with the ClickHouse settings and backend (clickhouse, ralph or "
+        "vector) to load with, as for load-db."
+    ),
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, file_okay=True, writable=False),
+)
+@click.option(
+    "--dataset_dir",
+    help="Dataset written by the journeys command. Defaults to journeys.output_dir.",
+    default=None,
+)
+@click.option(
+    "--wait_seconds",
+    help="How long to wait for Ralph or Vector to insert every event before failing.",
+    type=float,
+    default=600,
+    show_default=True,
+)
+def load_journeys(config_file: str, dataset_dir: str | None, wait_seconds: float):
+    """
+    Load a journeys dataset and its expected results into ClickHouse.
+    """
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    config = get_config(config_file)
+    dataset_dir = dataset_dir or (config.get("journeys") or {}).get("output_dir")
+    if not dataset_dir:
+        raise click.UsageError("Set --dataset_dir or journeys.output_dir in the config.")
+    try:
+        loader = JourneyLoader(config, dataset_dir, logging.getLogger("journeys"))
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
+    click.echo(loader.run(wait_seconds))
+
+
 cli.add_command(load_db)
 cli.add_command(journeys)
+cli.add_command(load_journeys)
 cli.add_command(ui)
 
 if __name__ == "__main__":
