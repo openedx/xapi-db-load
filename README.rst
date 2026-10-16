@@ -149,6 +149,84 @@ To try out the new UI mode:
 
 
 
+Learner journeys with known results
+-----------------------------------
+The backends above pick each event independently, which is good for volume but
+means nobody knows what the reports *should* show. The ``journeys`` command
+instead simulates each enrolled learner moving through a properly nested course
+(sections > subsections > units > problems and videos) in time-ordered
+sessions, and writes the expected engagement results alongside the data, so
+report numbers can be checked against a known answer (the "oracle", computed in
+``xapi_db_load/journeys/oracle.py``):
+
+::
+
+    ❯ xapi-db-load journeys --config_file example_configs/journeys_oracle.yaml --now "2026-10-08 12:00:00"
+
+The same config, seed and ``--now`` always produce identical files. Example
+configs:
+
+- ``journeys_oracle.yaml``: ~9K events, every edge case turned on (``mailto:``
+  actors, deleted units, duplicate events, pause and resume at the same instant).
+  Use it to check correctness.
+- ``journeys_m.yaml`` / ``journeys_l.yaml``: ~15M / ~75M events for benchmarks.
+
+Output, in ``journeys.output_dir`` or ``--output_dir``:
+
+- ``courses``, ``blocks``, ``external_ids``, ``user_profiles``: event sink rows,
+  in the same CSV layouts as the ``csv`` backend. Each course is published
+  ``course_publishes`` times; deleted units only appear in the earlier publishes.
+- ``xapi``: ``xapi_events_all`` rows (``event_id``, ``emission_time``, ``event``).
+- ``expected_engagement``: one row per learner and section / subsection with
+  pages, problems or videos, with ``done``, ``total`` and the Aspects status
+  label. For videos, ``done`` is what the events can show (each play paired with
+  the next video event) and ``done_truth`` is what the learner actually watched.
+- ``expected_video_seconds``: watched seconds per learner and video, total and
+  distinct, both observable and actual.
+- ``manifest.json``: counts, settings, and the most active learner in each
+  course, for the learner dashboard.
+
+Files are gzipped CSV (the expected results have a header row). To load a
+dataset into an Aspects install, use ``load-journeys`` with a config that has
+the same ClickHouse settings as ``load-db``, plus the ``journeys`` section or
+``--dataset_dir``::
+
+    ❯ xapi-db-load load-journeys --config_file my_config.yaml --dataset_dir logs/journeys_oracle
+
+It inserts the event sink rows straight into ClickHouse (``event_sink_db_name``,
+default ``event_sink``) and sends the xAPI events through ``backend``:
+``clickhouse`` inserts them into ``db_name``.``xapi_events_all``, ``ralph`` POSTs
+them to ``lrs_url`` (without the duplicate events, which an LRS rejects), and
+``vector`` logs them to stdout for Vector to pick up, pausing
+``vector_batch_pause_seconds`` (default 0.1) after every ``vector_batch_size``
+(default 100) events. The expected results go
+into the ``expected_db_name`` database (default ``journeys``). Ralph and Vector
+insert asynchronously, so the command waits, up to ``--wait_seconds``, until
+every event has arrived. To load journeys next to data from ``load-db``, set
+``org_prefix`` and ``first_user_id`` in the ``journeys`` section so the
+organizations and users don't collide with ``load-db``'s ``Org0``... and user
+ids from 0.
+
+To load the files by hand instead, copy the directory under the ClickHouse
+``user_files`` path and insert with the ``file()`` table function, for example::
+
+    insert into xapi.xapi_events_all
+    select * from file('journeys/xapi.csv.gz', 'CSV',
+        'event_id UUID, emission_time DateTime64(6), event String');
+
+The materialized views only see one insert block at a time, so to imitate live
+traffic, set ``sort_events: true`` (this holds every event in memory) and insert
+in small blocks, e.g. ``settings max_block_size = 20000,
+min_insert_block_size_rows = 20000, min_insert_block_size_bytes = 0,
+max_insert_threads = 1, max_threads = 1``.
+
+``window_days`` must stay under 365, because Aspects drops xAPI events older than
+a year. Every ``behavior`` setting is described on the ``Behavior`` class in
+``xapi_db_load/journeys/simulate.py``. Course template sizes are ``[low, high]``
+ranges, except ``problems_per_vertical_weights`` and
+``videos_per_vertical_weights``, which weight how many problems and videos each
+unit gets: ``[0.4, 0.4, 0.2]`` means 40% none, 40% one and 20% two.
+
 Secrets and environment variable overrides
 ------------------------------------------
 Sensitive credentials should not be committed to source control. The following
