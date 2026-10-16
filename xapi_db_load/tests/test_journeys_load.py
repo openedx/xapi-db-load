@@ -115,9 +115,12 @@ def test_ralph_backend_posts_each_event_once(dataset, monkeypatch):
     assert len(posted) == n_unique == len({s["id"] for s in posted})
 
 
-def test_vector_backend_logs_every_event(dataset, capsys):
-    loader, client = _loader(dataset, backend="vector")
+def test_vector_backend_logs_every_event(dataset, capsys, monkeypatch):
+    pauses = []
+    monkeypatch.setattr(journeys_load.time, "sleep", pauses.append)
+    loader, client = _loader(dataset, backend="vector", vector_batch_pause_seconds=0.5)
     loader.run()
+    assert pauses == [0.5] * (dataset[1] // journeys_load.VECTOR_BATCH_SIZE)
     lines = capsys.readouterr().out.splitlines()
     assert "xapi.xapi_events_all" not in client.inserts
     assert len(lines) == dataset[1]

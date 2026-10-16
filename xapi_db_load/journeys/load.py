@@ -53,6 +53,8 @@ EXPECTED_TABLES = {
     ),
 }
 RALPH_BATCH_SIZE = 500
+VECTOR_BATCH_SIZE = 100
+VECTOR_BATCH_PAUSE_SECONDS = 0.1
 
 
 def _read_gz(path: str) -> bytes:
@@ -190,9 +192,20 @@ class JourneyLoader:
         resp.raise_for_status()
 
     def _log_for_vector(self, path: str) -> None:
-        # The smallest line format that passes Vector's LMS tracking log regex.
-        for _, _, event in _xapi_rows(path):
+        """
+        Log the events in the line format Vector reads from the LMS.
+
+        Pauses between batches: printing the whole dataset in a few seconds is far faster than
+        an LMS logs, and a log line has been lost in CI at that rate.
+        """
+        batch_size = self.config.get("vector_batch_size", VECTOR_BATCH_SIZE)
+        pause = self.config.get("vector_batch_pause_seconds", VECTOR_BATCH_PAUSE_SECONDS)
+        for i, (_, _, event) in enumerate(_xapi_rows(path), start=1):
+            # The smallest line format that passes Vector's LMS tracking log regex.
             sys.stdout.write(f" [xapi_tracking] [] {event}\n")
+            if i % batch_size == 0:
+                sys.stdout.flush()
+                time.sleep(pause)
         sys.stdout.flush()
 
     def _log_missing(self, limit: int = 10) -> None:
