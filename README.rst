@@ -197,7 +197,9 @@ It inserts the event sink rows straight into ClickHouse (``event_sink_db_name``,
 default ``event_sink``) and sends the xAPI events through ``backend``:
 ``clickhouse`` inserts them into ``db_name``.``xapi_events_all``, ``ralph`` POSTs
 them to ``lrs_url`` (without the duplicate events, which an LRS rejects), and
-``vector`` logs them to stdout for Vector to pick up. The expected results go
+``vector`` logs them to stdout for Vector to pick up, pausing
+``vector_batch_pause_seconds`` (default 0.1) after every ``vector_batch_size``
+(default 100) events. The expected results go
 into the ``expected_db_name`` database (default ``journeys``). Ralph and Vector
 insert asynchronously, so the command waits, up to ``--wait_seconds``, until
 every event has arrived. To load journeys next to data from ``load-db``, set
