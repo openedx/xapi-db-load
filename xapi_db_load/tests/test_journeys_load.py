@@ -115,6 +115,35 @@ def test_ralph_backend_posts_each_event_once(dataset, monkeypatch):
     assert len(posted) == n_unique == len({s["id"] for s in posted})
 
 
+def test_ralph_batches_that_end_exactly(dataset, monkeypatch):
+    posted = []
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr(journeys_load, "RALPH_BATCH_SIZE", dataset[2])
+    monkeypatch.setattr(
+        journeys_load.requests, "post", lambda url, **kw: posted.append(kw["json"]) or Response()
+    )
+    loader, _ = _loader(dataset, backend="ralph")
+    loader.load_xapi()
+    assert [len(batch) for batch in posted] == [dataset[2]]
+
+
+def test_connects_with_the_config_settings(dataset, monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        journeys_load.clickhouse_connect, "get_client", lambda **kw: calls.append(kw) or FakeClient()
+    )
+    config = {"db_host": "ch", "db_port": 8443, "db_username": "u", "db_password": "p"}
+    JourneyLoader(config, str(dataset[0]), logging.getLogger())
+    assert calls == [{
+        "host": "ch", "port": 8443, "username": "u", "password": "p", "secure": True,
+        "settings": {"date_time_input_format": "best_effort"},
+    }]
+
+
 def test_vector_backend_logs_every_event(dataset, capsys, monkeypatch):
     pauses = []
     monkeypatch.setattr(journeys_load.time, "sleep", pauses.append)

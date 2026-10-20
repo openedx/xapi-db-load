@@ -307,7 +307,8 @@ class Simulator:
         t = enroll_time + datetime.timedelta(minutes=self.rng.randint(1, 600))
         sequentials = list(course.sequentials())
 
-        for i, seq in enumerate(sequentials):
+        # The last subsection always ends the loop with a break.
+        for i, seq in enumerate(sequentials):  # pragma: no branch
             if not self._has_happened(t):
                 break
             last = i == len(sequentials) - 1

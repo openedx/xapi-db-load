@@ -24,6 +24,7 @@ from xapi_db_load.journeys.oracle import status
 from xapi_db_load.journeys.simulate import (
     Behavior,
     EnrollmentTruth,
+    JourneyActor,
     Simulator,
     VideoTruth,
 )
@@ -292,6 +293,10 @@ def _drop(key):
         (_set_template("chapters", [3, 1]), "course_templates.small.chapters must be [low, high]"),
         (_set_course("template", "huge"), "courses[0].template 'huge' is not in course_templates"),
         (_set_course("learners", [5]), "courses[0].learners must be [low, high]"),
+        (lambda c: c.update(behavior="fast"), "behavior must be a mapping"),
+        (lambda c: c.update(course_templates={}), "course_templates must map template names"),
+        (lambda c: c.update(courses=[]), "courses must be a list"),
+        (lambda c: c.update(courses=["small"]), "courses[0] must be a mapping"),
     ],
 )
 def test_config_errors(change, message):
@@ -300,6 +305,59 @@ def test_config_errors(change, message):
     with pytest.raises(ValueError) as e:
         JourneyGenerator(conf, "http://localhost:18000", logging.getLogger())
     assert message in str(e.value)
+
+
+def test_behavior_settings_are_converted():
+    behavior = Behavior.from_config({
+        "video_actions": {"to_end": 1, "pause": 3}, "recent_hours": 6, "max_attempts": 2,
+        "days_between_subsections": 1, "continue_prob": 1,
+    })
+    assert behavior.video_actions == {"to_end": 1.0, "pause": 3.0}
+    assert (behavior.recent_hours, behavior.max_attempts) == (6.0, 2)
+    assert (behavior.days_between_subsections, behavior.continue_prob) == (1.0, 1.0)
+
+
+def test_optional_settings_have_defaults(tmp_path):
+    conf = yaml.safe_load(CONFIG.read_text())["journeys"]
+    for key in ("mbox_actor_fraction", "running_course_fraction", "deleted_unit_course_fraction",
+                "behavior"):
+        del conf[key]
+    conf["now"] = NOW
+    manifest = JourneyGenerator(conf, "http://localhost:18000", logging.getLogger()).run(
+        str(tmp_path)
+    )
+    assert manifest["mbox_actors"] == 0 and manifest["courses_with_deleted_unit"] == 0
+
+
+def test_activity_stops_at_now():
+    """
+    Learners whose journeys run past "now" stop there, at every step: no event is dated after
+    now, and the expected results only count what those events show.
+    """
+    rng = random.Random(7)
+    template = CourseTemplate.from_config({
+        "chapters": [2, 2], "sequentials_per_chapter": [2, 2], "verticals_per_sequential": [3, 3],
+        "problems_per_vertical_weights": [0, 1], "videos_per_vertical_weights": [0, 1],
+        "video_length": [60, 120],
+    })
+    course = JourneyCourse(rng, "Org", "C", "run", "t", template, "http://lms")
+    actor = JourneyActor(1, "e", "u", "U", "u@example.com")
+    enrolled = datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC)
+    pages_by_now = []
+    for minutes in range(0, 2 * 24 * 60, 4):
+        now = enrolled + datetime.timedelta(minutes=minutes, seconds=minutes % 59)
+        sim = Simulator(rng, Behavior(start_prob=1, completer_fraction=1), now)
+        events, truth = sim.run_enrollment(course, actor, enrolled)
+        assert all(e["emission_time"] <= now for e in events)
+        statements = [json.loads(e["event"]) for e in events]
+        navigated = {_location(s["object"]["id"]) for s in statements if s["verb"]["id"] == st.VERB_NAVIGATED}
+        evaluated = {_location(s["object"]["id"]) for s in statements
+                     if s["verb"]["id"] == st.VERB_EVALUATED}
+        assert truth.pages_viewed <= navigated
+        assert truth.problems_attempted <= evaluated
+        pages_by_now.append(len(truth.pages_viewed))
+    # From nothing yet to the whole course, as "now" moves later.
+    assert pages_by_now[0] == 0 and max(pages_by_now) >= 10
 
 
 def test_org_prefix_and_first_user_id(tmp_path):
@@ -402,6 +460,53 @@ def test_video_truth_stops_at_now():
     assert begin == 0 and 80 <= end < 100  # play starts 1-10 s after loading
     assert [verb for _, _, verb, _ in vt.stream] == [st.VERB_PLAYED]
     assert vt.observable_segments() == []
+
+
+class LowestRandom(random.Random):
+    """Always picks the lowest integer, so the simulator's timings are known."""
+
+    def randint(self, a, b):
+        return a
+
+
+def _one_block_course(kind):
+    """Return a one-unit course with a single problem or video, and that block."""
+    template = CourseTemplate.from_config({
+        "chapters": [1, 1], "sequentials_per_chapter": [1, 1], "verticals_per_sequential": [1, 1],
+        "problems_per_vertical_weights": [0, 1] if kind == "problem" else [1],
+        "videos_per_vertical_weights": [0, 1] if kind == "video" else [1],
+        "video_length": [600, 600],
+    })
+    course = JourneyCourse(random.Random(1), "Org", "C", "run", "t", template, "http://lms")
+    return course, next(b for b in course.all_blocks() if b.block_type == kind)
+
+
+def test_problem_submitted_just_before_now_is_not_counted():
+    """The attempt is logged at 20 s and graded at 21 s; with now in between, it isn't counted."""
+    course, problem = _one_block_course("problem")
+    start = datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC)
+    sim = Simulator(LowestRandom(1), Behavior(), start + datetime.timedelta(seconds=20.5))
+    sim._course = course  # pylint: disable=protected-access
+    sim.events = []
+    truth = EnrollmentTruth()
+    sim._attempt_problem(problem, start, truth)  # pylint: disable=protected-access
+    assert [json.loads(e["event"])["verb"]["id"] for e in sim.events] == [st.VERB_ATTEMPTED]
+    assert not truth.problems_attempted
+
+
+def test_video_paused_at_now_counts_only_the_seconds_before():
+    """Play at 1 s, pause at 2 s, resume at 4 s: with now at 3 s, one second was watched."""
+    course, video = _one_block_course("video")
+    start = datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC)
+    behavior = Behavior(video_actions={"pause": 1}, resume_after_pause_prob=1)
+    sim = Simulator(LowestRandom(1), behavior, start + datetime.timedelta(seconds=3))
+    sim._course = course  # pylint: disable=protected-access
+    sim.events = []
+    truth = EnrollmentTruth()
+    sim._watch_video(video, start, truth)  # pylint: disable=protected-access
+    vt = truth.videos[video.location]
+    assert vt.truth == [(0, 1)]
+    assert [verb for _, _, verb, _ in vt.stream] == [st.VERB_PLAYED, st.VERB_PAUSED]
 
 
 def test_cli(tmp_path):

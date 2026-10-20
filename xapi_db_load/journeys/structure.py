@@ -16,7 +16,6 @@ from typing import (
     Dict,
     Iterator,
     List,
-    Optional,
     Tuple,
 )
 
@@ -187,15 +186,14 @@ class JourneyCourse:
                             )
                         )
 
-    def add_deleted_vertical(self, rng: random.Random) -> Optional[Block]:
+    def add_deleted_vertical(self, rng: random.Random) -> Block:
         """
         Record a unit that existed in earlier publishes but was deleted before the final one.
 
         It's placed in the first subsection, so it would inflate that subsection's page count if a
         report kept counting it.
         """
-        if not self.chapters or not self.chapters[0].children:
-            return None
+        # Templates have at least one chapter and one sequential each (see CourseTemplate).
         seq = self.chapters[0].children[0]
         unit = len(seq.children) + 1
         block = self._new_block(
