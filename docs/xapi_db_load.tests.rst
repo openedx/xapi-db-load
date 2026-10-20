@@ -28,6 +28,14 @@ xapi\_db\_load.tests.test\_event\_generator module
    :show-inheritance:
    :undoc-members:
 
+xapi\_db\_load.tests.test\_journeys module
+------------------------------------------
+
+.. automodule:: xapi_db_load.tests.test_journeys
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 xapi\_db\_load.tests.test\_ui module
 ------------------------------------
 
