@@ -43,6 +43,7 @@ class AsyncClickHouseTasks(BaseBackendTasks):
             self.event_generator,
             InsertInitialEnrollments(self.config, self.logger, self.event_generator),
             InsertCourses(self.config, self.logger, self.event_generator),
+            InsertCatalogPathways(self.config, self.logger, self.event_generator),
             InsertBlocks(self.config, self.logger, self.event_generator),
             InsertObjectTags(self.config, self.logger, self.event_generator),
             InsertTaxonomies(self.config, self.logger, self.event_generator),
@@ -276,6 +277,42 @@ class InsertCourses(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
 
             await self._insert_rows("course_overviews", out_data)
             self.update_completed_task_count(increment_by=1)
+
+
+class InsertCatalogPathways(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts Catalog Pathway data to ClickHouse."""
+
+    task_name = "Insert Catalog Pathways"
+
+    async def _run_task(self):
+        """
+        Insert the Catalog Pathways to ClickHouse, all under one dump.
+        """
+        pathways = self.event_generator.catalog_pathways
+        self.update_total_task_count(1)
+
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        out_data = [
+            (
+                p["id"],
+                p["org"],
+                p["pathway_code"],
+                p["title"],
+                p["category_code"],
+                p["category_title"],
+                str(p["created"]),
+                str(p["modified"]),
+                dump_id,
+                str(dump_time),
+                0,  # is_deleted: fake pathways are never tombstones
+            )
+            for p in pathways
+        ]
+
+        if out_data:
+            await self._insert_rows("catalog_pathway", out_data)
+        self.update_completed_task_count(increment_by=1)
 
 
 class InsertBlocks(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method

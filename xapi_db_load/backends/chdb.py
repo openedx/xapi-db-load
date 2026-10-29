@@ -73,6 +73,12 @@ class AsyncCHDBTasks(BaseBackendTasks):
                 self.event_generator,
                 self.db_loader,
             ),
+            WriteCatalogPathways(
+                self.config,
+                self.logger,
+                self.event_generator,
+                self.db_loader,
+            ),
             WriteBlocks(
                 self.config,
                 self.logger,
@@ -543,6 +549,65 @@ class WriteCourses(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
 
             await self._write_list_sql_retry(out_data, f"course_overviews_publish_{i}")
             self.update_completed_task_count(increment_by=1)
+
+
+class WriteCatalogPathways(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
+    """
+    Write the Catalog Pathways to S3 using CHDB, all under one dump.
+    """
+
+    task_name = "Insert Catalog Pathways"
+    schema = "event_sink"
+    table = "catalog_pathway"
+    s3_load_prefix = "catalog_pathway"
+    table_definition = """
+    `id` Int64,
+    `org` String,
+    `pathway_code` String,
+    `title` String,
+    `category_code` String,
+    `category_title` String,
+    `created` String,
+    `modified` String,
+    `dump_id` UUID,
+    `time_last_dumped` String,
+    `is_deleted` UInt8
+    """
+
+    async def _run_task(self):
+        """
+        Insert the Catalog Pathways into the event sink db.
+        """
+        pathways = self.event_generator.catalog_pathways
+        self.update_total_task_count(len(pathways))
+
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        out_data = []
+
+        for p in pathways:
+            # Titles such as "Master's Degree" need their quotes escaped for SQL.
+            title = p["title"].replace("'", "\\'")
+            category_title = p["category_title"].replace("'", "\\'")
+            out_data.append(
+                f"""(
+                {p["id"]},
+                '{p["org"]}',
+                '{p["pathway_code"]}',
+                '{title}',
+                '{p["category_code"]}',
+                '{category_title}',
+                '{p["created"]}',
+                '{p["modified"]}',
+                '{dump_id}',
+                '{dump_time}',
+                0
+            )"""
+            )
+            self.update_completed_task_count(increment_by=1)
+
+        if out_data:
+            await self._write_list_sql_retry(out_data, "catalog_pathway")
 
 
 class WriteBlocks(XAPILakeCHDBAsync):  # pylint: disable=abstract-method

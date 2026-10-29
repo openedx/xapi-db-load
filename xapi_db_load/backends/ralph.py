@@ -15,6 +15,7 @@ import requests
 from xapi_db_load.backends.base_async_backend import BaseBackendTasks
 from xapi_db_load.backends.clickhouse import (
     InsertBlocks,
+    InsertCatalogPathways,
     InsertCourses,
     InsertExternalIDs,
     InsertInitialEnrollments,
@@ -41,6 +42,7 @@ class AsyncRalphTasks(BaseBackendTasks):
             self.event_generator,
             InsertInitialEnrollments(self.config, self.logger, self.event_generator),
             InsertCourses(self.config, self.logger, self.event_generator),
+            InsertCatalogPathways(self.config, self.logger, self.event_generator),
             InsertBlocks(self.config, self.logger, self.event_generator),
             InsertObjectTags(self.config, self.logger, self.event_generator),
             InsertTaxonomies(self.config, self.logger, self.event_generator),
