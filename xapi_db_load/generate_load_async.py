@@ -3,6 +3,7 @@ Generates batches of random xAPI events.
 """
 
 import asyncio
+import datetime
 import json
 import os
 import random
@@ -20,9 +21,15 @@ from typing import (
 
 from xapi_db_load.constants import (
     COURSE_ID_SHORT_LENGTH,
+    DEFAULT_FIRST_CATALOG_PATHWAY_ID,
+    DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID,
     DEFAULT_LMS_URL,
+    DEFAULT_NUM_CATALOG_PATHWAYS,
+    DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY,
     MAX_COURSE_RUNS,
     MIN_COURSE_RUNS,
+    PATHWAY_CATEGORIES,
+    PATHWAY_UNENROLLED_RATIO,
 )
 from xapi_db_load.course_configs import (
     Actor,
@@ -100,6 +107,29 @@ def _get_uuid() -> str:
     return str(uuid.uuid4())
 
 
+def _random_datetime(
+    start: datetime.datetime, end: datetime.datetime
+) -> datetime.datetime:
+    """
+    Return a random UTC datetime between start and end, with microseconds like
+    the timestamps Django stores.
+    """
+    span = int((end - start).total_seconds() * 1_000_000)
+    return start + datetime.timedelta(microseconds=random.randrange(max(span, 1)))
+
+
+def to_sink_datetime(value: datetime.datetime) -> str:
+    """
+    Format a UTC datetime the way the platform-plugin-aspects model sinks write
+    created/modified: DRF's DateTimeField, which is isoformat() with "+00:00"
+    turned into "Z", e.g. 2026-10-29T21:18:23.286693Z.
+    """
+    formatted = value.astimezone(datetime.UTC).isoformat()
+    if formatted.endswith("+00:00"):
+        formatted = formatted[:-6] + "Z"
+    return formatted
+
+
 class EventGenerator(Waiter):  # pylint: disable=abstract-method
     """
     Generates a batch of random xAPI events based on the EVENT_WEIGHTS proportions.
@@ -118,6 +148,8 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         self.actors: List[Actor] = []
         self.courses: List[RandomCourse] = []
         self.orgs: List[str] = []
+        self.catalog_pathways: List[Dict] = []
+        self.pathway_enrollments: List[Dict] = []
         self.taxonomies: Dict = {}
         self.tags: List = []
         self.setup_complete = False
@@ -153,12 +185,15 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         """
         self.complete_pct = 0.0
         self.setup_orgs()
+        self.setup_catalog_pathways()
         self.complete_pct = 0.1
         self.setup_taxonomies_tags()
         self.complete_pct = 0.2
         self.setup_actors()
         self.complete_pct = 0.3
         await self.setup_courses()
+        # Needs the courses, to enroll learners of the pathway's org.
+        self.setup_pathway_enrollments()
 
         # Force this in case of a rounding error
         self.complete_pct = 1.0
@@ -179,6 +214,116 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         """
         for i in range(self.config["num_organizations"]):
             self.orgs.append(f"Org{i}")
+
+    def setup_catalog_pathways(self) -> None:
+        """
+        Create the Catalog Pathways, rotating through the orgs and categories so
+        that each org gets pathways of different categories.
+
+        Rows match the ``event_sink.catalog_pathway`` table written by the
+        platform-plugin-aspects ``catalog_pathway`` sink, including the
+        created/modified string format (see ``to_sink_datetime``).
+        """
+        num_pathways = self.config.get(
+            "num_catalog_pathways", DEFAULT_NUM_CATALOG_PATHWAYS
+        )
+        first_id = self.config.get(
+            "first_catalog_pathway_id", DEFAULT_FIRST_CATALOG_PATHWAY_ID
+        )
+        num_orgs = len(self.orgs)
+        start, end = self._run_window()
+
+        for i in range(num_pathways):
+            # Shift each org's category by one on every full pass over the orgs.
+            category_code, category_title = PATHWAY_CATEGORIES[
+                (i % num_orgs + i // num_orgs) % len(PATHWAY_CATEGORIES)
+            ]
+            created = _random_datetime(start, end)
+            modified = _random_datetime(
+                created, min(created + datetime.timedelta(days=30), end)
+            )
+            self.catalog_pathways.append(
+                {
+                    "id": first_id + i,
+                    "org": self.orgs[i % num_orgs],
+                    "pathway_code": f"Pathway{i}",
+                    "title": f"{category_title} {i}",
+                    "category_code": category_code,
+                    "category_title": category_title,
+                    "created": to_sink_datetime(created),
+                    "modified": to_sink_datetime(modified),
+                }
+            )
+
+    def setup_pathway_enrollments(self) -> None:
+        """
+        Enroll learners in each Catalog Pathway.
+
+        Each pathway gets ``num_enrollments_per_pathway`` distinct learners (at
+        most ``num_actors``), taken first from learners of the pathway org's
+        courses so that their xAPI activity is in the same org, then from the
+        remaining actors. ``actor_id`` is the actor's xAPI id, as written by the
+        platform-plugin-aspects ``pathway_enrollment`` sink, so it joins the
+        xAPI tables. About ``PATHWAY_UNENROLLED_RATIO`` of the enrollments end
+        up unenrolled (``is_active`` False, modified after created); the rest
+        keep ``modified`` equal to ``created``.
+
+        Rows match the ``event_sink.pathway_enrollment`` table.
+        """
+        per_pathway = min(
+            self.config.get(
+                "num_enrollments_per_pathway", DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY
+            ),
+            len(self.actors),
+        )
+        next_id = self.config.get(
+            "first_pathway_enrollment_id", DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID
+        )
+        _, end = self._run_window()
+
+        org_learners: Dict[str, Dict[int, Actor]] = {}
+        for course in self.courses:
+            learners = org_learners.setdefault(course.org, {})
+            for enrolled in course.actors:
+                learners[enrolled.actor.user_id] = enrolled.actor
+
+        for pathway in self.catalog_pathways:
+            in_org = list(org_learners.get(pathway["org"], {}).values())
+            random.shuffle(in_org)
+            chosen = in_org[:per_pathway]
+            if len(chosen) < per_pathway:
+                chosen_ids = {a.user_id for a in chosen}
+                others = [a for a in self.actors if a.user_id not in chosen_ids]
+                chosen += random.sample(others, per_pathway - len(chosen))
+
+            pathway_created = datetime.datetime.fromisoformat(pathway["created"])
+            for actor in chosen:
+                created = _random_datetime(pathway_created, end)
+                is_active = random.random() >= PATHWAY_UNENROLLED_RATIO
+                modified = created if is_active else _random_datetime(created, end)
+                self.pathway_enrollments.append(
+                    {
+                        "id": next_id,
+                        "catalog_pathway_id": pathway["id"],
+                        "actor_id": actor.id,
+                        "created": to_sink_datetime(created),
+                        "modified": to_sink_datetime(modified),
+                        "is_active": is_active,
+                    }
+                )
+                next_id += 1
+
+    def _run_window(self) -> tuple[datetime.datetime, datetime.datetime]:
+        """
+        Return the configured start and end dates as UTC datetimes.
+        """
+        start = datetime.datetime.combine(
+            self.start_date, datetime.time(), tzinfo=datetime.UTC
+        )
+        end = datetime.datetime.combine(
+            self.end_date, datetime.time(), tzinfo=datetime.UTC
+        )
+        return start, end
 
     async def setup_courses(self) -> None:
         """

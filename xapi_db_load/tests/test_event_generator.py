@@ -2,12 +2,24 @@
 Validation tests for ``EventGenerator._validate_config`` and basic setup.
 """
 
+import asyncio
 import datetime
 import logging
+import re
 
 import pytest
 
-from xapi_db_load.generate_load_async import EventGenerator
+from xapi_db_load.constants import (
+    DEFAULT_FIRST_CATALOG_PATHWAY_ID,
+    DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID,
+    DEFAULT_NUM_CATALOG_PATHWAYS,
+    DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY,
+    PATHWAY_CATEGORIES,
+)
+from xapi_db_load.generate_load_async import (
+    EventGenerator,
+    to_sink_datetime,
+)
 
 
 def _base_config(**overrides) -> dict:
@@ -113,3 +125,220 @@ def test_instances_have_isolated_state():
 
     assert not b.actors
     assert not b.orgs
+
+
+def test_catalog_pathways_defaults():
+    """
+    Without pathway settings the default number of pathways is created, starting
+    at the default id, and every category is used.
+    """
+    gen = _make_generator(_base_config(num_organizations=3))
+    gen.setup_orgs()
+    gen.setup_catalog_pathways()
+    pathways = gen.catalog_pathways
+
+    assert len(pathways) == DEFAULT_NUM_CATALOG_PATHWAYS
+    assert pathways[0]["id"] == DEFAULT_FIRST_CATALOG_PATHWAY_ID
+    assert {p["category_code"] for p in pathways} == {
+        code for code, _ in PATHWAY_CATEGORIES
+    }
+
+
+def test_catalog_pathways_first_id():
+    """first_catalog_pathway_id moves the id range."""
+    gen = _make_generator(
+        _base_config(num_catalog_pathways=2, first_catalog_pathway_id=500)
+    )
+    gen.setup_orgs()
+    gen.setup_catalog_pathways()
+
+    assert [p["id"] for p in gen.catalog_pathways] == [500, 501]
+
+
+@pytest.mark.parametrize("num_orgs", [1, 2, 3, 5])
+def test_catalog_pathways_spread_across_orgs_and_categories(num_orgs):
+    """
+    Pathways rotate through every org, every org gets every category once it has
+    as many pathways as there are categories, and ids and codes are unique.
+    """
+    num_categories = len(PATHWAY_CATEGORIES)
+    num_pathways = num_orgs * num_categories
+    gen = _make_generator(
+        _base_config(num_organizations=num_orgs, num_catalog_pathways=num_pathways)
+    )
+    gen.setup_orgs()
+    gen.setup_catalog_pathways()
+    pathways = gen.catalog_pathways
+
+    assert len(pathways) == num_pathways
+    assert {p["org"] for p in pathways} == set(gen.orgs)
+    assert len({p["id"] for p in pathways}) == num_pathways
+    assert len({(p["org"], p["pathway_code"]) for p in pathways}) == num_pathways
+    for org in gen.orgs:
+        org_categories = {p["category_code"] for p in pathways if p["org"] == org}
+        assert len(org_categories) == num_categories
+    for p in pathways:
+        created = datetime.datetime.fromisoformat(p["created"])
+        modified = datetime.datetime.fromisoformat(p["modified"])
+        assert created <= modified
+        assert gen.start_date <= created.date()
+        assert modified.date() <= gen.end_date
+
+
+def test_catalog_pathways_can_be_disabled():
+    """num_catalog_pathways: 0 creates no pathways."""
+    gen = _make_generator(_base_config(num_catalog_pathways=0))
+    gen.setup_orgs()
+    gen.setup_catalog_pathways()
+
+    assert not gen.catalog_pathways
+
+
+# The format DRF's DateTimeField writes, which the platform-plugin-aspects
+# sinks send to ClickHouse, e.g. 2026-10-29T21:18:23.286693Z.
+SINK_DATETIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{6})?Z$")
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (
+            datetime.datetime(2026, 10, 29, 21, 18, 23, 286693, tzinfo=datetime.UTC),
+            "2026-10-29T21:18:23.286693Z",
+        ),
+        # DRF drops zero microseconds, because isoformat() does.
+        (
+            datetime.datetime(2026, 1, 1, 12, 34, 56, tzinfo=datetime.UTC),
+            "2026-01-01T12:34:56Z",
+        ),
+        # Other offsets are converted to UTC first.
+        (
+            datetime.datetime(
+                2026,
+                1,
+                1,
+                7,
+                34,
+                56,
+                tzinfo=datetime.timezone(datetime.timedelta(hours=-5)),
+            ),
+            "2026-01-01T12:34:56Z",
+        ),
+    ],
+)
+def test_to_sink_datetime(value, expected):
+    """Datetimes are formatted the way the LMS sinks write them."""
+    assert to_sink_datetime(value) == expected
+
+
+def test_catalog_pathways_use_sink_datetime_format():
+    """created and modified are strings in the format the LMS sink writes."""
+    gen = _make_generator(_base_config())
+    gen.setup_orgs()
+    gen.setup_catalog_pathways()
+
+    for p in gen.catalog_pathways:
+        assert SINK_DATETIME_RE.match(p["created"]), p["created"]
+        assert SINK_DATETIME_RE.match(p["modified"]), p["modified"]
+
+
+async def _make_enrolled_generator(**overrides) -> EventGenerator:
+    """Run the whole setup, which ends by enrolling learners in the pathways."""
+    gen = _make_generator(_base_config(**overrides))
+    await gen.run_task()
+    return gen
+
+
+def test_pathway_enrollments_defaults():
+    """
+    Each pathway gets the default number of distinct learners, ids count up
+    from the default first id, and every actor_id is a known actor's xAPI id.
+    """
+    gen = asyncio.run(_make_enrolled_generator(num_organizations=3))
+    enrollments = gen.pathway_enrollments
+    per_pathway = min(DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY, len(gen.actors))
+
+    assert len(enrollments) == DEFAULT_NUM_CATALOG_PATHWAYS * per_pathway
+    assert [e["id"] for e in enrollments] == list(
+        range(
+            DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID,
+            DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID + len(enrollments),
+        )
+    )
+    actor_ids = {a.id for a in gen.actors}
+    pathways = {p["id"]: p for p in gen.catalog_pathways}
+    for pathway_id in pathways:
+        learners = [
+            e["actor_id"] for e in enrollments if e["catalog_pathway_id"] == pathway_id
+        ]
+        assert len(learners) == len(set(learners)) == per_pathway
+        assert set(learners) <= actor_ids
+
+    for e in enrollments:
+        assert SINK_DATETIME_RE.match(e["created"]), e["created"]
+        assert SINK_DATETIME_RE.match(e["modified"]), e["modified"]
+        created = datetime.datetime.fromisoformat(e["created"])
+        modified = datetime.datetime.fromisoformat(e["modified"])
+        pathway_created = datetime.datetime.fromisoformat(
+            pathways[e["catalog_pathway_id"]]["created"]
+        )
+        assert pathway_created <= created <= modified
+        assert modified.date() <= gen.end_date
+        if e["is_active"]:
+            assert created == modified
+
+
+def test_pathway_enrollments_prefer_learners_of_the_pathway_org():
+    """
+    Learners come from the pathway org's courses first, so their xAPI activity
+    is in the same org.
+    """
+    gen = asyncio.run(
+        _make_enrolled_generator(
+            num_organizations=1,
+            num_actors=5,
+            num_catalog_pathways=1,
+            # Courses pick their actors with replacement, so only one distinct
+            # course learner is guaranteed.
+            num_enrollments_per_pathway=1,
+        )
+    )
+    course_learners = {ea.actor.id for c in gen.courses for ea in c.actors}
+
+    assert len(gen.pathway_enrollments) == 1
+    assert gen.pathway_enrollments[0]["actor_id"] in course_learners
+
+
+def test_pathway_enrollments_capped_at_num_actors():
+    """A pathway can't have more distinct learners than there are actors."""
+    gen = asyncio.run(
+        _make_enrolled_generator(
+            num_actors=3, num_catalog_pathways=2, num_enrollments_per_pathway=10
+        )
+    )
+
+    assert len(gen.pathway_enrollments) == 2 * 3
+
+
+def test_pathway_enrollments_first_id_and_inactive():
+    """first_pathway_enrollment_id moves the ids, and some learners unenroll."""
+    gen = asyncio.run(
+        _make_enrolled_generator(
+            num_actors=50,
+            num_catalog_pathways=10,
+            num_enrollments_per_pathway=50,
+            first_pathway_enrollment_id=7,
+        )
+    )
+    enrollments = gen.pathway_enrollments
+
+    assert enrollments[0]["id"] == 7
+    # 500 enrollments at a 10% unenroll ratio; both kinds are all but certain.
+    assert {e["is_active"] for e in enrollments} == {True, False}
+
+
+def test_pathway_enrollments_none_without_pathways():
+    """num_catalog_pathways: 0 also means no enrollments."""
+    gen = asyncio.run(_make_enrolled_generator(num_catalog_pathways=0))
+
+    assert not gen.pathway_enrollments
