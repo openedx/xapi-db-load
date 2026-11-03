@@ -16,6 +16,7 @@ from unittest.mock import (
 import yaml
 from click.testing import CliRunner
 
+from xapi_db_load.constants import DEFAULT_NUM_CATALOG_PATHWAYS
 from xapi_db_load.main import load_db
 
 
@@ -90,6 +91,7 @@ def test_csv_backend(tmp_path):
             ("blocks", expected_blocks),
             ("external_ids", expected_external_ids),
             ("user_profiles", expected_profiles),
+            ("catalog_pathways", DEFAULT_NUM_CATALOG_PATHWAYS),
         ):
             with gzip.open(
                 os.path.join(test_config["log_dir"], f"{prefix}.csv.gz"), "r"

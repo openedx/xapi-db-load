@@ -308,6 +308,18 @@ test::
     # The number of organizations, courses will be evenly spread among these
     num_organizations: 3
 
+    # The number of Catalog Pathways written to event_sink.catalog_pathway,
+    # spread across the organizations and the Pathway Categories. That table
+    # exists only in Aspects installs that have run the tutor-contrib-aspects
+    # migration 0042_event_sink_pathways (released after v6.1.1). On older
+    # installs set this to 0, or the pathway insert fails.
+    num_catalog_pathways: 6
+
+    # The id given to the first fake Catalog Pathway; the rest count up from
+    # it. Keep it above the ids of real pathways dumped by the LMS into the
+    # same table so the two don't collide.
+    first_catalog_pathway_id: 100001
+
     # The number of learners to create, random subsets of these will be
     # "registered" for each course and have statements generated for them
     # between their registration date and the end of the course

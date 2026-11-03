@@ -3,6 +3,7 @@ Generates batches of random xAPI events.
 """
 
 import asyncio
+import datetime
 import json
 import os
 import random
@@ -20,9 +21,12 @@ from typing import (
 
 from xapi_db_load.constants import (
     COURSE_ID_SHORT_LENGTH,
+    DEFAULT_FIRST_CATALOG_PATHWAY_ID,
     DEFAULT_LMS_URL,
+    DEFAULT_NUM_CATALOG_PATHWAYS,
     MAX_COURSE_RUNS,
     MIN_COURSE_RUNS,
+    PATHWAY_CATEGORIES,
 )
 from xapi_db_load.course_configs import (
     Actor,
@@ -118,6 +122,7 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         self.actors: List[Actor] = []
         self.courses: List[RandomCourse] = []
         self.orgs: List[str] = []
+        self.catalog_pathways: List[Dict] = []
         self.taxonomies: Dict = {}
         self.tags: List = []
         self.setup_complete = False
@@ -153,6 +158,7 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         """
         self.complete_pct = 0.0
         self.setup_orgs()
+        self.setup_catalog_pathways()
         self.complete_pct = 0.1
         self.setup_taxonomies_tags()
         self.complete_pct = 0.2
@@ -179,6 +185,52 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         """
         for i in range(self.config["num_organizations"]):
             self.orgs.append(f"Org{i}")
+
+    def setup_catalog_pathways(self) -> None:
+        """
+        Create the Catalog Pathways, rotating through the orgs and categories so
+        that each org gets pathways of different categories.
+
+        Rows match the ``event_sink.catalog_pathway`` table written by the
+        platform-plugin-aspects ``catalog_pathway`` sink.
+        """
+        num_pathways = self.config.get(
+            "num_catalog_pathways", DEFAULT_NUM_CATALOG_PATHWAYS
+        )
+        first_id = self.config.get(
+            "first_catalog_pathway_id", DEFAULT_FIRST_CATALOG_PATHWAY_ID
+        )
+        num_orgs = len(self.orgs)
+        start = datetime.datetime.combine(self.start_date, datetime.time())
+        span_seconds = int(
+            (datetime.datetime.combine(self.end_date, datetime.time()) - start)
+            .total_seconds()
+        )
+
+        for i in range(num_pathways):
+            # Shift each org's category by one on every full pass over the orgs.
+            category_code, category_title = PATHWAY_CATEGORIES[
+                (i % num_orgs + i // num_orgs) % len(PATHWAY_CATEGORIES)
+            ]
+            created = start + datetime.timedelta(
+                seconds=random.randrange(span_seconds)
+            )
+            modified = min(
+                created + datetime.timedelta(days=random.randrange(30)),
+                start + datetime.timedelta(seconds=span_seconds),
+            )
+            self.catalog_pathways.append(
+                {
+                    "id": first_id + i,
+                    "org": self.orgs[i % num_orgs],
+                    "pathway_code": f"Pathway{i}",
+                    "title": f"{category_title} {i}",
+                    "category_code": category_code,
+                    "category_title": category_title,
+                    "created": created,
+                    "modified": modified,
+                }
+            )
 
     async def setup_courses(self) -> None:
         """
