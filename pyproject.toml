@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xapi-db-load"
-version = "3.1.0"
+version = "4.0.0"
 description = "Loads testing xAPI events into databases and LRSs"
 requires-python = ">=3.12"
 license = "AGPL-3.0"
