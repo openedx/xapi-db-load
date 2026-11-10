@@ -48,6 +48,8 @@ class AsyncCSVTasks(BaseBackendTasks):
         return [
             self.event_generator,
             WriteCSVCourses(self.config, self.logger, self.event_generator),
+            WriteCSVCatalogPathways(self.config, self.logger, self.event_generator),
+            WriteCSVPathwayEnrollments(self.config, self.logger, self.event_generator),
             WriteCSVBlocks(self.config, self.logger, self.event_generator),
             WriteCSVObjectTags(self.config, self.logger, self.event_generator),
             WriteCSVTaxonomies(self.config, self.logger, self.event_generator),
@@ -222,6 +224,79 @@ class WriteCSVCourses(XAPILakeCSVAsync):
                         )
                     )
                     self.update_completed_task_count(increment_by=1)
+
+
+class WriteCSVCatalogPathways(XAPILakeCSVAsync):
+    """Writes Catalog Pathway data to a gzipped CSV file."""
+
+    task_name = "Write CSV Catalog Pathways"
+    schema = "event_sink"
+    table = "catalog_pathway"
+    filename = "catalog_pathways.csv.gz"
+
+    async def _run_task(self):
+        """
+        Write out the Catalog Pathways data file, all under one dump.
+        """
+        async with self.get_csv_handle("catalog_pathways") as pathway_csv_writer:
+            pathways = self.event_generator.catalog_pathways
+            self.update_total_task_count(len(pathways))
+
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.now(UTC)
+
+            for p in pathways:
+                pathway_csv_writer.writerow(
+                    (
+                        p["id"],
+                        p["org"],
+                        p["pathway_code"],
+                        p["title"],
+                        p["category_code"],
+                        p["category_title"],
+                        p["created"],
+                        p["modified"],
+                        dump_id,
+                        dump_time,
+                        0,  # is_deleted: fake pathways are never tombstones
+                    )
+                )
+                self.update_completed_task_count(increment_by=1)
+
+
+class WriteCSVPathwayEnrollments(XAPILakeCSVAsync):
+    """Writes Pathway Enrollment data to a gzipped CSV file."""
+
+    task_name = "Write CSV Pathway Enrollments"
+    schema = "event_sink"
+    table = "pathway_enrollment"
+    filename = "pathway_enrollments.csv.gz"
+
+    async def _run_task(self):
+        """
+        Write out the Pathway Enrollments data file, all under one dump.
+        """
+        async with self.get_csv_handle("pathway_enrollments") as enrollment_csv_writer:
+            enrollments = self.event_generator.pathway_enrollments
+            self.update_total_task_count(len(enrollments))
+
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.now(UTC)
+
+            for e in enrollments:
+                enrollment_csv_writer.writerow(
+                    (
+                        e["id"],
+                        e["catalog_pathway_id"],
+                        e["actor_id"],
+                        e["created"],
+                        e["modified"],
+                        str(e["is_active"]).lower(),
+                        dump_id,
+                        dump_time,
+                    )
+                )
+                self.update_completed_task_count(increment_by=1)
 
 
 class WriteCSVBlocks(XAPILakeCSVAsync):

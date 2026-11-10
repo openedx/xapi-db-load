@@ -29,6 +29,35 @@ DEFAULT_VIDEO_LENGTH_SECONDS = 195.0
 UUID_SHORT_LENGTH = 8
 COURSE_ID_SHORT_LENGTH = 6
 
+# Catalog Pathways (openedx-core ``openedx_catalog``) written to the
+# ``event_sink.catalog_pathway`` table when ``num_catalog_pathways`` is not set.
+DEFAULT_NUM_CATALOG_PATHWAYS = 6
+
+# First id given to a fake Catalog Pathway when ``first_catalog_pathway_id`` is
+# not set. High enough not to collide with real pathways dumped by the LMS
+# into the same table, the way ``first_user_id`` keeps fake users apart.
+DEFAULT_FIRST_CATALOG_PATHWAY_ID = 100001
+
+# Pathway Categories the fake Catalog Pathways rotate through, as
+# (category_code, title) pairs.
+PATHWAY_CATEGORIES = (
+    ("masters", "Master's Degree"),
+    ("annual-training", "Annual Training"),
+    ("professional-certificate", "Professional Certificate"),
+)
+
+# Learners enrolled in each fake Catalog Pathway (``event_sink.pathway_enrollment``)
+# when ``num_enrollments_per_pathway`` is not set. Capped at ``num_actors``.
+DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY = 5
+
+# First id given to a fake Pathway Enrollment when ``first_pathway_enrollment_id``
+# is not set, kept above the ids of real enrollments for the same reason as
+# ``DEFAULT_FIRST_CATALOG_PATHWAY_ID``.
+DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID = 100001
+
+# Share of fake Pathway Enrollments that end up unenrolled (``is_active`` False).
+PATHWAY_UNENROLLED_RATIO = 0.1
+
 # Range of "course runs" generated per logical course (inclusive of low,
 # exclusive of high — passed straight to ``random.randrange``).
 MIN_COURSE_RUNS = 1
