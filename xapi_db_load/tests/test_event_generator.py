@@ -6,12 +6,16 @@ import asyncio
 import datetime
 import logging
 import re
+import statistics
 
 import pytest
 
 from xapi_db_load.constants import (
+    COMPETENCY_MASTERY_MEDIAN_DAYS_RANGE,
     DEFAULT_FIRST_CATALOG_PATHWAY_ID,
+    DEFAULT_FIRST_COMPETENCY_GROUP_STATUS_ID,
     DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID,
+    DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID,
     DEFAULT_NUM_CATALOG_PATHWAYS,
     DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY,
     PATHWAY_CATEGORIES,
@@ -342,3 +346,239 @@ def test_pathway_enrollments_none_without_pathways():
     gen = asyncio.run(_make_enrolled_generator(num_catalog_pathways=0))
 
     assert not gen.pathway_enrollments
+
+
+def _competency_generator(**overrides) -> EventGenerator:
+    """A whole setup whose fake taxonomy is a competency taxonomy, with enough learners."""
+    config = {
+        "taxonomy_export_id": "competency-music",
+        "num_actors": 40,
+        "num_course_sizes": {"small": 3},
+        "course_size_makeup": {
+            "small": {
+                "actors": 30,
+                "problems": 10,
+                "videos": 5,
+                "chapters": 2,
+                "sequences": 6,
+                "verticals": 8,
+                "forum_posts": 1,
+            }
+        },
+    }
+    config.update(overrides)
+    return asyncio.run(_make_enrolled_generator(**config))
+
+
+def test_org_prefix():
+    """org_prefix names the fake organizations, so a load can be told apart in the org filters."""
+    gen = _make_generator(_base_config(num_organizations=2, org_prefix="Competency"))
+    gen.setup_orgs()
+
+    assert gen.orgs == ["Competency0", "Competency1"]
+
+
+def test_first_taxonomy_tag_and_object_tag_ids():
+    """
+    The first_* ids move the fake taxonomy, tag and object tag ids, tag ids are
+    unique across taxonomies, and object tag ids count up across courses.
+    """
+    gen = _competency_generator(first_taxonomy_id=500, first_tag_id=1000, first_object_tag_id=7000)
+
+    assert list(gen.taxonomy_ids.values()) == [500]
+    assert [t["tag_id"] for t in gen.tags] == list(range(1000, 1000 + len(gen.tags)))
+    object_tag_ids = [
+        o["object_tag_id"]
+        for c in gen.courses
+        for o in c.serialize_object_tag_data_for_event_sink()
+    ]
+    assert object_tag_ids == list(range(7000, 7000 + len(object_tag_ids)))
+    assert {
+        o["export_id"]
+        for c in gen.courses
+        for o in c.serialize_object_tag_data_for_event_sink()
+    } == {"competency-music"}
+
+
+def test_object_tags_are_stable():
+    """Every call returns the same object tags, so all backends write the same rows."""
+    gen = _competency_generator()
+    course = gen.courses[0]
+
+    assert course.serialize_object_tag_data_for_event_sink() is course.serialize_object_tag_data_for_event_sink()
+
+
+def test_no_competency_statuses_without_a_competency_taxonomy():
+    """The default export id isn't a competency taxonomy, so no statuses are generated."""
+    gen = _competency_generator(taxonomy_export_id="fake export id")
+
+    assert not gen.student_competency_statuses
+
+
+def test_competency_statuses_follow_core_rules():
+    """
+    One row per learner and competency, only PartiallyAttempted or Demonstrated,
+    created before modified, a Partially row unchanged since created, ids from the
+    default first id, and every learner a known actor.
+    """
+    gen = _competency_generator()
+    statuses = gen.student_competency_statuses
+    actor_ids = {a.id for a in gen.actors}
+
+    assert statuses
+    assert [s["id"] for s in statuses] == list(
+        range(
+            DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID,
+            DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID + len(statuses),
+        )
+    )
+    assert len({(s["actor_id"], s["tag_id"]) for s in statuses}) == len(statuses)
+    assert {(s["status_id"], s["status"]) for s in statuses} == {
+        (20, "PartiallyAttempted"),
+        (30, "Demonstrated"),
+    }
+    for s in statuses:
+        assert s["actor_id"] in actor_ids
+        assert SINK_DATETIME_RE.match(s["created"]), s["created"]
+        assert SINK_DATETIME_RE.match(s["modified"]), s["modified"]
+        created = datetime.datetime.fromisoformat(s["created"])
+        modified = datetime.datetime.fromisoformat(s["modified"])
+        assert created <= modified
+        assert modified.date() <= gen.end_date
+        if s["status_id"] == 20:
+            assert created == modified
+
+
+def test_competency_statuses_only_for_assessed_competencies_and_their_parents():
+    """
+    A learner's statuses cover competencies tagged on their courses' blocks, plus
+    ancestors, and a parent is Demonstrated only when every child the learner has a
+    status on is.
+    """
+    gen = _competency_generator()
+    tags = {t["tag_id"]: t for t in gen.tags}
+    assessed_by_actor: dict = {}
+    for course in gen.courses:
+        tagged = {o["tag_id"] for o in course.serialize_object_tag_data_for_event_sink()}
+        for enrolled in course.actors:
+            assessed_by_actor.setdefault(enrolled.actor.id, set()).update(tagged)
+
+    def ancestors(tag_id):
+        parent = tags[tag_id]["parent_int_id"]
+        return set() if not parent else {parent} | ancestors(parent)
+
+    by_actor: dict = {}
+    for s in gen.student_competency_statuses:
+        by_actor.setdefault(s["actor_id"], {})[s["tag_id"]] = s
+    for actor_id, rows in by_actor.items():
+        allowed = set(assessed_by_actor[actor_id])
+        for tag_id in assessed_by_actor[actor_id]:
+            allowed |= ancestors(tag_id)
+        assert set(rows) <= allowed
+        for tag_id, row in rows.items():
+            children = [r for t, r in rows.items() if tags[t]["parent_int_id"] == tag_id]
+            if children and tag_id not in assessed_by_actor[actor_id]:
+                all_done = all(c["status_id"] == 30 for c in children)
+                assert (row["status_id"] == 30) == all_done
+
+
+def test_competency_statuses_spread_time_to_mastery():
+    """
+    Competencies differ in difficulty, from hours to weeks, so their time-to-mastery
+    boxes sit at different heights; within one competency learners still vary.
+    """
+    gen = _competency_generator(num_actors=200, course_size_makeup={
+        "small": {
+            "actors": 150, "problems": 10, "videos": 5, "chapters": 2,
+            "sequences": 6, "verticals": 8, "forum_posts": 1,
+        }
+    })
+    medians = gen.competency_mastery_median_days
+    low, high = COMPETENCY_MASTERY_MEDIAN_DAYS_RANGE
+    assert all(low <= m <= high for m in medians.values())
+    assert max(medians.values()) / min(medians.values()) > 10
+
+    tags = {t["tag_id"]: t for t in gen.tags}
+    leaves = {t for t in tags if not any(o["parent_int_id"] == t for o in tags.values())}
+    by_tag: dict = {}
+    for s in gen.student_competency_statuses:
+        if s["status_id"] == 30 and s["tag_id"] in leaves:
+            days = (
+                datetime.datetime.fromisoformat(s["modified"])
+                - datetime.datetime.fromisoformat(s["created"])
+            ).total_seconds() / 86400
+            by_tag.setdefault(s["tag_id"], []).append(days)
+
+    observed = {t: statistics.median(d) for t, d in by_tag.items() if len(d) >= 20}
+    assert len(observed) >= 3
+    fastest, slowest = min(observed, key=observed.get), max(observed, key=observed.get)
+    assert observed[slowest] > 5 * observed[fastest]
+    assert medians[slowest] > medians[fastest]
+    for days in by_tag.values():
+        if len(days) >= 20:
+            assert max(days) > 1.5 * min(days)
+
+
+def test_first_competency_status_lands_soon_after_enrollment():
+    """A learner's first status comes soon after they enroll, not anywhere in the course."""
+    gen = _competency_generator()
+    enrolled = {}
+    for course in gen.courses:
+        for e in course.actors:
+            when = e.enroll_datetime
+            if not isinstance(when, datetime.datetime):
+                when = datetime.datetime.combine(when, datetime.time(), tzinfo=datetime.UTC)
+            enrolled[e.actor.id] = min(enrolled.get(e.actor.id, when), when)
+    gaps = [
+        (datetime.datetime.fromisoformat(s["created"]) - enrolled[s["actor_id"]]).total_seconds() / 3600
+        for s in gen.student_competency_statuses
+    ]
+    assert min(gaps) >= 0
+    assert statistics.median(gaps) < 48
+
+
+def test_course_group_statuses_include_attempted_not_demonstrated():
+    """
+    Course-level group statuses use all three stored values, including the
+    AttemptedNotDemonstrated that the competency level never holds, one row per
+    learner, competency and course, with ids from the default first id.
+    """
+    gen = _competency_generator()
+    rows = gen.student_competency_criteria_group_statuses
+
+    assert rows
+    assert {r["status_id"] for r in rows} == {10, 20, 30}
+    assert {r["group_level"] for r in rows} == {"course"}
+    assert [r["id"] for r in rows] == list(
+        range(
+            DEFAULT_FIRST_COMPETENCY_GROUP_STATUS_ID,
+            DEFAULT_FIRST_COMPETENCY_GROUP_STATUS_ID + len(rows),
+        )
+    )
+    assert len({(r["actor_id"], r["tag_id"], r["course_key"]) for r in rows}) == len(rows)
+    course_keys = {c.course_id for c in gen.courses}
+    assert {r["course_key"] for r in rows} <= course_keys
+    # One course group per competency and course, all under the competency's root group.
+    groups = {(r["tag_id"], r["course_key"]): r["group_id"] for r in rows}
+    assert len(set(groups.values())) == len(groups)
+    roots = {r["tag_id"]: r["parent_group_id"] for r in rows}
+    assert all(r["parent_group_id"] == roots[r["tag_id"]] for r in rows)
+    assert not set(roots.values()) & set(groups.values())
+
+
+def test_competency_status_agrees_with_course_group_statuses():
+    """
+    The competency-level row is Demonstrated exactly when some course group is,
+    and otherwise PartiallyAttempted, including when every course is
+    AttemptedNotDemonstrated, as core's rollup records it.
+    """
+    gen = _competency_generator()
+    by_pair: dict = {}
+    for r in gen.student_competency_criteria_group_statuses:
+        by_pair.setdefault((r["actor_id"], r["tag_id"]), []).append(r["status_id"])
+    competency = {(s["actor_id"], s["tag_id"]): s["status_id"] for s in gen.student_competency_statuses}
+
+    assert by_pair
+    for pair, course_statuses in by_pair.items():
+        expected = 30 if 30 in course_statuses else 20
+        assert competency[pair] == expected
