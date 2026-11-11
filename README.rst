@@ -103,6 +103,13 @@ but can encounter "too many parts" errors when executing very large loads
 of xAPI statements) or loads that cover a period over 9 years between the
 configured `start_date` and `end_date`.
 
+A competency load (``taxonomy_type: competency``) also writes
+``student_competency_statuses.csv.gz`` and
+``student_competency_course_statuses.csv.gz``, in the column order of the
+``event_sink.student_competency_status`` and
+``event_sink.student_competency_course_status`` tables. A ``--load_db_only``
+run loads them only when the config is a competency load too.
+
 chdb
 ----
 This backend generates lz4 compressed ClickHouse Native files in block storage
@@ -112,6 +119,27 @@ a ClickHouse service directly after creation or at a later time using the
 type to parallelize data writing and loading. This is the fastest engine for
 very large scale tests and should be able to generate several billions of rows
 of data across any length of time without error.
+
+A competency load (``taxonomy_type: competency``) also writes files under the
+``student_competency_status`` and ``student_competency_course_status``
+prefixes. As with csv, a ``--load_db_only`` run loads them only when the
+config is a competency load too.
+
+Required Aspects migrations
+---------------------------
+All backends write into ``event_sink`` tables created by tutor-contrib-aspects
+migrations. A load into an install that lacks one of these fails with a
+missing table or a column count mismatch:
+
+- ``0042_event_sink_pathways``: ``event_sink.catalog_pathway`` and
+  ``event_sink.pathway_enrollment`` (not needed with
+  ``num_catalog_pathways: 0``).
+- ``0043_event_sink_student_competency_status``:
+  ``event_sink.student_competency_status`` (competency loads only).
+- ``0044_event_sink_student_competency_course_status``:
+  ``event_sink.student_competency_course_status`` (competency loads only).
+- ``0045_event_sink_taxonomy_type``: the ``taxonomy_type`` column of
+  ``event_sink.taxonomy``, needed by every load.
 
 
 
@@ -250,6 +278,9 @@ environment variables override their corresponding config keys at load time
      - ``lrs_password``
      - ``ralph``
 
+Log lines and errors that quote SQL show the S3 secret as ``****`` and only the
+first 4 characters of the S3 key.
+
 A typical pattern is to keep all non-secret keys in YAML and provide the
 secrets via the shell, your CI secret store, or a ``.env`` file::
 
@@ -329,6 +360,65 @@ test::
     # The id given to the first fake Pathway Enrollment, kept above the ids of
     # real enrollments dumped by the LMS, as with first_catalog_pathway_id.
     first_pathway_enrollment_id: 100001
+
+    # Fake organizations are named <org_prefix>0, <org_prefix>1... A different
+    # prefix keeps a load apart from earlier ones, or from real data, in the
+    # org filters. Letters and digits only.
+    org_prefix: Org
+
+    # The ids given to the first fake taxonomy, tag and object tag; the rest
+    # count up from them (tag and object tag ids across all taxonomies and
+    # courses). Positive integers. Raise them above the ids of real rows dumped
+    # by the LMS into the same event_sink tables, or the two overwrite each
+    # other. They default to 1 because earlier loads numbered these rows from 1.
+    first_taxonomy_id: 1
+    first_tag_id: 1
+    first_object_tag_id: 1
+
+    # The taxonomy export id written on every fake object tag. No quotes or
+    # backslashes.
+    taxonomy_export_id: fake export id
+
+    # The type written on every fake taxonomy, in the last column of
+    # event_sink.taxonomy: "tags", or "competency" for competency taxonomies,
+    # as the platform-plugin-aspects taxonomy sink writes it. Any other value is
+    # rejected.
+    #
+    # Every load writes this column, whatever its value, so every load needs
+    # the tutor-contrib-aspects migration 0045_event_sink_taxonomy_type. On an
+    # install without it the taxonomy insert fails (ClickHouse reports a column
+    # count mismatch).
+    #
+    # Only a competency load writes learner competency statuses, to
+    # event_sink.student_competency_status (migration
+    # 0043_event_sink_student_competency_status) and
+    # event_sink.student_competency_course_status (migration
+    # 0044_event_sink_student_competency_course_status). A "tags" load leaves
+    # both tables alone, and the CSV backend writes no files for them.
+    #
+    # In a competency load, each learner enrolled in a course gets, per
+    # competency tagged on its blocks, one of: no status (about 20%),
+    # AttemptedNotDemonstrated, PartiallyAttempted or Demonstrated. A
+    # Demonstrated draw whose mastery time falls after end_date stays
+    # PartiallyAttempted. Each competency gets its own difficulty, drawn anew on
+    # every run, so time to mastery spreads from hours to weeks and two loads
+    # with the same config differ. Parent competencies are raised from their
+    # children the way openedx-core does.
+    taxonomy_type: tags
+
+    # The id given to the first fake Student Competency Status, kept above the
+    # ids of real statuses dumped by the LMS, as with first_catalog_pathway_id.
+    # One row per learner and competency, PartiallyAttempted or Demonstrated.
+    first_student_competency_status_id: 100001
+
+    # The first ids of a competency load's course-level rows in
+    # event_sink.student_competency_course_status: one course-level criteria
+    # group status per learner, competency and course in which the learner has
+    # a status. These can be AttemptedNotDemonstrated, which core never stores
+    # per competency. The fake criteria groups they point at exist only as ids,
+    # one per competency and course. Kept above the real ids, as above.
+    first_student_competency_course_status_id: 100001
+    first_competency_criteria_group_id: 100001
 
     # The number of learners to create, random subsets of these will be
     # "registered" for each course and have statements generated for them

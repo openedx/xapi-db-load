@@ -8,6 +8,7 @@ from logging import Logger
 from typing import (
     Dict,
     List,
+    Type,
 )
 
 import clickhouse_connect
@@ -21,6 +22,28 @@ from xapi_db_load.generate_load_async import (
     EventGenerator,
     Waiter,
 )
+
+# How many characters of an SQL statement go into an error log line. The
+# statements carry whole batches of rows and can be many MB.
+MAX_LOGGED_SQL_LENGTH = 2000
+
+# How many leading characters of the S3 access key id are left readable in logs,
+# enough to tell which key was used. The secret is always hidden whole.
+VISIBLE_S3_KEY_CHARS = 4
+
+
+def redact_credentials(text: str, s3_key: str | None, s3_secret: str | None) -> str:
+    """
+    Return text with the S3 secret hidden and all but the start of the S3 key
+    hidden, for SQL and error messages that embed them before they are logged
+    or raised.
+    """
+    if s3_secret:
+        text = text.replace(s3_secret, "****")
+    if s3_key:
+        visible = s3_key[:VISIBLE_S3_KEY_CHARS] if len(s3_key) > VISIBLE_S3_KEY_CHARS else ""
+        text = text.replace(s3_key, f"{visible}****")
+    return text
 
 
 class BaseBackendTasks:
@@ -46,6 +69,21 @@ class BaseBackendTasks:
     @abstractmethod
     def get_test_data_tasks(self) -> List[Waiter]:
         """Return the tasks to be run to generate test data."""
+
+    def competency_tasks(self, *task_classes: Type[Waiter], **kwargs) -> List[Waiter]:
+        """
+        Return the learner competency status tasks, only for a competency load.
+
+        A "tags" load has no statuses to write, and an install without the
+        tutor-contrib-aspects competency migrations has no tables to load them
+        into, so it must not touch those tables at all.
+        """
+        if not self.event_generator.is_competency_load:
+            return []
+        return [
+            task_class(self.config, self.logger, self.event_generator, **kwargs)
+            for task_class in task_classes
+        ]
 
     def get_backend_summary(self) -> Dict:
         """
@@ -97,6 +135,23 @@ class BaseClickhouseBackend(Waiter):  # pylint: disable=abstract-method
         self.s3_secret = config.get("s3_secret")
         self.batch_size = self.config["batch_size"]
 
+    def redact(self, text: str) -> str:
+        """
+        Return text with the configured S3 credentials redacted, see
+        ``redact_credentials``.
+        """
+        return redact_credentials(text, self.s3_key, self.s3_secret)
+
+    def sql_for_log(self, sql: str) -> str:
+        """
+        Return an SQL statement fit for a log line: credentials redacted and
+        truncated to ``MAX_LOGGED_SQL_LENGTH`` characters.
+        """
+        sql = self.redact(sql)
+        if len(sql) > MAX_LOGGED_SQL_LENGTH:
+            sql = f"{sql[:MAX_LOGGED_SQL_LENGTH]}... ({len(sql)} characters in all)"
+        return sql
+
     async def set_client(self):
         """
         Set up the ClickHouse client and connect.
@@ -132,31 +187,32 @@ class BaseClickhouseBackend(Waiter):  # pylint: disable=abstract-method
                 VALUES {",".join(data_list)}
         """
 
-        await self._insert_sql_with_retry(sql)
+        await self._run_sql_command(sql)
 
-    async def _insert_sql_with_retry(self, sql: str):
+    async def _run_sql_command(self, sql: str):
         """
-        Wrap insert commands with a single retry.
+        Run an SQL command, connecting first if needed. No retry: on failure it
+        logs and re-raises with the S3 credentials redacted.
         """
         try:
-            # from clickhouse_connect.driver.asyncclient import AsyncClient
-            # Sometimes the connection randomly dies, this gives us a second shot in that case
             if not self.client:
                 await self.set_client()
             assert self.client
             await self.client.command(sql)
         except OperationalError as e:
-            self.logger.error(e)
-            self.logger.error("ClickHouse OperationalError, trying to reconnect.")
-            raise
-            # await self.set_client()
-            # self.logger.error("Retrying insert...")
-            # await self.client.command(sql)
+            message = self.redact(str(e))
+            self.logger.error("ClickHouse OperationalError (connection problem):")
+            self.logger.error(message)
+            # Raised anew, without the original as its cause: the original's
+            # message can quote the SQL, credentials included. Same class and
+            # error code, so callers can still tell the errors apart.
+            raise type(e)(message, code=e.code, name=e.name) from None
         except DatabaseError as e:
+            message = self.redact(str(e))
             self.logger.error("ClickHouse DatabaseError:")
-            self.logger.error(e)
-            self.logger.error(sql)
-            raise
+            self.logger.error(message)
+            self.logger.error(self.sql_for_log(sql))
+            raise type(e)(message, code=e.code, name=e.name) from None
 
 
 class QueueBackend(BaseClickhouseBackend):

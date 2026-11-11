@@ -5,9 +5,11 @@ Generates batches of random xAPI events.
 import asyncio
 import datetime
 import json
+import math
 import os
 import random
 import uuid
+from dataclasses import dataclass
 from logging import Logger
 from random import (
     choice,
@@ -17,19 +19,39 @@ from typing import (
     Dict,
     Generator,
     List,
+    NamedTuple,
 )
 
 from xapi_db_load.constants import (
+    COMPETENCY_COURSE_STATUS_WEIGHTS,
+    COMPETENCY_FIRST_STATUS_MEDIAN_HOURS,
+    COMPETENCY_MASTERY_MEDIAN_DAYS_RANGE,
+    COMPETENCY_MASTERY_SIGMA,
     COURSE_ID_SHORT_LENGTH,
     DEFAULT_FIRST_CATALOG_PATHWAY_ID,
+    DEFAULT_FIRST_COMPETENCY_CRITERIA_GROUP_ID,
+    DEFAULT_FIRST_OBJECT_TAG_ID,
     DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID,
+    DEFAULT_FIRST_STUDENT_COMPETENCY_COURSE_STATUS_ID,
+    DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID,
+    DEFAULT_FIRST_TAG_ID,
+    DEFAULT_FIRST_TAXONOMY_ID,
     DEFAULT_LMS_URL,
     DEFAULT_NUM_CATALOG_PATHWAYS,
     DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY,
+    DEFAULT_ORG_PREFIX,
+    DEFAULT_TAXONOMY_EXPORT_ID,
+    DEFAULT_TAXONOMY_TYPE,
+    MASTERY_STATUS_ATTEMPTED_NOT_DEMONSTRATED,
+    MASTERY_STATUS_DEMONSTRATED,
+    MASTERY_STATUS_NAMES,
+    MASTERY_STATUS_PARTIALLY_ATTEMPTED,
     MAX_COURSE_RUNS,
     MIN_COURSE_RUNS,
     PATHWAY_CATEGORIES,
     PATHWAY_UNENROLLED_RATIO,
+    TAXONOMY_TYPE_COMPETENCY,
+    TAXONOMY_TYPES,
 )
 from xapi_db_load.course_configs import (
     Actor,
@@ -118,6 +140,18 @@ def _random_datetime(
     return start + datetime.timedelta(microseconds=random.randrange(max(span, 1)))
 
 
+def _as_utc_datetime(value: datetime.date) -> datetime.datetime:
+    """
+    Return a date or datetime as a UTC datetime; course dates are plain dates
+    when the configured start and end dates are.
+    """
+    if not isinstance(value, datetime.datetime):
+        return datetime.datetime.combine(value, datetime.time(), tzinfo=datetime.UTC)
+    if value.tzinfo is None:
+        return value.replace(tzinfo=datetime.UTC)
+    return value
+
+
 def to_sink_datetime(value: datetime.datetime) -> str:
     """
     Format a UTC datetime the way the platform-plugin-aspects model sinks write
@@ -128,6 +162,67 @@ def to_sink_datetime(value: datetime.datetime) -> str:
     if formatted.endswith("+00:00"):
         formatted = formatted[:-6] + "Z"
     return formatted
+
+
+class StudentCompetencyCourseStatusRow(NamedTuple):
+    """
+    How one learner stands on one competency in one course: the course-level
+    criteria group status, and when it was first set and last raised.
+    """
+
+    course: RandomCourse
+    tag_id: int
+    actor: Actor
+    status_id: int
+    created: datetime.datetime
+    modified: datetime.datetime
+
+
+@dataclass
+class StudentCompetencyStatusRow:
+    """
+    A learner's single competency-level status row, raised as course statuses and
+    child competencies are folded into it.
+    """
+
+    actor: Actor
+    status_id: int
+    created: datetime.datetime
+    modified: datetime.datetime
+
+    def fold_in(
+        self,
+        status_id: int,
+        created: datetime.datetime,
+        modified: datetime.datetime,
+    ) -> None:
+        """
+        Fold another status into this row, the way openedx-core's raise-only
+        writes would: the higher status wins, ``created`` is the earliest, and a
+        Demonstrated row keeps its first mastery time. A PartiallyAttempted row
+        was never raised, so its ``modified`` stays equal to its ``created``.
+        """
+        self.created = min(self.created, created)
+        if status_id > self.status_id:
+            self.status_id, self.modified = status_id, modified
+        elif status_id == self.status_id == MASTERY_STATUS_DEMONSTRATED:
+            self.modified = min(self.modified, modified)
+        if self.status_id != MASTERY_STATUS_DEMONSTRATED:
+            self.modified = self.created
+
+
+# (actor user_id, tag_id) -> that learner's competency-level status row
+StudentCompetencyStatusRows = Dict[tuple[int, int], StudentCompetencyStatusRow]
+
+# Config keys holding ids, each of which must be a positive integer.
+POSITIVE_ID_CONFIG_KEYS = (
+    "first_taxonomy_id",
+    "first_tag_id",
+    "first_object_tag_id",
+    "first_student_competency_status_id",
+    "first_student_competency_course_status_id",
+    "first_competency_criteria_group_id",
+)
 
 
 class EventGenerator(Waiter):  # pylint: disable=abstract-method
@@ -151,7 +246,11 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         self.catalog_pathways: List[Dict] = []
         self.pathway_enrollments: List[Dict] = []
         self.taxonomies: Dict = {}
+        self.taxonomy_ids: Dict[str, int] = {}
         self.tags: List = []
+        self.student_competency_statuses: List[Dict] = []
+        self.student_competency_course_statuses: List[Dict] = []
+        self.competency_mastery_median_days: Dict[int, float] = {}
         self.setup_complete = False
         self.start_date = config["start_date"]
         self.end_date = config["end_date"]
@@ -178,6 +277,25 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
                     f"Course size {s} wants more actors than are configured in num_actors."
                 )
 
+        for key in POSITIVE_ID_CONFIG_KEYS:
+            value = self.config.get(key, 1)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"{key} must be a positive integer, got {value!r}.")
+
+        # These end up inside quoted SQL literals in the CHDB backend.
+        prefix = self.config.get("org_prefix", DEFAULT_ORG_PREFIX)
+        if not isinstance(prefix, str) or not prefix.isalnum():
+            raise ValueError(f"org_prefix must be letters and digits, got {prefix!r}.")
+        export_id = self.config.get("taxonomy_export_id", DEFAULT_TAXONOMY_EXPORT_ID)
+        if not isinstance(export_id, str) or "'" in export_id or "\\" in export_id:
+            raise ValueError(
+                f"taxonomy_export_id must be a string without quotes or backslashes, got {export_id!r}."
+            )
+        if self.taxonomy_type not in TAXONOMY_TYPES:
+            raise ValueError(
+                f"taxonomy_type must be one of {', '.join(TAXONOMY_TYPES)}, got {self.taxonomy_type!r}."
+            )
+
     async def run_task(self) -> None:
         """
         We override run_task here instead of _run_task because this is the setup task
@@ -194,6 +312,10 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         await self.setup_courses()
         # Needs the courses, to enroll learners of the pathway's org.
         self.setup_pathway_enrollments()
+        # Needs the courses, whose blocks it tags.
+        self.setup_object_tags()
+        # Needs the object tags, to know which competencies each course assesses.
+        self.setup_student_competency_statuses()
 
         # Force this in case of a rounding error
         self.complete_pct = 1.0
@@ -212,8 +334,9 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         """
         Create some random organizations based on the config.
         """
+        prefix = self.config.get("org_prefix", DEFAULT_ORG_PREFIX)
         for i in range(self.config["num_organizations"]):
-            self.orgs.append(f"Org{i}")
+            self.orgs.append(f"{prefix}{i}")
 
     def setup_catalog_pathways(self) -> None:
         """
@@ -312,6 +435,316 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
                     }
                 )
                 next_id += 1
+
+    def setup_object_tags(self) -> None:
+        """
+        Tag each course's blocks once, so every backend writes the same object
+        tags and the competency statuses match them.
+
+        Object tag ids count up from ``first_object_tag_id`` across all courses,
+        and every row carries ``taxonomy_export_id`` as its taxonomy's export id.
+        Both are added in place to the dicts ``RandomCourse.get_object_tags``
+        keeps and returns.
+        """
+        next_id = self.config.get("first_object_tag_id", DEFAULT_FIRST_OBJECT_TAG_ID)
+        export_id = self.config.get("taxonomy_export_id", DEFAULT_TAXONOMY_EXPORT_ID)
+        for course in self.courses:
+            for object_tag in course.get_object_tags():
+                object_tag["object_tag_id"] = next_id
+                object_tag["export_id"] = export_id
+                next_id += 1
+
+    @property
+    def taxonomy_type(self) -> str:
+        """
+        The type written on every fake taxonomy.
+        """
+        return self.config.get("taxonomy_type", DEFAULT_TAXONOMY_TYPE)
+
+    @property
+    def is_competency_load(self) -> bool:
+        """
+        Whether the fake taxonomies are competency taxonomies.
+        """
+        return self.taxonomy_type == TAXONOMY_TYPE_COMPETENCY
+
+    def setup_student_competency_statuses(self) -> None:
+        """
+        Give learners a mastery status on the competencies their courses assess.
+
+        Only for a competency load (see ``is_competency_load``). A course assesses
+        every competency tagged on one of its blocks. Each enrolled learner gets,
+        per competency and course, one of four course statuses: no status,
+        AttemptedNotDemonstrated, PartiallyAttempted or Demonstrated, weighted by
+        ``COMPETENCY_COURSE_STATUS_WEIGHTS`` (see ``_time_course_status`` for
+        the timing). A Demonstrated draw whose mastery time falls after
+        ``end_date`` stays PartiallyAttempted, so the real Demonstrated share is
+        below its weight, and lowest for the hardest competencies.
+
+        Competency-level rows follow openedx-core's rules for
+        ``StudentCompetencyStatus``:
+
+        - one row per learner and competency: across courses the higher status
+          wins, ``created`` is the earliest, and ``modified`` of a Demonstrated
+          row is when it was first demonstrated
+        - only PartiallyAttempted (20) and Demonstrated (30): AttemptedNotDemonstrated
+          is recorded as PartiallyAttempted, as core's rollup does
+        - parent competencies roll up (see ``roll_up_statuses``)
+
+        The course statuses are also written as they are, as course-level
+        criteria group statuses: see ``_add_student_competency_course_statuses``.
+
+        Rows match the ``event_sink.student_competency_status`` and
+        ``event_sink.student_competency_course_status`` tables written by the
+        platform-plugin-aspects sinks of the same names.
+        """
+        if not self.is_competency_load:
+            return
+
+        tags_by_id = {t["tag_id"]: t for t in self.tags}
+        low, high = COMPETENCY_MASTERY_MEDIAN_DAYS_RANGE
+        self.competency_mastery_median_days = {
+            tag_id: math.exp(random.uniform(math.log(low), math.log(high)))
+            for tag_id in tags_by_id
+        }
+
+        course_statuses = self._draw_course_statuses()
+        statuses = self._fold_competency_statuses(course_statuses)
+        self.roll_up_statuses(statuses, tags_by_id)
+        self._add_student_competency_statuses(statuses, tags_by_id)
+        self._add_student_competency_course_statuses(course_statuses, tags_by_id)
+
+    def _draw_course_statuses(self) -> List[StudentCompetencyCourseStatusRow]:
+        """
+        Draw every enrolled learner's course status on every competency their course
+        assesses, leaving out the "no status" draws.
+        """
+        _, run_end = self._run_window()
+        drawn_status_ids = (
+            None,
+            MASTERY_STATUS_ATTEMPTED_NOT_DEMONSTRATED,
+            MASTERY_STATUS_PARTIALLY_ATTEMPTED,
+            MASTERY_STATUS_DEMONSTRATED,
+        )
+        course_statuses = []
+        for course in self.courses:
+            assessed_tag_ids = {o["tag_id"] for o in course.get_object_tags()}
+            course_end = min(_as_utc_datetime(course.end_date), run_end)
+            # course.actors is drawn with replacement, so a learner can be enrolled
+            # twice; keep one enrollment each, or they get two statuses per
+            # competency in the same course.
+            learners = {e.actor.user_id: e for e in course.actors}
+            for enrolled in learners.values():
+                enrolled_at = _as_utc_datetime(enrolled.enroll_datetime)
+                for tag_id in assessed_tag_ids:
+                    drawn_status_id = random.choices(
+                        drawn_status_ids, COMPETENCY_COURSE_STATUS_WEIGHTS
+                    )[0]
+                    if drawn_status_id is None:
+                        continue
+                    status_id, created, modified = self._time_course_status(
+                        drawn_status_id, tag_id, enrolled_at, course_end, run_end
+                    )
+                    course_statuses.append(
+                        StudentCompetencyCourseStatusRow(
+                            course, tag_id, enrolled.actor, status_id, created, modified
+                        )
+                    )
+        return course_statuses
+
+    def _time_course_status(
+        self,
+        drawn_status_id: int,
+        tag_id: int,
+        enrolled_at: datetime.datetime,
+        course_end: datetime.datetime,
+        run_end: datetime.datetime,
+    ) -> tuple[int, datetime.datetime, datetime.datetime]:
+        """
+        Return the final status, created and modified times of one drawn status.
+
+        The first status lands an exponential delay after enrollment
+        (``COMPETENCY_FIRST_STATUS_MEDIAN_HOURS``), by the course end at the
+        latest. A Demonstrated draw is mastered a log-normal time around the
+        competency's difficulty later (``competency_mastery_median_days``), and
+        stays PartiallyAttempted when that falls after the end of the run.
+        """
+        # An exponential delay with median m has rate ln(2) / m.
+        first_status_rate = math.log(2) / (COMPETENCY_FIRST_STATUS_MEDIAN_HOURS * 3600)
+        first_status_delay = datetime.timedelta(
+            seconds=random.expovariate(first_status_rate)
+        )
+        latest_first_status = max(course_end, enrolled_at)
+        created = min(enrolled_at + first_status_delay, latest_first_status)
+
+        if drawn_status_id != MASTERY_STATUS_DEMONSTRATED:
+            return drawn_status_id, created, created
+
+        mastered_at = created + datetime.timedelta(
+            days=random.lognormvariate(0, COMPETENCY_MASTERY_SIGMA)
+            * self.competency_mastery_median_days[tag_id]
+        )
+        if mastered_at > run_end:
+            return MASTERY_STATUS_PARTIALLY_ATTEMPTED, created, created
+        return MASTERY_STATUS_DEMONSTRATED, created, mastered_at
+
+    @staticmethod
+    def _fold_competency_statuses(
+        course_statuses: List[StudentCompetencyCourseStatusRow],
+    ) -> StudentCompetencyStatusRows:
+        """
+        Fold the course statuses into one competency-level row per learner and
+        competency, recording AttemptedNotDemonstrated as PartiallyAttempted.
+        """
+        statuses: StudentCompetencyStatusRows = {}
+        for o in course_statuses:
+            status_id = max(o.status_id, MASTERY_STATUS_PARTIALLY_ATTEMPTED)
+            key = (o.actor.user_id, o.tag_id)
+            if key in statuses:
+                statuses[key].fold_in(status_id, o.created, o.modified)
+            else:
+                statuses[key] = StudentCompetencyStatusRow(
+                    o.actor, status_id, o.created, o.modified
+                )
+        return statuses
+
+    def _add_student_competency_statuses(
+        self, statuses: StudentCompetencyStatusRows, tags_by_id: Dict[int, Dict]
+    ) -> None:
+        """
+        Write the competency-level rows in ``created`` order, with ids counting up
+        from ``first_student_competency_status_id``.
+        """
+        next_id = self.config.get(
+            "first_student_competency_status_id",
+            DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID,
+        )
+        for (_, tag_id), status in sorted(
+            statuses.items(), key=lambda item: item[1].created
+        ):
+            self.student_competency_statuses.append(
+                {
+                    "id": next_id,
+                    "actor_id": status.actor.id,
+                    "tag_id": tag_id,
+                    "taxonomy_id": tags_by_id[tag_id]["taxonomy_id"],
+                    "status_id": status.status_id,
+                    "status_name": MASTERY_STATUS_NAMES[status.status_id],
+                    "created": to_sink_datetime(status.created),
+                    "modified": to_sink_datetime(status.modified),
+                }
+            )
+            next_id += 1
+
+    def _add_student_competency_course_statuses(
+        self, course_statuses: List[StudentCompetencyCourseStatusRow], tags_by_id: Dict[int, Dict]
+    ) -> None:
+        """
+        Write one course-level criteria group status per learner, competency and
+        course they have a status in: AttemptedNotDemonstrated (10),
+        PartiallyAttempted (20) or Demonstrated (30). Ids count up from
+        ``first_student_competency_course_status_id``.
+
+        The fake criteria groups exist only as ids: one course group per
+        competency and course run, counting up from
+        ``first_competency_criteria_group_id``. The sink writes course-level
+        groups only, so root and leaf groups have no rows here either.
+        """
+        next_group_id = self.config.get(
+            "first_competency_criteria_group_id",
+            DEFAULT_FIRST_COMPETENCY_CRITERIA_GROUP_ID,
+        )
+        group_id_by_tag_and_course: Dict[tuple, int] = {}
+        next_id = self.config.get(
+            "first_student_competency_course_status_id",
+            DEFAULT_FIRST_STUDENT_COMPETENCY_COURSE_STATUS_ID,
+        )
+        for o in sorted(course_statuses, key=lambda o: o.created):
+            group_key = (o.tag_id, o.course.course_id)
+            if group_key not in group_id_by_tag_and_course:
+                group_id_by_tag_and_course[group_key] = next_group_id
+                next_group_id += 1
+            self.student_competency_course_statuses.append(
+                {
+                    "id": next_id,
+                    "actor_id": o.actor.id,
+                    "group_id": group_id_by_tag_and_course[group_key],
+                    "tag_id": o.tag_id,
+                    "taxonomy_id": tags_by_id[o.tag_id]["taxonomy_id"],
+                    "course_key": o.course.course_id,
+                    "status_id": o.status_id,
+                    "status_name": MASTERY_STATUS_NAMES[o.status_id],
+                    "created": to_sink_datetime(o.created),
+                    "modified": to_sink_datetime(o.modified),
+                }
+            )
+            next_id += 1
+
+    @staticmethod
+    def roll_up_statuses(statuses: StudentCompetencyStatusRows, tags_by_id: Dict[int, Dict]) -> None:
+        """
+        Raise each learner's parent competencies from their children, deepest
+        level first, so a parent's children are final before it is computed.
+
+        A parent is Demonstrated once every child the learner has a status on
+        is (mastered when the last one was), otherwise PartiallyAttempted from
+        the first child status. A parent the learner already has a direct status
+        on (it is tagged on a block too) is only ever raised by this, never
+        lowered, as with core's raise-only writes.
+        """
+        depths: Dict[int, int] = {}
+
+        def depth(tag_id: int) -> int:
+            if tag_id not in depths:
+                parent_tag_id = tags_by_id[tag_id]["parent_int_id"]
+                depths[tag_id] = 0 if parent_tag_id is None else 1 + depth(parent_tag_id)
+            return depths[tag_id]
+
+        # Each learner's view of ``statuses``, by tag id. Both hold the same row
+        # objects, so a raised row is raised in both, but a new parent row has
+        # to be added to both.
+        statuses_by_user_id: Dict[int, Dict[int, StudentCompetencyStatusRow]] = {}
+        for (user_id, tag_id), status in statuses.items():
+            statuses_by_user_id.setdefault(user_id, {})[tag_id] = status
+
+        for user_id, user_statuses in statuses_by_user_id.items():
+            deepest = max(depth(t) for t in user_statuses)
+            for level in range(deepest, 0, -1):
+                children_by_parent: Dict[int, List[StudentCompetencyStatusRow]] = {}
+                for tag_id, status in user_statuses.items():
+                    if depth(tag_id) == level:
+                        parent_tag_id = tags_by_id[tag_id]["parent_int_id"]
+                        children_by_parent.setdefault(parent_tag_id, []).append(status)
+                for parent_tag_id, children in children_by_parent.items():
+                    rolled = EventGenerator._roll_up_children(children)
+                    if parent_tag_id in user_statuses:
+                        user_statuses[parent_tag_id].fold_in(
+                            rolled.status_id, rolled.created, rolled.modified
+                        )
+                    else:
+                        user_statuses[parent_tag_id] = rolled
+                        statuses[(user_id, parent_tag_id)] = rolled
+
+    @staticmethod
+    def _roll_up_children(
+        children: List[StudentCompetencyStatusRow],
+    ) -> StudentCompetencyStatusRow:
+        """
+        Return the parent status a learner's child statuses roll up to:
+        Demonstrated when every child is (mastered when the last one was),
+        otherwise PartiallyAttempted from the first child status.
+        """
+        created = min(c.created for c in children)
+        if all(c.status_id == MASTERY_STATUS_DEMONSTRATED for c in children):
+            return StudentCompetencyStatusRow(
+                children[0].actor,
+                MASTERY_STATUS_DEMONSTRATED,
+                created,
+                max(c.modified for c in children),
+            )
+        return StudentCompetencyStatusRow(
+            children[0].actor, MASTERY_STATUS_PARTIALLY_ATTEMPTED, created, created
+        )
 
     def _run_window(self) -> tuple[datetime.datetime, datetime.datetime]:
         """
@@ -423,10 +856,12 @@ class EventGenerator(Waiter):  # pylint: disable=abstract-method
         # it should be guaranteed that all parents already exist when we get to
         # the child.
         tag_hierarchy = {}
-        taxonomy_id = 0
+        taxonomy_id = self.config.get("first_taxonomy_id", DEFAULT_FIRST_TAXONOMY_ID) - 1
+        # Tag ids are unique across taxonomies, as in the LMS.
+        tag_id = self.config.get("first_tag_id", DEFAULT_FIRST_TAG_ID) - 1
         for taxonomy in self.taxonomies:  # pylint: disable=consider-using-dict-items
             taxonomy_id += 1
-            tag_id = 0
+            self.taxonomy_ids[taxonomy] = taxonomy_id
             for tag in self.taxonomies[taxonomy]:
                 tag_id += 1
                 tag["tag_id"] = tag_id

@@ -62,6 +62,40 @@ first_catalog_pathway_id: 100001
 num_enrollments_per_pathway: 5
 first_pathway_enrollment_id: 100001
 
+# Fake organizations are named <org_prefix>0, <org_prefix>1... Letters and
+# digits only. A different prefix keeps a load apart from earlier ones in the
+# org filters.
+org_prefix: Org
+
+# Ids of the fake taxonomies, tags and object tags (positive integers). Raise
+# them above the ids of real rows the LMS dumps into the same event_sink tables,
+# or the two overwrite each other.
+first_taxonomy_id: 1
+first_tag_id: 1
+first_object_tag_id: 1
+
+# Export id written on every fake object tag. No quotes or backslashes.
+taxonomy_export_id: fake export id
+
+# Type written on every fake taxonomy: "tags" or "competency". Every load writes
+# event_sink.taxonomy.taxonomy_type, so every load needs the tutor-contrib-aspects
+# migration 0045_event_sink_taxonomy_type. "competency" also generates learner
+# competency statuses into event_sink.student_competency_status (migration
+# 0043_event_sink_student_competency_status) and
+# event_sink.student_competency_course_status (migration
+# 0044_event_sink_student_competency_course_status). See README.
+taxonomy_type: tags
+
+# First id of a competency load's competency-level statuses
+# (event_sink.student_competency_status).
+first_student_competency_status_id: 100001
+
+# First ids of a competency load's course-level criteria group statuses
+# (event_sink.student_competency_course_status), and of the fake criteria groups
+# they point at.
+first_student_competency_course_status_id: 100001
+first_competency_criteria_group_id: 100001
+
 # This replicates users updating their profiles several times, creating
 # more rows
 num_actor_profile_changes: 5
