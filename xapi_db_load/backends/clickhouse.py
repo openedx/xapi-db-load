@@ -45,6 +45,12 @@ class AsyncClickHouseTasks(BaseBackendTasks):
             InsertCourses(self.config, self.logger, self.event_generator),
             InsertCatalogPathways(self.config, self.logger, self.event_generator),
             InsertPathwayEnrollments(self.config, self.logger, self.event_generator),
+            InsertStudentCompetencyStatuses(
+                self.config, self.logger, self.event_generator
+            ),
+            InsertStudentCompetencyCriteriaGroupStatuses(
+                self.config, self.logger, self.event_generator
+            ),
             InsertBlocks(self.config, self.logger, self.event_generator),
             InsertObjectTags(self.config, self.logger, self.event_generator),
             InsertTaxonomies(self.config, self.logger, self.event_generator),
@@ -351,6 +357,84 @@ class InsertPathwayEnrollments(XAPILakeClickhouseAsync):  # pylint: disable=abst
             self.update_completed_task_count(increment_by=len(batch))
 
 
+class InsertStudentCompetencyStatuses(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts Student Competency Status data to ClickHouse."""
+
+    task_name = "Insert Student Competency Statuses"
+
+    async def _run_task(self):
+        """
+        Insert the learners' competency statuses to ClickHouse, all under one dump, in batches.
+        """
+        statuses = self.event_generator.student_competency_statuses
+        self.update_total_task_count(len(statuses))
+
+        dump_id = str(uuid.uuid4())
+        dump_time = str(datetime.now(UTC))
+        batch_size = self.config["batch_size"]
+
+        for i in range(0, len(statuses), batch_size):
+            batch = statuses[i:i + batch_size]
+            out_data = [
+                (
+                    s["id"],
+                    s["actor_id"],
+                    s["tag_id"],
+                    s["taxonomy_id"],
+                    s["status_id"],
+                    s["status"],
+                    s["created"],
+                    s["modified"],
+                    dump_id,
+                    dump_time,
+                )
+                for s in batch
+            ]
+            await self._insert_rows("student_competency_status", out_data)
+            self.update_completed_task_count(increment_by=len(batch))
+
+
+class InsertStudentCompetencyCriteriaGroupStatuses(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
+    """Inserts Student Competency Criteria Group Status data to ClickHouse."""
+
+    task_name = "Insert Student Competency Criteria Group Statuses"
+
+    async def _run_task(self):
+        """
+        Insert the learners' course-level criteria group statuses to ClickHouse, all under one dump, in batches.
+        """
+        statuses = self.event_generator.student_competency_criteria_group_statuses
+        self.update_total_task_count(len(statuses))
+
+        dump_id = str(uuid.uuid4())
+        dump_time = str(datetime.now(UTC))
+        batch_size = self.config["batch_size"]
+
+        for i in range(0, len(statuses), batch_size):
+            batch = statuses[i:i + batch_size]
+            out_data = [
+                (
+                    s["id"],
+                    s["actor_id"],
+                    s["group_id"],
+                    s["parent_group_id"],
+                    s["tag_id"],
+                    s["taxonomy_id"],
+                    s["course_key"],
+                    s["group_level"],
+                    s["status_id"],
+                    s["status"],
+                    s["created"],
+                    s["modified"],
+                    dump_id,
+                    dump_time,
+                )
+                for s in batch
+            ]
+            await self._insert_rows("student_competency_criteria_group_status", out_data)
+            self.update_completed_task_count(increment_by=len(batch))
+
+
 class InsertBlocks(XAPILakeClickhouseAsync):  # pylint: disable=abstract-method
     """Inserts course block data to ClickHouse."""
 
@@ -418,17 +502,15 @@ class InsertObjectTags(XAPILakeClickhouseAsync):  # pylint: disable=abstract-met
                 dump_time = datetime.now(UTC)
                 obj_tag_out_data = []
 
-                row_id = 0
                 for obj_tag in object_tags:
-                    row_id += 1
                     obj_tag_out_data.append(
                         (
-                            row_id,
+                            obj_tag["object_tag_id"],
                             obj_tag["object_id"],
                             obj_tag["taxonomy_id"],
                             obj_tag["tag_id"],
                             obj_tag["value"],
-                            "fake export id",
+                            obj_tag["export_id"],
                             obj_tag["hierarchy"],
                             dump_id,
                             str(dump_time),
@@ -455,10 +537,8 @@ class InsertTaxonomies(XAPILakeClickhouseAsync):  # pylint: disable=abstract-met
         self.update_total_task_count(len(taxonomies))
 
         out_data = []
-        tag_id = 0
-        for taxonomy in taxonomies.keys():
-            tag_id += 1
-            out_data.append((tag_id, taxonomy, dump_id, str(dump_time)))
+        for taxonomy, taxonomy_id in self.event_generator.taxonomy_ids.items():
+            out_data.append((taxonomy_id, taxonomy, dump_id, str(dump_time)))
             self.update_completed_task_count(increment_by=1)
 
         await self._insert_rows("taxonomy", out_data)

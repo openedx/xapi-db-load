@@ -85,6 +85,18 @@ class AsyncCHDBTasks(BaseBackendTasks):
                 self.event_generator,
                 self.db_loader,
             ),
+            WriteStudentCompetencyStatuses(
+                self.config,
+                self.logger,
+                self.event_generator,
+                self.db_loader,
+            ),
+            WriteStudentCompetencyCriteriaGroupStatuses(
+                self.config,
+                self.logger,
+                self.event_generator,
+                self.db_loader,
+            ),
             WriteBlocks(
                 self.config,
                 self.logger,
@@ -666,6 +678,124 @@ class WritePathwayEnrollments(XAPILakeCHDBAsync):  # pylint: disable=abstract-me
             await self._write_list_sql_retry(out_data, "pathway_enrollment")
 
 
+class WriteStudentCompetencyStatuses(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
+    """
+    Write the learners' competency statuses to S3 using CHDB, all under one dump.
+    """
+
+    task_name = "Insert Student Competency Statuses"
+    schema = "event_sink"
+    table = "student_competency_status"
+    s3_load_prefix = "student_competency_status"
+    table_definition = """
+    `id` Int64,
+    `actor_id` String,
+    `tag_id` Int64,
+    `taxonomy_id` Int64,
+    `status_id` UInt8,
+    `status` String,
+    `created` String,
+    `modified` String,
+    `dump_id` UUID,
+    `time_last_dumped` String
+    """
+
+    async def _run_task(self):
+        """
+        Insert the learners' competency statuses into the event sink db.
+        """
+        statuses = self.event_generator.student_competency_statuses
+        self.update_total_task_count(len(statuses))
+
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        out_data = []
+
+        for s in statuses:
+            out_data.append(
+                f"""(
+                {s["id"]},
+                '{s["actor_id"]}',
+                {s["tag_id"]},
+                {s["taxonomy_id"]},
+                {s["status_id"]},
+                '{s["status"]}',
+                '{s["created"]}',
+                '{s["modified"]}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+            )
+            self.update_completed_task_count(increment_by=1)
+
+        if out_data:
+            await self._write_list_sql_retry(out_data, "student_competency_status")
+
+
+class WriteStudentCompetencyCriteriaGroupStatuses(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
+    """
+    Write the learners' course-level criteria group statuses to S3 using CHDB, all under one dump.
+    """
+
+    task_name = "Insert Student Competency Criteria Group Statuses"
+    schema = "event_sink"
+    table = "student_competency_criteria_group_status"
+    s3_load_prefix = "student_competency_criteria_group_status"
+    table_definition = """
+    `id` Int64,
+    `actor_id` String,
+    `group_id` Int64,
+    `parent_group_id` Nullable(Int64),
+    `tag_id` Int64,
+    `taxonomy_id` Int64,
+    `course_key` String,
+    `group_level` String,
+    `status_id` UInt8,
+    `status` String,
+    `created` String,
+    `modified` String,
+    `dump_id` UUID,
+    `time_last_dumped` String
+    """
+
+    async def _run_task(self):
+        """
+        Insert the learners' course-level criteria group statuses into the event sink db.
+        """
+        statuses = self.event_generator.student_competency_criteria_group_statuses
+        self.update_total_task_count(len(statuses))
+
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        out_data = []
+
+        for s in statuses:
+            out_data.append(
+                f"""(
+                {s["id"]},
+                '{s["actor_id"]}',
+                {s["group_id"]},
+                {s["parent_group_id"]},
+                {s["tag_id"]},
+                {s["taxonomy_id"]},
+                '{s["course_key"]}',
+                '{s["group_level"]}',
+                {s["status_id"]},
+                '{s["status"]}',
+                '{s["created"]}',
+                '{s["modified"]}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+            )
+            self.update_completed_task_count(increment_by=1)
+
+        if out_data:
+            await self._write_list_sql_retry(
+                out_data, "student_competency_criteria_group_status"
+            )
+
+
 class WriteBlocks(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the course block data to S3 using CHDB.
@@ -774,20 +904,17 @@ class WriteObjectTags(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
             obj_tag_out_data = []
             object_tags = course.serialize_object_tag_data_for_event_sink()
 
-            row_id = 0
             for _ in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for obj_tag in object_tags:
-                    row_id += 1
-
                     out_tag = f"""(
-                    {row_id},
+                    {obj_tag["object_tag_id"]},
                     '{obj_tag["object_id"]}',
                     {obj_tag["taxonomy_id"]},
                     {obj_tag["tag_id"]},
                     '{obj_tag["value"]}',
-                    'fake export id',
+                    '{obj_tag["export_id"]}',
                     '{obj_tag["hierarchy"]}',
                     '{dump_id}',
                     '{dump_time}'
@@ -830,9 +957,9 @@ class WriteTaxonomies(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
         dump_time = datetime.now(UTC)
         out_data = []
 
-        for taxonomy in taxonomies.keys():
+        for taxonomy, taxonomy_id in self.event_generator.taxonomy_ids.items():
             out = f"""(
-                {self.completed_task_count},
+                {taxonomy_id},
                 '{taxonomy}',
                 '{dump_id}',
                 '{dump_time}'

@@ -330,6 +330,45 @@ test::
     # real enrollments dumped by the LMS, as with first_catalog_pathway_id.
     first_pathway_enrollment_id: 100001
 
+    # Fake organizations are named <org_prefix>0, <org_prefix>1... A different
+    # prefix keeps a load apart from earlier ones, or from real data, in the
+    # org filters.
+    org_prefix: Org
+
+    # The ids given to the first fake taxonomy, tag and object tag; the rest
+    # count up from them (tag and object tag ids across all taxonomies and
+    # courses). Raise them above the ids of real rows dumped by the LMS into
+    # the same event_sink tables, or the two overwrite each other.
+    first_taxonomy_id: 1
+    first_tag_id: 1
+    first_object_tag_id: 1
+
+    # The taxonomy export id written on every fake object tag. Aspects tells
+    # competency taxonomies apart by an export id starting with "competency-",
+    # so e.g. competency-music makes the fake taxonomy a competency taxonomy.
+    # Only then are learner competency statuses written to
+    # event_sink.student_competency_status, which exists only in Aspects installs
+    # that have run the tutor-contrib-aspects migration
+    # 0043_event_sink_student_competency_status. Each learner enrolled in a
+    # course gets a status on every competency tagged on its blocks: none,
+    # PartiallyAttempted or Demonstrated, with time to mastery spread from hours
+    # to weeks, and parent competencies rolled up the way openedx-core does.
+    taxonomy_export_id: fake export id
+
+    # The id given to the first fake Student Competency Status, kept above the
+    # ids of real statuses dumped by the LMS, as with first_catalog_pathway_id.
+    first_student_competency_status_id: 100001
+
+    # A competency load also writes each learner's status per course to
+    # event_sink.student_competency_criteria_group_status (tutor-contrib-aspects
+    # migration 0044_event_sink_student_competency_criteria_group_status): one
+    # course-level criteria group row per learner, competency and course, which
+    # can be AttemptedNotDemonstrated, the status core never stores per
+    # competency. The fake criteria groups exist only as ids. These are the first
+    # status id and the first group id, kept above the real ones as above.
+    first_competency_group_status_id: 100001
+    first_competency_criteria_group_id: 100001
+
     # The number of learners to create, random subsets of these will be
     # "registered" for each course and have statements generated for them
     # between their registration date and the end of the course

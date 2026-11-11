@@ -87,6 +87,7 @@ class RandomCourse:
         self.forum_post_ids: List[str] = []
         self.actors: list[EnrolledActor] = []
         self.all_tags: list = []
+        self.object_tags: List[Dict] | None = None
         self.start_date: datetime.datetime | None = None
         self.end_date: datetime.datetime | None = None
 
@@ -399,7 +400,14 @@ class RandomCourse:
         return course_structure
 
     def serialize_object_tag_data_for_event_sink(self) -> List[Dict]:
-        """Return list of object_tag dicts for the event-sink schema."""
+        """
+        Return list of object_tag dicts for the event-sink schema.
+
+        The blocks are tagged at random on the first call and the same tags are
+        returned after that, so every caller sees the same object tags.
+        """
+        if self.object_tags is not None:
+            return self.object_tags
         object_tags = []
         cnt = 0
         for block_type in (
@@ -427,4 +435,5 @@ class RandomCourse:
                     )["location"]
                     object_tags.append(object_tag)
 
+        self.object_tags = object_tags
         return object_tags
