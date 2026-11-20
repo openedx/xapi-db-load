@@ -6,18 +6,25 @@ import asyncio
 import datetime
 import logging
 import re
+import statistics
 
 import pytest
 
 from xapi_db_load.constants import (
+    COMPETENCY_MASTERY_MEDIAN_DAYS_RANGE,
     DEFAULT_FIRST_CATALOG_PATHWAY_ID,
     DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID,
+    DEFAULT_FIRST_STUDENT_COMPETENCY_COURSE_STATUS_ID,
+    DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID,
     DEFAULT_NUM_CATALOG_PATHWAYS,
     DEFAULT_NUM_ENROLLMENTS_PER_PATHWAY,
     PATHWAY_CATEGORIES,
 )
+from xapi_db_load.course_configs import Actor
 from xapi_db_load.generate_load_async import (
     EventGenerator,
+    StudentCompetencyStatusRow,
+    _as_utc_datetime,
     to_sink_datetime,
 )
 
@@ -106,6 +113,28 @@ def test_valid_config_does_not_raise():
             },
             "wants more actors",
             id="actors_exceed_num_actors",
+        ),
+        pytest.param({"first_tag_id": 0}, "first_tag_id must be a positive integer", id="tag_id_zero"),
+        pytest.param(
+            {"first_taxonomy_id": "1000"},
+            "first_taxonomy_id must be a positive integer",
+            id="taxonomy_id_string",
+        ),
+        pytest.param(
+            {"first_student_competency_course_status_id": True},
+            "first_student_competency_course_status_id must be a positive integer",
+            id="course_status_id_bool",
+        ),
+        pytest.param(
+            {"taxonomy_type": "competencies"},
+            "taxonomy_type must be one of tags, competency",
+            id="taxonomy_type_misspelled",
+        ),
+        pytest.param({"org_prefix": "Org'"}, "org_prefix must be letters and digits", id="org_prefix_quote"),
+        pytest.param(
+            {"taxonomy_export_id": "it's"},
+            "taxonomy_export_id must be a string without quotes",
+            id="export_id_quote",
         ),
     ],
 )
@@ -342,3 +371,369 @@ def test_pathway_enrollments_none_without_pathways():
     gen = asyncio.run(_make_enrolled_generator(num_catalog_pathways=0))
 
     assert not gen.pathway_enrollments
+
+
+def _competency_generator(**overrides) -> EventGenerator:
+    """A whole setup whose fake taxonomy is a competency taxonomy, with enough learners."""
+    config = {
+        "taxonomy_type": "competency",
+        "taxonomy_export_id": "music",
+        "num_actors": 40,
+        "num_course_sizes": {"small": 3},
+        "course_size_makeup": {
+            "small": {
+                "actors": 30,
+                "problems": 10,
+                "videos": 5,
+                "chapters": 2,
+                "sequences": 6,
+                "verticals": 8,
+                "forum_posts": 1,
+            }
+        },
+    }
+    config.update(overrides)
+    return asyncio.run(_make_enrolled_generator(**config))
+
+
+def test_org_prefix():
+    """org_prefix names the fake organizations, so a load can be told apart in the org filters."""
+    gen = _make_generator(_base_config(num_organizations=2, org_prefix="Competency"))
+    gen.setup_orgs()
+
+    assert gen.orgs == ["Competency0", "Competency1"]
+
+
+def test_first_taxonomy_tag_and_object_tag_ids():
+    """
+    The first_* ids move the fake taxonomy, tag and object tag ids, tag ids are
+    unique across taxonomies, and object tag ids count up across courses.
+    """
+    gen = _competency_generator(first_taxonomy_id=500, first_tag_id=1000, first_object_tag_id=7000)
+
+    assert list(gen.taxonomy_ids.values()) == [500]
+    assert [t["tag_id"] for t in gen.tags] == list(range(1000, 1000 + len(gen.tags)))
+    object_tag_ids = [
+        o["object_tag_id"]
+        for c in gen.courses
+        for o in c.get_object_tags()
+    ]
+    assert object_tag_ids == list(range(7000, 7000 + len(object_tag_ids)))
+    assert {
+        o["export_id"]
+        for c in gen.courses
+        for o in c.get_object_tags()
+    } == {"music"}
+
+
+def test_object_tags_are_stable():
+    """Every call returns the same object tags, so all backends write the same rows."""
+    gen = _competency_generator()
+    course = gen.courses[0]
+
+    assert course.get_object_tags() is course.get_object_tags()
+
+
+def test_no_competency_statuses_without_a_competency_taxonomy():
+    """A "tags" taxonomy isn't a competency taxonomy, so no statuses are generated."""
+    gen = _competency_generator(taxonomy_type="tags")
+
+    assert gen.taxonomy_type == "tags"
+    assert not gen.student_competency_statuses
+    assert not gen.student_competency_course_statuses
+
+
+def test_taxonomy_type_defaults_to_tags():
+    """Without taxonomy_type in the config, the fake taxonomy is a plain "tags" one."""
+    assert "taxonomy_type" not in _base_config()
+    assert _make_generator(_base_config()).taxonomy_type == "tags"
+
+
+def test_competency_statuses_follow_core_rules():
+    """
+    One row per learner and competency, only PartiallyAttempted or Demonstrated,
+    created before modified, a Partially row unchanged since created, ids from the
+    default first id, and every learner a known actor.
+    """
+    gen = _competency_generator()
+    statuses = gen.student_competency_statuses
+    actor_ids = {a.id for a in gen.actors}
+
+    assert statuses
+    assert [s["id"] for s in statuses] == list(
+        range(
+            DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID,
+            DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID + len(statuses),
+        )
+    )
+    assert len({(s["actor_id"], s["tag_id"]) for s in statuses}) == len(statuses)
+    assert {(s["status_id"], s["status_name"]) for s in statuses} == {
+        (20, "PartiallyAttempted"),
+        (30, "Demonstrated"),
+    }
+    for s in statuses:
+        assert s["actor_id"] in actor_ids
+        assert SINK_DATETIME_RE.match(s["created"]), s["created"]
+        assert SINK_DATETIME_RE.match(s["modified"]), s["modified"]
+        created = datetime.datetime.fromisoformat(s["created"])
+        modified = datetime.datetime.fromisoformat(s["modified"])
+        assert created <= modified
+        assert modified.date() <= gen.end_date
+        if s["status_id"] == 20:
+            assert created == modified
+
+
+def test_competency_statuses_only_for_assessed_competencies_and_their_parents():
+    """
+    A learner's statuses cover competencies tagged on their courses' blocks, plus
+    ancestors. A parent is Demonstrated once every child the learner has a status
+    on is, and, unless it is tagged on a block itself, only then.
+    """
+    gen = _competency_generator()
+    tags = {t["tag_id"]: t for t in gen.tags}
+    assessed_by_actor: dict = {}
+    for course in gen.courses:
+        tagged = {o["tag_id"] for o in course.get_object_tags()}
+        for enrolled in course.actors:
+            assessed_by_actor.setdefault(enrolled.actor.id, set()).update(tagged)
+
+    def ancestors(tag_id):
+        parent = tags[tag_id]["parent_int_id"]
+        return set() if parent is None else {parent} | ancestors(parent)
+
+    by_actor: dict = {}
+    for s in gen.student_competency_statuses:
+        by_actor.setdefault(s["actor_id"], {})[s["tag_id"]] = s
+    for actor_id, rows in by_actor.items():
+        allowed = set(assessed_by_actor[actor_id])
+        for tag_id in assessed_by_actor[actor_id]:
+            allowed |= ancestors(tag_id)
+        assert set(rows) <= allowed
+        for tag_id, row in rows.items():
+            children = [r for t, r in rows.items() if tags[t]["parent_int_id"] == tag_id]
+            if not children:
+                continue
+            all_done = all(c["status_id"] == 30 for c in children)
+            if tag_id in assessed_by_actor[actor_id]:
+                # Tagged on a block too: rolling up only ever raises it.
+                if all_done:
+                    assert row["status_id"] == 30
+            else:
+                assert (row["status_id"] == 30) == all_done
+
+
+def test_competency_statuses_spread_time_to_mastery():
+    """
+    Competencies differ in difficulty, from hours to weeks, so their time-to-mastery
+    boxes sit at different heights; within one competency learners still vary.
+    """
+    gen = _competency_generator(num_actors=200, course_size_makeup={
+        "small": {
+            "actors": 150, "problems": 10, "videos": 5, "chapters": 2,
+            "sequences": 6, "verticals": 8, "forum_posts": 1,
+        }
+    })
+    medians = gen.competency_mastery_median_days
+    low, high = COMPETENCY_MASTERY_MEDIAN_DAYS_RANGE
+    assert all(low <= m <= high for m in medians.values())
+    assert max(medians.values()) / min(medians.values()) > 10
+
+    tags = {t["tag_id"]: t for t in gen.tags}
+    leaves = {t for t in tags if not any(o["parent_int_id"] == t for o in tags.values())}
+    by_tag: dict = {}
+    for s in gen.student_competency_statuses:
+        if s["status_id"] == 30 and s["tag_id"] in leaves:
+            days = (
+                datetime.datetime.fromisoformat(s["modified"])
+                - datetime.datetime.fromisoformat(s["created"])
+            ).total_seconds() / 86400
+            by_tag.setdefault(s["tag_id"], []).append(days)
+
+    observed = {t: statistics.median(d) for t, d in by_tag.items() if len(d) >= 20}
+    assert len(observed) >= 3
+    fastest, slowest = min(observed, key=observed.get), max(observed, key=observed.get)
+    assert observed[slowest] > 5 * observed[fastest]
+    assert medians[slowest] > medians[fastest]
+    for days in by_tag.values():
+        if len(days) >= 20:
+            assert max(days) > 1.5 * min(days)
+
+
+def test_first_competency_status_lands_soon_after_enrollment():
+    """A learner's first status comes soon after they enroll, not anywhere in the course."""
+    gen = _competency_generator()
+    enrolled = {}
+    for course in gen.courses:
+        for e in course.actors:
+            when = e.enroll_datetime
+            if not isinstance(when, datetime.datetime):
+                when = datetime.datetime.combine(when, datetime.time(), tzinfo=datetime.UTC)
+            enrolled[e.actor.id] = min(enrolled.get(e.actor.id, when), when)
+    gaps = [
+        (datetime.datetime.fromisoformat(s["created"]) - enrolled[s["actor_id"]]).total_seconds() / 3600
+        for s in gen.student_competency_statuses
+    ]
+    assert min(gaps) >= 0
+    assert statistics.median(gaps) < 48
+
+
+def test_course_statuses_include_attempted_not_demonstrated():
+    """
+    Course-level group statuses use all three stored values, including the
+    AttemptedNotDemonstrated that the competency level never holds, one row per
+    learner, competency and course, with ids from the default first id.
+    """
+    gen = _competency_generator()
+    rows = gen.student_competency_course_statuses
+
+    assert rows
+    assert {r["status_id"] for r in rows} == {10, 20, 30}
+    assert [r["id"] for r in rows] == list(
+        range(
+            DEFAULT_FIRST_STUDENT_COMPETENCY_COURSE_STATUS_ID,
+            DEFAULT_FIRST_STUDENT_COMPETENCY_COURSE_STATUS_ID + len(rows),
+        )
+    )
+    assert len({(r["actor_id"], r["tag_id"], r["course_key"]) for r in rows}) == len(rows)
+    course_keys = {c.course_id for c in gen.courses}
+    assert {r["course_key"] for r in rows} <= course_keys
+    # One course group per competency and course; no group tree columns.
+    groups = {(r["tag_id"], r["course_key"]): r["group_id"] for r in rows}
+    assert len(set(groups.values())) == len(groups)
+    assert not {"parent_group_id", "group_level"} & set(rows[0])
+
+
+def test_competency_status_agrees_with_course_statuses():
+    """
+    A leaf competency's row is Demonstrated exactly when some course group is,
+    and otherwise PartiallyAttempted, including when every course is
+    AttemptedNotDemonstrated, as core's rollup records it. A parent's row is at
+    least that, as its children may raise it.
+    """
+    gen = _competency_generator()
+    by_pair: dict = {}
+    for r in gen.student_competency_course_statuses:
+        by_pair.setdefault((r["actor_id"], r["tag_id"]), []).append(r["status_id"])
+    competency = {(s["actor_id"], s["tag_id"]): s["status_id"] for s in gen.student_competency_statuses}
+
+    parents = {t["parent_int_id"] for t in gen.tags}
+
+    assert by_pair
+    for (actor_id, tag_id), course_statuses in by_pair.items():
+        from_courses = 30 if 30 in course_statuses else 20
+        if tag_id in parents:
+            # Its children can raise it further, never lower it.
+            assert competency[(actor_id, tag_id)] >= from_courses
+        else:
+            assert competency[(actor_id, tag_id)] == from_courses
+
+
+def test_as_utc_datetime():
+    """Plain dates and naive datetimes become UTC datetimes; aware ones are kept."""
+    utc = datetime.timezone.utc
+    assert _as_utc_datetime(datetime.date(2024, 1, 2)) == datetime.datetime(2024, 1, 2, tzinfo=utc)
+    assert _as_utc_datetime(datetime.datetime(2024, 1, 2, 3)) == datetime.datetime(2024, 1, 2, 3, tzinfo=utc)
+    aware = datetime.datetime(2024, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=-5)))
+    assert _as_utc_datetime(aware) is aware
+
+
+def _status(actor, status_id, created_day, modified_day=None):
+    """A competency-level row created and modified on days of January 2023."""
+    def day(d):
+        return datetime.datetime(2023, 1, d, tzinfo=datetime.UTC)
+    return StudentCompetencyStatusRow(
+        actor, status_id, day(created_day), day(modified_day or created_day)
+    )
+
+
+def _tags(parents: dict) -> dict:
+    """tags_by_id from tag_id -> parent tag id."""
+    return {t: {"tag_id": t, "parent_int_id": p} for t, p in parents.items()}
+
+
+def _actor():
+    return Actor(1)
+
+
+def test_roll_up_raises_a_parent_with_its_own_status():
+    """
+    A parent tagged on a block has its own status; once every child is
+    Demonstrated, rolling up raises it to Demonstrated instead of skipping it.
+    """
+    actor = _actor()
+    statuses = {
+        (1, 1): _status(actor, 20, 2),
+        (1, 2): _status(actor, 30, 3, 9),
+    }
+    EventGenerator.roll_up_statuses(statuses, _tags({1: None, 2: 1}))
+
+    parent = statuses[(1, 1)]
+    assert parent.status_id == 30
+    assert parent.created == datetime.datetime(2023, 1, 2, tzinfo=datetime.UTC)
+    assert parent.modified == datetime.datetime(2023, 1, 9, tzinfo=datetime.UTC)
+
+
+def test_roll_up_never_lowers_a_parent():
+    """A Demonstrated parent stays Demonstrated when a child is only PartiallyAttempted."""
+    actor = _actor()
+    statuses = {
+        (1, 1): _status(actor, 30, 2, 4),
+        (1, 2): _status(actor, 20, 1),
+    }
+    EventGenerator.roll_up_statuses(statuses, _tags({1: None, 2: 1}))
+
+    parent = statuses[(1, 1)]
+    assert parent.status_id == 30
+    assert parent.modified == datetime.datetime(2023, 1, 4, tzinfo=datetime.UTC)
+
+
+def test_roll_up_walks_every_level():
+    """Grandparents are computed from parents that were themselves rolled up."""
+    actor = _actor()
+    statuses = {
+        (1, 3): _status(actor, 30, 1, 5),
+        (1, 4): _status(actor, 30, 2, 6),
+    }
+    EventGenerator.roll_up_statuses(statuses, _tags({1: None, 2: 1, 3: 2, 4: 2}))
+
+    assert statuses[(1, 2)].status_id == 30
+    assert statuses[(1, 1)].status_id == 30
+    assert statuses[(1, 1)].modified == datetime.datetime(2023, 1, 6, tzinfo=datetime.UTC)
+
+
+def test_roll_up_handles_a_root_tag_with_id_zero():
+    """A parent id of 0 is still a parent: only None means a root tag."""
+    actor = _actor()
+    statuses = {(1, 1): _status(actor, 30, 1, 3)}
+    EventGenerator.roll_up_statuses(statuses, _tags({0: None, 1: 0}))
+
+    assert statuses[(1, 0)].status_id == 30
+
+
+def test_fold_in_keeps_first_mastery_and_earliest_creation():
+    """A second Demonstrated keeps the first mastery time; created is the earliest."""
+    row = _status(_actor(), 30, 3, 5)
+    row.fold_in(30, datetime.datetime(2023, 1, 1, tzinfo=datetime.UTC),
+                datetime.datetime(2023, 1, 8, tzinfo=datetime.UTC))
+
+    assert row.created == datetime.datetime(2023, 1, 1, tzinfo=datetime.UTC)
+    assert row.modified == datetime.datetime(2023, 1, 5, tzinfo=datetime.UTC)
+
+
+def test_fold_in_partially_attempted_keeps_modified_at_created():
+    """A PartiallyAttempted row was never raised, so modified follows the earliest created."""
+    row = _status(_actor(), 20, 5)
+    row.fold_in(20, datetime.datetime(2023, 1, 2, tzinfo=datetime.UTC),
+                datetime.datetime(2023, 1, 2, tzinfo=datetime.UTC))
+
+    assert row.created == row.modified == datetime.datetime(2023, 1, 2, tzinfo=datetime.UTC)
+
+
+def test_object_tags_drop_the_fixture_id():
+    """Object tags carry object_tag_id, not the source tag's fixture id."""
+    gen = _competency_generator()
+
+    for course in gen.courses:
+        for object_tag in course.get_object_tags():
+            assert "id" not in object_tag
+            assert "object_tag_id" in object_tag

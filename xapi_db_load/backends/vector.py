@@ -23,6 +23,8 @@ from xapi_db_load.backends.clickhouse import (
     InsertObjectTags,
     InsertPathwayEnrollments,
     InsertProfiles,
+    InsertStudentCompetencyCourseStatuses,
+    InsertStudentCompetencyStatuses,
     InsertTags,
     InsertTaxonomies,
     InsertXAPIEvents,
@@ -46,6 +48,9 @@ class AsyncVectorTasks(BaseBackendTasks):
             InsertCourses(self.config, self.logger, self.event_generator),
             InsertCatalogPathways(self.config, self.logger, self.event_generator),
             InsertPathwayEnrollments(self.config, self.logger, self.event_generator),
+            *self.competency_tasks(
+                InsertStudentCompetencyStatuses, InsertStudentCompetencyCourseStatuses
+            ),
             InsertBlocks(self.config, self.logger, self.event_generator),
             InsertObjectTags(self.config, self.logger, self.event_generator),
             InsertTaxonomies(self.config, self.logger, self.event_generator),

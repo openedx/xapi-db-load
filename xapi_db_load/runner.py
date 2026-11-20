@@ -95,6 +95,18 @@ class Runner:
         for r in results:
             if isinstance(r, Exception):
                 raise r
+
+        # The S3 loader logs a failed file and goes on with the others, so the run
+        # only learns of it here.
+        failed_loads = sum(getattr(task, "error_count", 0) for task in self.test_data_tasks)
+        if failed_loads:
+            self.running = False
+            # Every task has finished, so log_status would soon report the run
+            # as complete; stop it so the failure is the last word.
+            log_status_task.cancel()
+            raise RuntimeError(
+                f"{failed_loads} database load job(s) failed, see the errors logged above."
+            )
         self.running = False
         self.finished = True
         self.logger.info(

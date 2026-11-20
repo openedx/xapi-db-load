@@ -50,6 +50,10 @@ class AsyncCSVTasks(BaseBackendTasks):
             WriteCSVCourses(self.config, self.logger, self.event_generator),
             WriteCSVCatalogPathways(self.config, self.logger, self.event_generator),
             WriteCSVPathwayEnrollments(self.config, self.logger, self.event_generator),
+            *self.competency_tasks(
+                WriteCSVStudentCompetencyStatuses,
+                WriteCSVStudentCompetencyCourseStatuses,
+            ),
             WriteCSVBlocks(self.config, self.logger, self.event_generator),
             WriteCSVObjectTags(self.config, self.logger, self.event_generator),
             WriteCSVTaxonomies(self.config, self.logger, self.event_generator),
@@ -130,8 +134,7 @@ class XAPILakeCSVAsync(BaseClickhouseBackend):
             SELECT *
             FROM s3('{file}', '{self.config["s3_key"]}', '{self.config["s3_secret"]}', 'CSV');
         """
-        assert self.client
-        await self.client.command(sql)
+        await self._run_sql_command(sql)
 
 
 class WriteCSVXAPIEvents(XAPILakeCSVAsync):
@@ -299,6 +302,84 @@ class WriteCSVPathwayEnrollments(XAPILakeCSVAsync):
                 self.update_completed_task_count(increment_by=1)
 
 
+class WriteCSVStudentCompetencyStatuses(XAPILakeCSVAsync):
+    """Writes Student Competency Status data to a gzipped CSV file."""
+
+    task_name = "Write CSV Student Competency Statuses"
+    schema = "event_sink"
+    table = "student_competency_status"
+    filename = "student_competency_statuses.csv.gz"
+
+    async def _run_task(self):
+        """
+        Write out the learners' competency statuses data file, all under one dump.
+        """
+        async with self.get_csv_handle("student_competency_statuses") as status_csv_writer:
+            statuses = self.event_generator.student_competency_statuses
+            self.update_total_task_count(len(statuses))
+
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.now(UTC)
+
+            for s in statuses:
+                status_csv_writer.writerow(
+                    (
+                        s["id"],
+                        s["actor_id"],
+                        s["tag_id"],
+                        s["taxonomy_id"],
+                        s["status_id"],
+                        s["status_name"],
+                        s["created"],
+                        s["modified"],
+                        dump_id,
+                        dump_time,
+                    )
+                )
+                self.update_completed_task_count(increment_by=1)
+
+
+class WriteCSVStudentCompetencyCourseStatuses(XAPILakeCSVAsync):
+    """Writes Student Competency Course Status data to a gzipped CSV file."""
+
+    task_name = "Write CSV Student Competency Course Statuses"
+    schema = "event_sink"
+    table = "student_competency_course_status"
+    filename = "student_competency_course_statuses.csv.gz"
+
+    async def _run_task(self):
+        """
+        Write out the learners' course-level criteria group statuses data file, all under one dump.
+        """
+        async with self.get_csv_handle(
+            "student_competency_course_statuses"
+        ) as status_csv_writer:
+            statuses = self.event_generator.student_competency_course_statuses
+            self.update_total_task_count(len(statuses))
+
+            dump_id = str(uuid.uuid4())
+            dump_time = datetime.now(UTC)
+
+            for s in statuses:
+                status_csv_writer.writerow(
+                    (
+                        s["id"],
+                        s["actor_id"],
+                        s["group_id"],
+                        s["tag_id"],
+                        s["taxonomy_id"],
+                        s["course_key"],
+                        s["status_id"],
+                        s["status_name"],
+                        s["created"],
+                        s["modified"],
+                        dump_id,
+                        dump_time,
+                    )
+                )
+                self.update_completed_task_count(increment_by=1)
+
+
 class WriteCSVBlocks(XAPILakeCSVAsync):
     """Writes course block data to a gzipped CSV file."""
 
@@ -358,23 +439,21 @@ class WriteCSVObjectTags(XAPILakeCSVAsync):
                 len(self.event_generator.courses) * num_course_publishes
             )
 
-            row_id = 0
             for course in self.event_generator.courses:
-                object_tags = course.serialize_object_tag_data_for_event_sink()
+                object_tags = course.get_object_tags()
 
                 for _ in range(num_course_publishes):
                     dump_id = str(uuid.uuid4())
                     dump_time = datetime.now(UTC)
                     for obj_tag in object_tags:
-                        row_id += 1
                         object_tag_csv_writer.writerow(
                             (
-                                row_id,
+                                obj_tag["object_tag_id"],
                                 obj_tag["object_id"],
                                 obj_tag["taxonomy_id"],
                                 obj_tag["tag_id"],
                                 obj_tag["value"],
-                                "fake export id",
+                                obj_tag["export_id"],
                                 obj_tag["hierarchy"],
                                 dump_id,
                                 dump_time,
@@ -403,10 +482,18 @@ class WriteCSVTaxonomies(XAPILakeCSVAsync):
             dump_id = str(uuid.uuid4())
             dump_time = datetime.now(UTC)
 
-            tag_id = 1
-            for taxonomy in taxonomies.keys():
-                tag_id += 1
-                taxonomy_csv_writer.writerow((tag_id, taxonomy, dump_id, dump_time))
+            for taxonomy, taxonomy_id in self.event_generator.taxonomy_ids.items():
+                taxonomy_csv_writer.writerow(
+                    (
+                        taxonomy_id,
+                        taxonomy,
+                        dump_id,
+                        dump_time,
+                        # Last: migration 0045 appends the column to event_sink.taxonomy,
+                        # and rows go in by position.
+                        self.event_generator.taxonomy_type,
+                    )
+                )
                 self.update_completed_task_count(increment_by=1)
 
 

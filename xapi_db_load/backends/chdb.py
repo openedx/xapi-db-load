@@ -85,6 +85,11 @@ class AsyncCHDBTasks(BaseBackendTasks):
                 self.event_generator,
                 self.db_loader,
             ),
+            *self.competency_tasks(
+                WriteStudentCompetencyStatuses,
+                WriteStudentCompetencyCourseStatuses,
+                db_loader=self.db_loader,
+            ),
             WriteBlocks(
                 self.config,
                 self.logger,
@@ -297,9 +302,20 @@ class XAPILakeCHDBAsync(QueueBackend):  # pylint: disable=abstract-method
         try:
             await loop.run_in_executor(None, chdb.query, sql)
         except Exception as e:  # pylint: disable=broad-exception-caught
-            self.logger.info(f"Retrying due to CHDB error: {e}")
-            self.logger.info(f"SQL: {sql}")
-            await loop.run_in_executor(None, chdb.query, sql)
+            # chdb raises one error type for everything, so a dropped S3
+            # connection can't be told apart from bad SQL: retry once either way.
+            self.logger.warning(
+                f"CHDB error writing {self.table}, retrying once: {self.redact(str(e))}"
+            )
+            self.logger.warning(f"SQL: {self.sql_for_log(sql)}")
+            try:
+                await loop.run_in_executor(None, chdb.query, sql)
+            except Exception as retry_error:
+                # Raised anew, without the original as its cause: chdb's message
+                # can quote the SQL, credentials included.
+                raise RuntimeError(
+                    f"CHDB write of {self.table} failed twice: {self.redact(str(retry_error))}"
+                ) from None
 
 
 class WriteXAPIEvents(XAPILakeCHDBAsync):
@@ -666,6 +682,120 @@ class WritePathwayEnrollments(XAPILakeCHDBAsync):  # pylint: disable=abstract-me
             await self._write_list_sql_retry(out_data, "pathway_enrollment")
 
 
+class WriteStudentCompetencyStatuses(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
+    """
+    Write the learners' competency statuses to S3 using CHDB, all under one dump.
+    """
+
+    task_name = "Insert Student Competency Statuses"
+    schema = "event_sink"
+    table = "student_competency_status"
+    s3_load_prefix = "student_competency_status"
+    table_definition = """
+    `id` Int64,
+    `actor_id` String,
+    `tag_id` Int64,
+    `taxonomy_id` Int64,
+    `status_id` UInt8,
+    `status_name` String,
+    `created` String,
+    `modified` String,
+    `dump_id` UUID,
+    `time_last_dumped` String
+    """
+
+    async def _run_task(self):
+        """
+        Insert the learners' competency statuses into the event sink db.
+        """
+        statuses = self.event_generator.student_competency_statuses
+        self.update_total_task_count(len(statuses))
+
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        out_data = []
+
+        for s in statuses:
+            out_data.append(
+                f"""(
+                {s["id"]},
+                '{s["actor_id"]}',
+                {s["tag_id"]},
+                {s["taxonomy_id"]},
+                {s["status_id"]},
+                '{s["status_name"]}',
+                '{s["created"]}',
+                '{s["modified"]}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+            )
+            self.update_completed_task_count(increment_by=1)
+
+        if out_data:
+            await self._write_list_sql_retry(out_data, "student_competency_status")
+
+
+class WriteStudentCompetencyCourseStatuses(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
+    """
+    Write the learners' course-level criteria group statuses to S3 using CHDB, all under one dump.
+    """
+
+    task_name = "Insert Student Competency Course Statuses"
+    schema = "event_sink"
+    table = "student_competency_course_status"
+    s3_load_prefix = "student_competency_course_status"
+    table_definition = """
+    `id` Int64,
+    `actor_id` String,
+    `group_id` Int64,
+    `tag_id` Int64,
+    `taxonomy_id` Int64,
+    `course_key` String,
+    `status_id` UInt8,
+    `status_name` String,
+    `created` String,
+    `modified` String,
+    `dump_id` UUID,
+    `time_last_dumped` String
+    """
+
+    async def _run_task(self):
+        """
+        Insert the learners' course-level criteria group statuses into the event sink db.
+        """
+        statuses = self.event_generator.student_competency_course_statuses
+        self.update_total_task_count(len(statuses))
+
+        dump_id = str(uuid.uuid4())
+        dump_time = datetime.now(UTC)
+        out_data = []
+
+        for s in statuses:
+            out_data.append(
+                f"""(
+                {s["id"]},
+                '{s["actor_id"]}',
+                {s["group_id"]},
+                {s["tag_id"]},
+                {s["taxonomy_id"]},
+                '{s["course_key"]}',
+                {s["status_id"]},
+                '{s["status_name"]}',
+                '{s["created"]}',
+                '{s["modified"]}',
+                '{dump_id}',
+                '{dump_time}'
+            )"""
+            )
+            self.update_completed_task_count(increment_by=1)
+
+        if out_data:
+            await self._write_list_sql_retry(
+                out_data, "student_competency_course_status"
+            )
+
+
 class WriteBlocks(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     """
     Write the course block data to S3 using CHDB.
@@ -772,22 +902,19 @@ class WriteObjectTags(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
         for course in self.event_generator.courses:
             course_count += 1
             obj_tag_out_data = []
-            object_tags = course.serialize_object_tag_data_for_event_sink()
+            object_tags = course.get_object_tags()
 
-            row_id = 0
             for _ in range(num_course_publishes):
                 dump_id = str(uuid.uuid4())
                 dump_time = datetime.now(UTC)
                 for obj_tag in object_tags:
-                    row_id += 1
-
                     out_tag = f"""(
-                    {row_id},
+                    {obj_tag["object_tag_id"]},
                     '{obj_tag["object_id"]}',
                     {obj_tag["taxonomy_id"]},
                     {obj_tag["tag_id"]},
                     '{obj_tag["value"]}',
-                    'fake export id',
+                    '{obj_tag["export_id"]}',
                     '{obj_tag["hierarchy"]}',
                     '{dump_id}',
                     '{dump_time}'
@@ -812,11 +939,14 @@ class WriteTaxonomies(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
     schema = "event_sink"
     table = "taxonomy"
     s3_load_prefix = "taxonomy"
+    # taxonomy_type is last: migration 0045 appends it to event_sink.taxonomy,
+    # and the S3 load inserts by position (SELECT *).
     table_definition = """
     `id` Int32,
     `name` String,
     `dump_id` UUID,
-    `time_last_dumped` String
+    `time_last_dumped` String,
+    `taxonomy_type` String
     """
 
     async def _run_task(self):
@@ -830,12 +960,13 @@ class WriteTaxonomies(XAPILakeCHDBAsync):  # pylint: disable=abstract-method
         dump_time = datetime.now(UTC)
         out_data = []
 
-        for taxonomy in taxonomies.keys():
+        for taxonomy, taxonomy_id in self.event_generator.taxonomy_ids.items():
             out = f"""(
-                {self.completed_task_count},
+                {taxonomy_id},
                 '{taxonomy}',
                 '{dump_id}',
-                '{dump_time}'
+                '{dump_time}',
+                '{self.event_generator.taxonomy_type}'
             )
             """
             out_data.append(out)
@@ -1127,11 +1258,16 @@ class LoadFromS3(XAPILakeCHDBAsync):
                 batch["schema"], batch["table_name"], batch["file_path"]
             )
         except Exception as e:  # pylint: disable=broad-exception-caught
+            # One failed file doesn't stop the other loads; the Runner fails the
+            # run at the end when error_count is above 0.
             self.update_error_count()
-            self.logger.error(batch)
+            self.logger.error(self.redact(str(batch)))
             self.logger.error(
-                f"   DB load worker encountered an error: {worker_id}, job {batch['job_id']}.",
-                exc_info=e,
+                f"   DB load worker encountered an error: {worker_id}, job {batch['job_id']}, "
+                f"loading {batch['schema']}.{batch['table_name']}: "
+                f"{type(e).__name__}: {self.redact(str(e))}. If the "
+                "table or one of its columns is missing, run the tutor-contrib-aspects "
+                "migrations listed in the README."
             )
         finally:
             self.update_completed_task_count(increment_by=1)
@@ -1151,7 +1287,7 @@ class LoadFromS3(XAPILakeCHDBAsync):
         """
 
         # This is the IO bound part, this thread will block until the write is complete.
-        await self._insert_sql_with_retry(sql)
+        await self._run_sql_command(sql)
 
     async def _run_db_load_task(self):
         """

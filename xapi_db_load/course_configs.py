@@ -87,6 +87,7 @@ class RandomCourse:
         self.forum_post_ids: List[str] = []
         self.actors: list[EnrolledActor] = []
         self.all_tags: list = []
+        self._object_tags: List[Dict] | None = None
         self.start_date: datetime.datetime | None = None
         self.end_date: datetime.datetime | None = None
 
@@ -398,8 +399,18 @@ class RandomCourse:
 
         return course_structure
 
-    def serialize_object_tag_data_for_event_sink(self) -> List[Dict]:
-        """Return list of object_tag dicts for the event-sink schema."""
+    def get_object_tags(self) -> List[Dict]:
+        """
+        Return this course's object tag dicts for the event-sink schema.
+
+        The blocks are tagged at random on the first call, and that same list
+        (not a copy) is returned after that, so every caller sees the same object
+        tags. ``EventGenerator.setup_object_tags`` adds ``object_tag_id`` and
+        ``export_id`` to these dicts in place during setup, so callers that need
+        those keys must run after setup.
+        """
+        if self._object_tags is not None:
+            return self._object_tags
         object_tags = []
         cnt = 0
         for block_type in (
@@ -420,6 +431,8 @@ class RandomCourse:
                 for _ in range(num_tags):
                     tag = random.choice(self.all_tags)
                     object_tag = copy.deepcopy(tag)
+                    # The tag's own fixture id; object tags get object_tag_id.
+                    del object_tag["id"]
                     # TODO: Need to break this call out to only return what we need, or refactor
                     # storing the object id so we don't have to do this twice
                     object_tag["object_id"] = self._serialize_block(
@@ -427,4 +440,5 @@ class RandomCourse:
                     )["location"]
                     object_tags.append(object_tag)
 
+        self._object_tags = object_tags
         return object_tags

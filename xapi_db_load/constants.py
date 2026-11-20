@@ -58,6 +58,67 @@ DEFAULT_FIRST_PATHWAY_ENROLLMENT_ID = 100001
 # Share of fake Pathway Enrollments that end up unenrolled (``is_active`` False).
 PATHWAY_UNENROLLED_RATIO = 0.1
 
+# Defaults of the ``org_prefix``, ``taxonomy_export_id`` and ``taxonomy_type``
+# config keys (see README for what each does).
+DEFAULT_ORG_PREFIX = "Org"
+DEFAULT_TAXONOMY_EXPORT_ID = "fake export id"
+
+# The values the platform-plugin-aspects taxonomy sink writes in
+# ``event_sink.taxonomy.taxonomy_type``: "competency" for an openedx-core
+# CompetencyTaxonomy, "tags" otherwise. Only these two are accepted.
+TAXONOMY_TYPE_TAGS = "tags"
+TAXONOMY_TYPE_COMPETENCY = "competency"
+TAXONOMY_TYPES = (TAXONOMY_TYPE_TAGS, TAXONOMY_TYPE_COMPETENCY)
+DEFAULT_TAXONOMY_TYPE = TAXONOMY_TYPE_TAGS
+
+# Defaults of ``first_taxonomy_id``, ``first_tag_id`` and ``first_object_tag_id``.
+# They stay at 1, not above the real ids like the status ids below, because
+# earlier loads always numbered these rows from 1: a load with the defaults
+# keeps replacing the same fake rows instead of adding a second copy.
+DEFAULT_FIRST_TAXONOMY_ID = 1
+DEFAULT_FIRST_TAG_ID = 1
+DEFAULT_FIRST_OBJECT_TAG_ID = 1
+
+# Defaults of ``first_student_competency_status_id``,
+# ``first_student_competency_course_status_id`` and
+# ``first_competency_criteria_group_id``, kept above the ids of real rows dumped
+# by the LMS, as with ``DEFAULT_FIRST_CATALOG_PATHWAY_ID``.
+DEFAULT_FIRST_STUDENT_COMPETENCY_STATUS_ID = 100001
+DEFAULT_FIRST_STUDENT_COMPETENCY_COURSE_STATUS_ID = 100001
+DEFAULT_FIRST_COMPETENCY_CRITERIA_GROUP_ID = 100001
+
+# openedx-core mastery status ids and the names the sinks write next to them.
+# Core never stores AttemptedNotDemonstrated at the competency level, only on
+# criteria groups, and "not started" is no row at all. The ids rank the statuses:
+# a higher id is further along, and the generator compares them with max() and >.
+MASTERY_STATUS_ATTEMPTED_NOT_DEMONSTRATED = 10
+MASTERY_STATUS_PARTIALLY_ATTEMPTED = 20
+MASTERY_STATUS_DEMONSTRATED = 30
+MASTERY_STATUS_NAMES = {
+    MASTERY_STATUS_ATTEMPTED_NOT_DEMONSTRATED: "AttemptedNotDemonstrated",
+    MASTERY_STATUS_PARTIALLY_ATTEMPTED: "PartiallyAttempted",
+    MASTERY_STATUS_DEMONSTRATED: "Demonstrated",
+}
+
+# How a learner enrolled in a course stands on each competency the course
+# assesses: the course-level criteria group status, drawn with these weights for
+# (no status, AttemptedNotDemonstrated, PartiallyAttempted, Demonstrated). The
+# competency-level status records AttemptedNotDemonstrated as PartiallyAttempted.
+COMPETENCY_COURSE_STATUS_WEIGHTS = (0.2, 0.15, 0.25, 0.4)
+
+# A learner's first status on a competency lands soon after they enroll: an
+# exponential delay with this median, in hours. Their first xAPI activity in the
+# course comes after the enrollment too, so time to mastery measured from either
+# one is mostly the mastery time below.
+COMPETENCY_FIRST_STATUS_MEDIAN_HOURS = 12.0
+
+# Each competency gets its own difficulty: the median time its learners take to
+# demonstrate it, drawn log-uniformly from this range (in days) on every run, so
+# some take hours and others weeks. Each learner then takes a log-normal time
+# around that median with this sigma.
+COMPETENCY_MASTERY_MEDIAN_DAYS_RANGE = (0.15, 30.0)
+COMPETENCY_MASTERY_SIGMA = 0.6
+
 # Range of "course runs" generated per logical course (inclusive of low,
 # exclusive of high — passed straight to ``random.randrange``).
 MIN_COURSE_RUNS = 1
